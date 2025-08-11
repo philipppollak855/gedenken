@@ -1,8 +1,9 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Ungenutzte Imports und Variablen entfernt, um den Netlify-Build-Fehler zu beheben.
+// KORRIGIERT: 'user' und 'Link' wieder korrekt eingebunden, um den "Seite verwalten"-Button für den Eigentümer anzuzeigen.
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import AuthContext from '../../context/AuthContext';
 import InlineExpandArea from './InlineExpandArea';
 import './MemorialPage.css';
 
@@ -15,6 +16,7 @@ const MemorialPage = () => {
     const [isCardFlipped, setIsCardFlipped] = useState(false);
     const [expandedView, setExpandedView] = useState(null);
     const { slug } = useParams();
+    const { user } = useContext(AuthContext); // Wieder eingebunden
     const expandAreaRef = useRef(null);
 
     const formatDate = (dateString) => {
@@ -58,6 +60,9 @@ const MemorialPage = () => {
         e.stopPropagation();
         setShowSideBySideLightbox(true);
     };
+
+    // Logik zur Überprüfung, ob der eingeloggte Benutzer der Eigentümer ist
+    const isOwner = user && pageData && user.user_id === pageData.user;
 
     if (isLoading) return <div className="loading-spinner"><div className="spinner"></div></div>;
     if (!pageData) return <h1 className="text-center text-2xl font-bold mt-10">Gedenkseite nicht gefunden</h1>;
@@ -177,6 +182,15 @@ const MemorialPage = () => {
                     />
                 )}
             </div>
+
+            {/* "Seite verwalten"-Button wird nur für den Eigentümer angezeigt */}
+            {isOwner && (
+                <div className="manage-button-container">
+                    <Link to={`/gedenken/${slug}/verwalten`} className="manage-button-link">
+                        Diese Gedenkseite verwalten
+                    </Link>
+                </div>
+            )}
         </div>
     );
 };

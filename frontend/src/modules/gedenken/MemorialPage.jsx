@@ -1,9 +1,8 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Ungenutzte 'Link'- und 'user'-Variablen entfernt, um den Netlify-Build-Fehler zu beheben.
+// KORRIGIERT: Ungenutzte Imports und Variablen entfernt, um den Netlify-Build-Fehler zu beheben.
 
-import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
-import { useParams } from 'react-router-dom'; // 'Link' wurde entfernt
-import AuthContext from '../../context/AuthContext';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import InlineExpandArea from './InlineExpandArea';
 import './MemorialPage.css';
 
@@ -16,7 +15,6 @@ const MemorialPage = () => {
     const [isCardFlipped, setIsCardFlipped] = useState(false);
     const [expandedView, setExpandedView] = useState(null);
     const { slug } = useParams();
-    // const { user } = useContext(AuthContext); // Entfernt, da nicht verwendet
     const expandAreaRef = useRef(null);
 
     const formatDate = (dateString) => {

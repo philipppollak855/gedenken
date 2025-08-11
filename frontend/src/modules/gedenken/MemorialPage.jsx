@@ -25,9 +25,10 @@ const MemorialPage = () => {
     const fetchPageData = useCallback(async () => {
         setIsLoading(true);
         try {
+            const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
             const [pageRes, settingsRes] = await Promise.all([
-                 fetch(`${process.env.REACT_APP_API_URL}/api/memorial-pages/${slug}/`),
-                 fetch(`${process.env.REACT_APP_API_URL}/api/settings/`)
+                 fetch(`${apiUrl}/api/memorial-pages/${slug}/`),
+                 fetch(`${apiUrl}/api/settings/`)
             ]);
             if (pageRes.ok) setPageData(await pageRes.json()); else setPageData(null);
             if (settingsRes.ok) setSettings(await settingsRes.json());

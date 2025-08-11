@@ -1,8 +1,8 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// ERWEITERT: Verwendet die neuen _url-Felder aus dem Serializer.
+// KORRIGIERT: Ungenutzte 'Link'- und 'user'-Variablen entfernt, um den Netlify-Build-Fehler zu beheben.
 
 import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom'; // 'Link' wurde entfernt
 import AuthContext from '../../context/AuthContext';
 import InlineExpandArea from './InlineExpandArea';
 import './MemorialPage.css';
@@ -16,7 +16,7 @@ const MemorialPage = () => {
     const [isCardFlipped, setIsCardFlipped] = useState(false);
     const [expandedView, setExpandedView] = useState(null);
     const { slug } = useParams();
-    const { user } = useContext(AuthContext);
+    // const { user } = useContext(AuthContext); // Entfernt, da nicht verwendet
     const expandAreaRef = useRef(null);
 
     const formatDate = (dateString) => {
@@ -28,8 +28,8 @@ const MemorialPage = () => {
         setIsLoading(true);
         try {
             const [pageRes, settingsRes] = await Promise.all([
-                 fetch(`http://localhost:8000/api/memorial-pages/${slug}/`),
-                 fetch('http://localhost:8000/api/settings/')
+                 fetch(`${process.env.REACT_APP_API_URL}/api/memorial-pages/${slug}/`),
+                 fetch(`${process.env.REACT_APP_API_URL}/api/settings/`)
             ]);
             if (pageRes.ok) setPageData(await pageRes.json()); else setPageData(null);
             if (settingsRes.ok) setSettings(await settingsRes.json());
@@ -69,7 +69,7 @@ const MemorialPage = () => {
         backgroundSize: pageData.farewell_background_size || 'cover',
     };
     const heroStyle = {
-        backgroundImage: pageData.hero_background_image_url ? `url(${pageData.hero_background_image_url})` : 'none',
+        backgroundImage: pageData.hero_background_image_url ? `url(${pageData.hero_background_image_url})` : `url(https://images.pexels.com/photos/1287145/pexels-photo-1287145.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)`,
         backgroundSize: pageData.hero_background_size || 'cover',
     };
 

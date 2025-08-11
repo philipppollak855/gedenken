@@ -1,0 +1,176 @@
+.memorial-listing-page {
+    width: 100%;
+}
+
+.listing-hero-section {
+    height: calc(100vh - 80px);
+    margin-top: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    padding: 1rem 2rem;
+    box-sizing: border-box;
+}
+
+.listing-title {
+    font-size: 2.5rem;
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 0.5rem;
+}
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    max-width: 90vw;
+    display: flex;
+    align-items: center;
+}
+
+.memorial-cards-carousel {
+    display: flex;
+    overflow-x: hidden;
+    scroll-snap-type: x mandatory;
+    width: 100%;
+}
+
+.carousel-page {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 1rem;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+.scroll-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    font-size: 3rem;
+    cursor: pointer;
+    z-index: 10;
+    padding: 0 1rem;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+.scroll-arrow:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+.scroll-arrow.left { left: -2rem; }
+.scroll-arrow.right { right: -2rem; }
+
+.memorial-card {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    height: 380px;
+}
+.memorial-card:hover {
+    transform: translateY(-8px);
+}
+.memorial-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+.card-info {
+    padding: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    overflow: hidden; /* Verhindert, dass der Inhalt überläuft */
+}
+.card-info h3 {
+    margin: 0;
+    line-height: 1.1;
+    overflow-wrap: normal;
+    white-space: nowrap;
+}
+.card-info .card-firstname,
+.card-info .card-lastname {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+.card-birthname-container {
+    height: 1.5em;
+    margin-top: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.card-birthname {
+    font-size: 1rem;
+    font-weight: 400 !important;
+}
+.card-deathdate {
+    font-size: 0.9rem;
+    margin-top: auto;
+}
+
+.search-section {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    box-sizing: border-box;
+    background-size: cover;
+    background-position: center;
+}
+.search-section h2 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+}
+.search-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+.search-controls input, .search-controls select {
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    width: 200px;
+}
+.search-results {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    width: 100%;
+    max-width: 90vw;
+    height: 410px;
+    align-items: center;
+}
+.search-results .memorial-card {
+    height: 380px;
+    flex-basis: calc(20% - 1.6rem);
+}
+.search-results .memorial-card.highlighted {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.search-helper-text {
+    font-size: 1.2rem;
+    max-width: 600px;
+    text-align: center;
+    line-height: 1.6;
+}

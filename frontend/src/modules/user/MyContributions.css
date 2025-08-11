@@ -1,0 +1,99 @@
+/* frontend/src/modules/user/MyContributions.css */
+/* DIESE DATEI IST NEU */
+
+.my-contributions-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.my-contributions-container h1 {
+    font-family: 'Playfair Display', serif;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.my-contributions-container p {
+    text-align: center;
+    color: #666;
+    margin-bottom: 3rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.contributions-section {
+    margin-bottom: 2.5rem;
+}
+
+.contributions-section h2 {
+    font-family: 'Playfair Display', serif;
+    border-bottom: 2px solid #e5e0da;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    color: #3a3a3a;
+}
+
+.contribution-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    margin-bottom: 1rem;
+    transition: background-color 0.2s;
+}
+
+.contribution-item:hover {
+    background-color: #f1f1f1;
+}
+
+.item-content {
+    flex-grow: 1;
+}
+
+.item-message {
+    margin: 0 0 0.5rem 0;
+    font-style: italic;
+    color: #333;
+}
+
+.item-meta {
+    font-size: 0.85rem;
+    color: #777;
+}
+
+.item-meta a {
+    color: #8c8073;
+    text-decoration: none;
+}
+.item-meta a:hover {
+    text-decoration: underline;
+}
+
+.contribution-item button {
+    background-color: #8c8073;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-left: 1rem;
+    flex-shrink: 0;
+}
+
+.contribution-item button:hover {
+    background-color: #6d6d6d;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 4rem;
+    font-size: 1.2rem;
+    color: #666;
+}

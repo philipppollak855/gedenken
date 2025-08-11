@@ -1,0 +1,671 @@
+/* frontend/src/modules/gedenken/InlineExpandArea.css */
+/* ERWEITERT: Stile für Kerzen-Raster und den neuen Terminbereich. */
+
+.inline-expand-area {
+    padding: 4rem 2rem;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    animation: slideDown 0.5s ease-out;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    --base-text-color: #3a3a3a;
+    --subtle-text-color: #6b7280;
+    --border-color: rgba(0,0,0,0.08);
+}
+
+@keyframes slideDown {
+    from {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    to {
+        max-height: 2000px;
+        opacity: 1;
+        padding-top: 4rem;
+        padding-bottom: 4rem;
+    }
+}
+
+.inline-view-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.inline-view-controls h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    margin: 0;
+    color: var(--base-text-color);
+}
+
+.inline-view-controls div {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.inline-view-controls button {
+    background-color: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+    padding: 0.5rem 1.5rem;
+    border-radius: 999px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s ease-in-out;
+}
+
+.inline-view-controls button:hover {
+    opacity: 1;
+    background-color: rgba(0,0,0,0.05);
+}
+
+.inline-view-controls button.active {
+    background-color: currentColor;
+    color: var(--bg-color, white); 
+    opacity: 1;
+    border-color: currentColor;
+}
+
+.inline-cards-view {
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.inline-condolence-carousel {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.inline-condolence-page {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 0 4rem;
+}
+
+.inline-condolence-card {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+.inline-condolence-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+.inline-condolence-card h4 { 
+    margin: 0 0 1rem 0;
+    flex-shrink: 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    color: var(--base-text-color);
+}
+
+.inline-condolence-card-message-wrapper {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.inline-condolence-card-message {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--base-text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+}
+
+.inline-condolence-card-message.short-text {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    -webkit-line-clamp: unset;
+}
+
+.read-more-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(to top, var(--card-bg, white), transparent);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 5px;
+    font-style: italic;
+    font-size: 0.8rem;
+    color: var(--subtle-text-color);
+    pointer-events: none;
+}
+
+.inline-condolence-card-date { 
+    font-size: 0.85rem; 
+    text-align: right; 
+    margin-top: 1.5rem;
+    flex-shrink: 0;
+    color: var(--subtle-text-color);
+}
+
+.inline-nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--border-color);
+    color: var(--base-text-color);
+    cursor: pointer;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.inline-nav-arrow:hover {
+    background: white;
+}
+.inline-nav-arrow.left { left: 0; }
+.inline-nav-arrow.right { right: 0; }
+.inline-nav-arrow:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+}
+
+.inline-list-view {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.inline-condolence-list-item {
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border-color);
+    background-color: transparent;
+}
+.inline-condolence-list-item:first-child {
+    border-top: 1px solid var(--border-color);
+}
+.inline-list-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0;
+    border-bottom: none;
+}
+.inline-list-item-header h4 { 
+    margin: 0; 
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--base-text-color);
+}
+.inline-list-item-header span {
+    font-size: 0.9rem;
+    color: var(--subtle-text-color);
+}
+.inline-condolence-list-item p {
+    line-height: 1.7;
+    color: var(--base-text-color);
+}
+
+.inline-action-button-container {
+    text-align: center;
+    padding-top: 4rem;
+}
+
+.inline-prominent-button {
+    background-color: #8c8073;
+    color: white;
+    border: none;
+    padding: 1rem 3rem;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.inline-prominent-button:hover {
+    background-color: #6d6d6d;
+}
+
+.placeholder-content {
+    text-align: center;
+    padding: 4rem 0;
+}
+.placeholder-content h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+}
+
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+}
+
+.popup-content {
+    background-color: white;
+    color: #3a3a3a;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 500px;
+}
+.popup-content h3 {
+    margin-top: 0;
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+}
+.popup-content input, .popup-content textarea, .popup-content select {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    box-sizing: border-box;
+}
+.popup-content select {
+    background-color: #f9f9f9;
+}
+.popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.popup-actions button {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+.popup-actions button[type="submit"] {
+    background-color: #8c8073;
+    color: white;
+}
+.popup-actions button[type="button"] {
+    background-color: #e5e7eb;
+    color: #3a3a3a;
+}
+
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    animation: fadeIn 0.3s;
+}
+
+.lightbox-content {
+    background-color: white;
+    color: #3a3a3a;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    animation: zoomIn 0.3s;
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.lightbox-content .close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    color: #888;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.lightbox-content .lightbox-main {
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.lightbox-main h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    text-align: center;
+    margin-top: 0;
+}
+
+.lightbox-main p {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.lightbox-main span {
+    display: block;
+    text-align: right;
+    margin-top: 2rem;
+    font-style: italic;
+    color: #666;
+}
+
+.memorial-candle-page {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(4, auto);
+    gap: 2.5rem 2rem;
+    padding: 0 4rem;
+}
+
+.memorial-candle {
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.memorial-candle-image-wrapper {
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.memorial-candle img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.2s;
+}
+
+.memorial-candle:hover img {
+    transform: scale(1.05);
+}
+
+.candle-info {
+    margin-top: auto;
+}
+
+.candle-info strong {
+    display: block;
+    font-size: 1.1rem;
+}
+
+.candle-info p {
+    font-style: italic;
+    color: var(--subtle-text-color);
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    height: 4.5em;
+    overflow: hidden;
+}
+.read-more-candle {
+    color: #8c8073;
+    font-weight: 500;
+}
+
+.candle-info span {
+    font-size: 0.8rem;
+    color: var(--subtle-text-color);
+}
+
+.special-day-banner {
+    background-color: #8c8073;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    white-space: nowrap;
+}
+
+.candle-lightbox {
+    flex-direction: row;
+    gap: 2rem;
+    max-width: 900px;
+    height: 600px;
+    max-height: 90vh;
+}
+.candle-lightbox-image-wrapper {
+    flex: 0 0 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.candle-lightbox-image-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+.candle-lightbox .lightbox-main {
+    flex: 1 1 60%;
+    text-align: left;
+}
+.candle-lightbox .lightbox-main h3 {
+    text-align: left;
+}
+
+.popup-content.candle-popup {
+    max-width: 700px;
+}
+
+.popup-helper-text {
+    text-align: center;
+    margin: -1rem 0 1.5rem 0;
+    color: var(--subtle-text-color);
+}
+
+.candle-selection {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    flex-wrap: wrap;
+}
+
+.candle-option {
+    cursor: pointer;
+    text-align: center;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    padding: 0.5rem;
+    transition: all 0.2s;
+}
+
+.candle-option:hover {
+    border-color: #ccc;
+}
+
+.candle-option.selected {
+    border-color: #8c8073;
+    background-color: #f4f1ee;
+}
+
+.candle-option img {
+    width: 80px;
+    height: 120px;
+    object-fit: contain;
+}
+
+.candle-option span {
+    display: block;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+.event-list {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.event-card {
+    background-color: var(--card-bg, white);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    overflow: hidden;
+}
+
+.event-date-box {
+    flex: 0 0 120px;
+    background-color: #8c8073;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    font-family: 'Playfair Display', serif;
+}
+.event-date-box .day {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.event-date-box .month {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+}
+
+.event-details {
+    padding: 1.5rem 2rem;
+    flex-grow: 1;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.event-header h3 {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.2;
+}
+
+.event-time-location {
+    margin-top: 0.5rem;
+}
+
+.event-time-location .weekday-time {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--base-text-color);
+}
+.event-time-location .location-info {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--subtle-text-color);
+    margin-top: 0.25rem;
+}
+
+.event-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.action-button {
+    background-color: #8c8073;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+.action-button:hover {
+    background-color: #6d6d6d;
+}
+.action-button.nav-button {
+    background-color: #a99a8c;
+}
+
+.event-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.info-item-full {
+    grid-column: 1 / -1;
+}
+.info-item strong {
+    font-size: 0.9rem;
+    color: var(--subtle-text-color);
+    text-transform: uppercase;
+}
+.info-item span {
+    font-size: 1rem;
+}
+
+.event-description {
+    font-style: italic;
+    color: var(--subtle-text-color);
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}

@@ -1,10 +1,11 @@
 # docker-compose.yml
+# KORRIGIERT: Der Build-Kontext wurde angepasst, um die Render-Umgebung zu spiegeln.
 
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: . # Verwendet das Projekt-Hauptverzeichnis als Kontext
+      dockerfile: backend/Dockerfile # Gibt den Pfad zum Dockerfile an
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./backend:/app
@@ -14,7 +15,6 @@ services:
       - ./backend/.env.dev
     depends_on:
       - db
-    # Weist den Container an, immer wieder neu zu starten, bis er erfolgreich läuft.
     restart: always
 
   frontend:
@@ -31,7 +31,6 @@ services:
       - CHOKIDAR_USEPOLLING=true
 
   db:
-    # KORRIGIERT: PostgreSQL-Version auf 16 aktualisiert, um mit Django kompatibel zu sein.
     image: postgres:16
     volumes:
       - postgres_data:/var/lib/postgresql/data/

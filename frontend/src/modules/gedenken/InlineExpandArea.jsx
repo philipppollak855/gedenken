@@ -1,4 +1,3 @@
-<pre>```javascript
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
 // STARK ERWEITERT: Kerzen-Paginierung und komplett neuer, detaillierter Terminbereich.
 
@@ -629,4 +628,3 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
 };
 
 export default InlineExpandArea;
-```</pre>

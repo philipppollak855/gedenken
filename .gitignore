@@ -1,0 +1,25 @@
+# Python / Django
+__pycache__/
+*.pyc
+/staticfiles/
+/media/
+
+# Node / React
+frontend/node_modules/
+frontend/build/
+frontend/.pnp
+.pnp.js
+
+# Editor/OS specific
+.vscode/
+.idea/
+*.DS_Store
+
+# Environment variables
+# Wichtig: Niemals .env-Dateien auf GitHub hochladen!
+.env
+.env.*
+!.env.example
+
+# Log files
+*.log

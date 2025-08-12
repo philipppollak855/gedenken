@@ -1,12 +1,11 @@
 # render.yaml
-# Definiert die gesamte Infrastruktur für Render.
+# KORRIGIERT: Verwendet die korrekte Syntax für die Definition von Datenbanken und Services.
 
-services:
-  # PostgreSQL Datenbank
-  - type: psql
-    name: vorsorge-db
+databases:
+  - name: vorsorge-db
     plan: free
 
+services:
   # Django Backend Service
   - type: web
     name: vorsorge-backend
@@ -16,7 +15,7 @@ services:
       pip install -r backend/requirements.txt
       cd backend
       python manage.py migrate
-      python manage.py createsuperuser --noinput
+      python manage.py createsuperuser
     startCommand: "cd backend && gunicorn core.wsgi"
     envVars:
       - key: DATABASE_URL

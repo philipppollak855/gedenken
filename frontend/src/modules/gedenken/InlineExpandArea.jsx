@@ -187,7 +187,7 @@ const EventCard = ({ event, pageData }) => {
     );
 };
 
-const SearchPopup = ({ onSearch, onClose, pageData, onResultClick }) => {
+const SearchPopup = ({ onClose, pageData, onResultClick }) => {
     const [searchName, setSearchName] = useState('');
     const [searchText, setSearchText] = useState('');
     const [searchDate, setSearchDate] = useState('');
@@ -302,7 +302,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
             }
         };
 
-    }, [api, carouselRef, navBarRef]);
+    }, [api]);
 
     const handleTemplateChange = (e) => {
         setMessage(e.target.value);
@@ -424,9 +424,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                         <div className="inline-view-controls">
                             <h3>Kondolenzbuch</h3>
                             <div>
-                                <button onClick={() => setShowSearchPopup(true)} className="nav-button">Eintrag suchen</button>
-                                <button onClick={() => setCondolenceView('cards')} className={condolenceView === 'cards' ? 'active' : ''}>Karten</button>
                                 <button onClick={() => setCondolenceView('list')} className={condolenceView === 'list' ? 'active' : ''}>Liste</button>
+                                <button onClick={() => setShowSearchPopup(true)} className="nav-button">Eintrag suchen</button>
                             </div>
                         </div>
                         {condolenceView === 'cards' ? (

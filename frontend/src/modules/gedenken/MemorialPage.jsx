@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Ungenutzte Imports und Variablen entfernt, um den Netlify-Build-Fehler zu beheben.
+// KORRIGIERT: Layout im Abschiedsbereich gemäß den neuen Vorgaben umstrukturiert.
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
@@ -89,6 +89,7 @@ const MemorialPage = () => {
     };
 
     const farewellSectionClasses = `farewell-section ${pageData.farewell_text_inverted ? 'text-inverted' : ''}`;
+    const hasPublicEvents = pageData.events && pageData.events.filter(e => e.is_public).length > 0;
 
     return (
         <div className="memorial-page-wrapper">
@@ -135,58 +136,55 @@ const MemorialPage = () => {
                         <h2>Abschied nehmen</h2>
                         <p>UND KONDOLIEREN</p>
                     </div>
-                    <div className="farewell-main-content">
+                    <div className={`farewell-main-content ${!hasPublicEvents ? 'centered-layout' : ''}`}>
                         {pageData.obituary_card_image_url && (
                             <div className="media-container parte-container">
-                                <div className="media-label">Parte</div>
                                 <img src={pageData.obituary_card_image_url} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image_url)} />
                                 <small className="media-helper-text">Klicken zum Vergrößern</small>
                             </div>
                         )}
-                        <div className="farewell-media-area">
-                            {pageData.show_memorial_picture && pageData.memorial_picture_url && (
-                                <div className="media-container gedenkbild-container">
-                                    <div className="media-label">Gedenkbild</div>
-                                    <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
-                                        <div className="zoom-button" onClick={openSideBySideLightbox}>🔍</div>
-                                        <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
-                                            <div className="flip-card-front">
-                                                <img src={pageData.memorial_picture_url} alt="Gedenkbild Vorderseite" />
-                                            </div>
-                                            <div className="flip-card-back">
-                                                <img src={pageData.memorial_picture_back_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Rückseite'} alt="Gedenkbild Rückseite" />
+                        <div className="right-column">
+                            <div className="right-column-top">
+                                {pageData.show_memorial_picture && pageData.memorial_picture_url && (
+                                    <div className="media-container gedenkbild-container">
+                                        <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
+                                            <div className="zoom-button" onClick={openSideBySideLightbox}>🔍</div>
+                                            <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
+                                                <div className="flip-card-front">
+                                                    <img src={pageData.memorial_picture_url} alt="Gedenkbild Vorderseite" />
+                                                </div>
+                                                <div className="flip-card-back">
+                                                    <img src={pageData.memorial_picture_back_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Rückseite'} alt="Gedenkbild Rückseite" />
+                                                </div>
                                             </div>
                                         </div>
+                                        <small className="media-helper-text">Klicken zum Umblättern</small>
                                     </div>
-                                    <small className="media-helper-text">Klicken zum Umblättern</small>
-                                </div>
-                            )}
-                             {pageData.acknowledgement_type === 'text' && pageData.acknowledgement_text && (
-                                <div className="acknowledgement-text-container">
-                                    <p>{pageData.acknowledgement_text}</p>
-                                </div>
-                            )}
-                            {pageData.acknowledgement_type === 'image' && pageData.acknowledgement_image_url && (
-                                <div className="media-container">
-                                    <div className="media-label">Danksagung</div>
-                                    <img src={pageData.acknowledgement_image_url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
-                                    <small className="media-helper-text">Klicken zum Vergrößern</small>
+                                )}
+                                {pageData.acknowledgement_type === 'text' && pageData.acknowledgement_text && (
+                                    <div className="acknowledgement-text-container">
+                                        <p>{pageData.acknowledgement_text}</p>
+                                    </div>
+                                )}
+                                {pageData.acknowledgement_type === 'image' && pageData.acknowledgement_image_url && (
+                                    <div className="media-container">
+                                        <img src={pageData.acknowledgement_image_url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
+                                        <small className="media-helper-text">Klicken zum Vergrößern</small>
+                                    </div>
+                                )}
+                            </div>
+                            {hasPublicEvents && (
+                                <div className="farewell-events-area">
+                                    {pageData.events.filter(e => e.is_public).map(event => (
+                                        <div key={event.id} className="event-info-line">
+                                            <strong>{event.title}:</strong> {formatEventDate(event.date)}
+                                            {event.show_location && event.location && `, ${event.location.name}`}
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
                     </div>
-
-                    {pageData.events && pageData.events.filter(e => e.is_public).length > 0 && (
-                        <div className="farewell-events-area">
-                            {pageData.events.filter(e => e.is_public).map(event => (
-                                <div key={event.id} className="event-info-line">
-                                    <strong>{event.title}:</strong> {formatEventDate(event.date)}
-                                    {event.show_location && event.location && `, ${event.location.name}`}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
                     <div className="farewell-actions-area">
                         <button onClick={() => toggleExpandedView('condolences')}>
                             Kondolenz schreiben {pageData.condolence_count > 0 && `(${pageData.condolence_count})`}

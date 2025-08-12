@@ -1,4 +1,3 @@
-<pre>```python
 # backend/api/admin.py
 # Vollständiger Code mit allen Admin-Klassen.
 
@@ -320,4 +319,3 @@ class ReleaseRequestAdmin(admin.ModelAdmin):
             approved_count += 1
         
         self.message_user(request, f"{approved_count} Anfragen erfolgreich genehmigt.")
-```</pre>

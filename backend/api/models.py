@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Neue Modelle und Felder für erweiterte Gedenkseiten-Funktionen.
+# ERWEITERT: Neues Feld für die Invertierung der Textfarbe hinzugefügt.
 
 import uuid
 from django.db import models

@@ -1,3 +1,4 @@
+<pre>```css
 /* frontend/src/modules/gedenken/MemorialPage.css */
 /* Vollständiger und korrigierter Code. */
 
@@ -177,10 +178,17 @@ h1, h2, h3, h4 {
     background-position: center;
     background-repeat: no-repeat;
 }
+.farewell-section.text-inverted .farewell-title-area h2,
+.farewell-section.text-inverted .farewell-title-area p,
+.farewell-section.text-inverted .media-label,
+.farewell-section.text-inverted .media-helper-text {
+    color: #3a3a3a; /* Dunkle Textfarbe */
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.5); /* Heller Schatten */
+}
 .farewell-grid {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto auto 1fr auto;
     gap: 1rem;
     max-width: 1400px;
     width: 100%;
@@ -203,12 +211,17 @@ h1, h2, h3, h4 {
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     margin-top: 0;
 }
-.farewell-media-area {
+.farewell-main-content {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Align items to the top */
     gap: 4rem;
     flex-wrap: wrap;
+}
+.farewell-media-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 .media-container {
     display: flex;
@@ -358,6 +371,22 @@ h1, h2, h3, h4 {
     cursor: pointer;
 }
 
+.farewell-events-area {
+    grid-column: 1 / -1; /* Span across all columns */
+    background-color: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+}
+.event-info-line {
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+}
+
 .farewell-actions-area {
     display: flex;
     justify-content: center;
@@ -433,3 +462,4 @@ h1, h2, h3, h4 {
     border-radius: 0.375rem;
     text-decoration: none;
 }
+```</pre>

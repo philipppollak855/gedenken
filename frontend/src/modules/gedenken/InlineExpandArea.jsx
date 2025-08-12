@@ -318,7 +318,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
         setCurrentPage(newPage);
     };
     
-    const candlesPerPage = 24;
+    const candlesPerPage = 15;
     const candlePageCount = Math.ceil((pageData.candles?.length || 0) / candlesPerPage);
 
     const handleCandlePageChange = (direction) => {
@@ -465,8 +465,11 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                             <h3>Gedenkkerzen ({pageData.candle_count || 0})</h3>
                         </div>
                         <div className="inline-cards-view">
-                             <button onClick={() => handleCandlePageChange('prev')} className="inline-nav-arrow left" disabled={candlePageCount <= 1}><ArrowIcon direction="left" /></button>
-                             <div className="inline-condolence-carousel" style={{ transform: `translateX(-${candleCurrentPage * 100}%)` }}>
+                            <div ref={navBarRef} className="wide-nav-bar">
+                                <button onClick={() => handleCandlePageChange('prev')} disabled={candlePageCount <= 1}><ArrowIcon direction="left" /></button>
+                                <button onClick={() => handleCandlePageChange('next')} disabled={candlePageCount <= 1}><ArrowIcon direction="right" /></button>
+                            </div>
+                             <div className="inline-condolence-carousel" ref={carouselRef} style={{ transform: `translateX(-${candleCurrentPage * 100}%)` }}>
                                 {Array.from({ length: candlePageCount || 1 }).map((_, pageIndex) => (
                                     <div className="memorial-candle-page" key={pageIndex}>
                                         {pageData.candles.slice(pageIndex * candlesPerPage, (pageIndex + 1) * candlesPerPage).map(candle => {
@@ -488,7 +491,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                                     </div>
                                 ))}
                              </div>
-                             <button onClick={() => handleCandlePageChange('next')} className="inline-nav-arrow right" disabled={candlePageCount <= 1}><ArrowIcon direction="right" /></button>
                         </div>
                         <div className="inline-action-button-container">
                             <button className="inline-prominent-button" onClick={() => setShowCandlePopup(true)}>Gedenkkerze anzünden</button>

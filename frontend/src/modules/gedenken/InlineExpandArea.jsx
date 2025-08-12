@@ -239,7 +239,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
         setMessage(e.target.value);
     };
 
-    const condolencesPerPage = 12;
+    const condolencesPerPage = 8;
     const pageCount = Math.ceil((pageData.condolences?.length || 0) / condolencesPerPage);
 
     const handlePageChange = (direction) => {

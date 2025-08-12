@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Neues EventLocation-Modell für Stammdaten hinzugefügt.
+# ERWEITERT: Neue Modelle und Felder für erweiterte Gedenkseiten-Funktionen.
 
 import uuid
 from django.db import models
@@ -40,7 +40,6 @@ class MediaAsset(models.Model):
         verbose_name_plural = "Mediathek"
         ordering = ['-uploaded_at']
 
-# === NEUES MODELL: EventLocation START ===
 class EventLocation(models.Model):
     name = models.CharField("Name des Ortes", max_length=255, help_text="z.B. 'Pfarrkirche St. Stephan'")
     address = models.CharField("Adresse (Straße, PLZ, Ort)", max_length=255)
@@ -51,7 +50,6 @@ class EventLocation(models.Model):
     class Meta:
         verbose_name = "Veranstaltungsort"
         verbose_name_plural = "Veranstaltungsorte (Stammdaten)"
-# === NEUES MODELL: EventLocation ENDE ===
 
 class SiteSettings(models.Model):
     class Meta:
@@ -180,6 +178,7 @@ class MemorialPage(models.Model):
     farewell_background_color = models.CharField("Hintergrundfarbe Abschied", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     farewell_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Abschied")
     farewell_background_size = models.CharField("Anpassung Hintergrundbild Abschied", max_length=10, choices=BackgroundSize.choices, default=BackgroundSize.COVER)
+    farewell_text_inverted = models.BooleanField("Textfarbe im Abschiedsbereich umkehren (für helle Hintergründe)", default=False)
     obituary_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Partezettel Bild")
     
     show_memorial_picture = models.BooleanField("Gedenkbild anzeigen", default=True)

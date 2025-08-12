@@ -1,5 +1,5 @@
 # render.yaml
-# KORRIGIERT: Verwendet die 'rootDir'-Einstellung für eine robustere Konfiguration.
+# KORRIGIERT: Fehlende CORS-Umgebungsvariable hinzugefügt.
 
 databases:
   - name: vorsorge-db
@@ -11,7 +11,7 @@ services:
     name: vorsorge-backend
     env: python
     plan: free
-    rootDir: backend # Teilt Render mit, im 'backend'-Ordner zu arbeiten
+    rootDir: backend
     buildCommand: "pip install -r requirements.txt && python manage.py migrate && python manage.py createsuperuser"
     startCommand: "gunicorn core.wsgi"
     envVars:
@@ -27,3 +27,7 @@ services:
         value: philipp.pollak855@gmail.com
       - key: DJANGO_SUPERUSER_PASSWORD
         value: "24061998"
+      - key: CORS_ALLOWED_ORIGINS # HINZUGEFÜGT
+        value: "https://gedenken.netlify.app http://localhost:3000"
+      - key: ALLOWED_HOSTS # HINZUGEFÜGT (zur Sicherheit)
+        value: "vorsorge-backend.onrender.com"

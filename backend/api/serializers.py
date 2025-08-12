@@ -206,7 +206,7 @@ class MemorialPageSerializer(serializers.ModelSerializer):
             'donation_text', 'donation_link', 'donation_bank_details',
             'candles', 'candle_count', 'condolence_count',
             'events', 'cemetery',
-            'farewell_background_color', 'farewell_background_size',
+            'farewell_background_color', 'farewell_background_size', 'farewell_text_inverted',
             'show_memorial_picture', 
             'acknowledgement_type', 'acknowledgement_text', 
             'condolence_moderation',

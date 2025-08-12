@@ -195,6 +195,8 @@ h1, h2, h3, h4 {
     width: 100%;
 }
 .farewell-title-area {
+    width: 100%;
+    text-align: left;
     margin-bottom: 2rem;
 }
 .farewell-title-area h2 {
@@ -353,19 +355,62 @@ h1, h2, h3, h4 {
 }
 
 .farewell-events-area {
-    background-color: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(5px);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     border-radius: 1rem;
     padding: 1.5rem;
     box-sizing: border-box;
     width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.farewell-events-area h3 {
+    margin-top: 0;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
 }
 .event-info-line {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
     color: white;
     text-shadow: 1px 1px 2px black;
     font-size: 1.1rem;
-    padding: 0.5rem 0;
-    text-align: left;
+    padding: 0.75rem 0;
+}
+.event-date-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 0.5rem;
+    width: 60px;
+    height: 60px;
+}
+.event-day {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.event-month {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+.event-details-display {
+    display: flex;
+    flex-direction: column;
+}
+.event-details-display strong {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+.event-details-display span {
+    font-size: 1rem;
+    opacity: 0.9;
 }
 
 .farewell-actions-area {

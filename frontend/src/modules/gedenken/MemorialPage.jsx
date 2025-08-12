@@ -26,7 +26,11 @@ const MemorialPage = () => {
     const formatEventDate = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
-        return `${date.toLocaleDateString('de-DE', { weekday: 'long' })}, ${date.toLocaleDateString('de-DE')} um ${date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`;
+        return {
+            day: date.toLocaleDateString('de-DE', { day: '2-digit' }),
+            month: date.toLocaleDateString('de-DE', { month: 'short' }),
+            time: date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+        };
     };
 
     const fetchPageData = useCallback(async () => {
@@ -140,11 +144,20 @@ const MemorialPage = () => {
                         {pageData.obituary_card_image_url && (
                             <div className="media-container parte-container">
                                 <img src={pageData.obituary_card_image_url} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image_url)} />
-                                <small className="media-helper-text">Klicken zum Vergrößern</small>
                             </div>
                         )}
                         <div className="right-column">
                             <div className="right-column-top">
+                                {pageData.acknowledgement_type === 'text' && pageData.acknowledgement_text && (
+                                    <div className="acknowledgement-text-container">
+                                        <p>{pageData.acknowledgement_text}</p>
+                                    </div>
+                                )}
+                                {pageData.acknowledgement_type === 'image' && pageData.acknowledgement_image_url && (
+                                    <div className="media-container">
+                                        <img src={pageData.acknowledgement_image_url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
+                                    </div>
+                                )}
                                 {pageData.show_memorial_picture && pageData.memorial_picture_url && (
                                     <div className="media-container gedenkbild-container">
                                         <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
@@ -158,29 +171,27 @@ const MemorialPage = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <small className="media-helper-text">Klicken zum Umblättern</small>
-                                    </div>
-                                )}
-                                {pageData.acknowledgement_type === 'text' && pageData.acknowledgement_text && (
-                                    <div className="acknowledgement-text-container">
-                                        <p>{pageData.acknowledgement_text}</p>
-                                    </div>
-                                )}
-                                {pageData.acknowledgement_type === 'image' && pageData.acknowledgement_image_url && (
-                                    <div className="media-container">
-                                        <img src={pageData.acknowledgement_image_url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
-                                        <small className="media-helper-text">Klicken zum Vergrößern</small>
                                     </div>
                                 )}
                             </div>
                             {hasPublicEvents && (
                                 <div className="farewell-events-area">
-                                    {pageData.events.filter(e => e.is_public).map(event => (
-                                        <div key={event.id} className="event-info-line">
-                                            <strong>{event.title}:</strong> {formatEventDate(event.date)}
-                                            {event.show_location && event.location && `, ${event.location.name}`}
-                                        </div>
-                                    ))}
+                                    <h3>Termine</h3>
+                                    {pageData.events.filter(e => e.is_public).map(event => {
+                                        const { day, month, time } = formatEventDate(event.date);
+                                        return (
+                                            <div key={event.id} className="event-info-line">
+                                                <div className="event-date-display">
+                                                    <span className="event-day">{day}</span>
+                                                    <span className="event-month">{month}</span>
+                                                </div>
+                                                <div className="event-details-display">
+                                                    <strong>{event.title}</strong>
+                                                    <span>{time} Uhr{event.show_location && event.location && `, ${event.location.name}`}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

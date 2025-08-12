@@ -29,7 +29,7 @@ class MediaAssetAdmin(admin.ModelAdmin):
     @admin.display(description='Vorschau')
     def thumbnail(self, obj):
         if obj.asset_type == 'image' and obj.url:
-            return format_html('&lt;img src="{}" width="100" height="auto" /&gt;', obj.url)
+            return format_html('<img src="{}" width="100" height="auto" />', obj.url)
         return "Keine Vorschau"
 
 @admin.register(CandleImage)

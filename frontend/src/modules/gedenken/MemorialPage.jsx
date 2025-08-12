@@ -1,3 +1,4 @@
+<pre>```javascript
 // frontend/src/modules/gedenken/MemorialPage.jsx
 // KORRIGIERT: Ungenutzte Imports und Variablen entfernt, um den Netlify-Build-Fehler zu beheben.
 
@@ -16,10 +17,17 @@ const MemorialPage = () => {
     const [expandedView, setExpandedView] = useState(null);
     const { slug } = useParams();
     const expandAreaRef = useRef(null);
+    const farewellSectionRef = useRef(null);
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
         return new Date(dateString).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+    };
+    
+    const formatEventDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return `${date.toLocaleDateString('de-DE', { weekday: 'long' })}, ${date.toLocaleDateString('de-DE')} um ${date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`;
     };
 
     const fetchPageData = useCallback(async () => {
@@ -42,6 +50,15 @@ const MemorialPage = () => {
     useEffect(() => {
         if (slug) fetchPageData();
     }, [slug, fetchPageData]);
+
+    const handleHeroLinkClick = (e, view) => {
+        e.preventDefault();
+        if (view === 'abschied') {
+            farewellSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (view === 'kondolieren') {
+            toggleExpandedView('condolences');
+        }
+    };
 
     const toggleExpandedView = (view) => {
         const isOpening = expandedView !== view;
@@ -72,6 +89,8 @@ const MemorialPage = () => {
         backgroundSize: pageData.hero_background_size || 'cover',
     };
 
+    const farewellSectionClasses = `farewell-section ${pageData.farewell_text_inverted ? 'text-inverted' : ''}`;
+
     return (
         <div className="memorial-page-wrapper">
             {lightboxImage && <div className="lightbox" onClick={() => setLightboxImage(null)}><img src={lightboxImage} alt="Vollbildansicht" /></div>}
@@ -85,9 +104,9 @@ const MemorialPage = () => {
             )}
             
             <aside className="quick-links">
-                <a href="#abschied" onClick={(e) => { e.preventDefault(); document.getElementById('farewell-section')?.scrollIntoView({ behavior: 'smooth' }); }} title="Mein Abschied">🕊️</a>
+                <a href="#abschied" onClick={(e) => handleHeroLinkClick(e, 'abschied')} title="Mein Abschied">🕊️</a>
                 <a href="#leben" onClick={(e) => { e.preventDefault(); /* Scroll zu 'Mein Leben' kann hier hinzugefügt werden */ }} title="Mein Leben">📖</a>
-                <a href="#kondolieren" onClick={(e) => { e.preventDefault(); toggleExpandedView('condolences'); }} title="Kondolieren">✍️</a>
+                <a href="#kondolieren" onClick={(e) => handleHeroLinkClick(e, 'kondolieren')} title="Kondolieren">✍️</a>
             </aside>
 
             <header className="hero-section" style={heroStyle}>
@@ -104,20 +123,20 @@ const MemorialPage = () => {
                         <img className="profile-photo" src={pageData.main_photo_url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Profilbild von ${pageData.first_name}`} />
                     </div>
                     <nav className="tab-navigation">
-                        <button>Mein Abschied</button>
+                        <button onClick={(e) => handleHeroLinkClick(e, 'abschied')}>Abschied</button>
                         <button>Mein Leben</button>
-                        <button onClick={() => toggleExpandedView('condolences')}>Kondolieren</button>
+                        <button onClick={(e) => handleHeroLinkClick(e, 'kondolieren')}>Kondolieren</button>
                     </nav>
                 </div>
             </header>
             
-            <section id="farewell-section" className="farewell-section" style={farewellStyle}>
+            <section id="farewell-section" ref={farewellSectionRef} className={farewellSectionClasses} style={farewellStyle}>
                 <div className="farewell-grid">
                     <div className="farewell-title-area">
                         <h2>Abschied nehmen</h2>
                         <p>UND KONDOLIEREN</p>
                     </div>
-                    <div className="farewell-media-area">
+                    <div className="farewell-main-content">
                         {pageData.obituary_card_image_url && (
                             <div className="media-container parte-container">
                                 <div className="media-label">Parte</div>
@@ -125,38 +144,50 @@ const MemorialPage = () => {
                                 <small className="media-helper-text">Klicken zum Vergrößern</small>
                             </div>
                         )}
-                        
-                        {pageData.acknowledgement_type === 'text' && pageData.acknowledgement_text && (
-                            <div className="acknowledgement-text-container">
-                                <p>{pageData.acknowledgement_text}</p>
-                            </div>
-                        )}
-                        {pageData.acknowledgement_type === 'image' && pageData.acknowledgement_image_url && (
-                            <div className="media-container">
-                                <div className="media-label">Danksagung</div>
-                                <img src={pageData.acknowledgement_image_url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
-                                <small className="media-helper-text">Klicken zum Vergrößern</small>
-                            </div>
-                        )}
-
-                        {pageData.show_memorial_picture && pageData.memorial_picture_url && (
-                            <div className="media-container gedenkbild-container">
-                                <div className="media-label">Gedenkbild</div>
-                                <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
-                                    <div className="zoom-button" onClick={openSideBySideLightbox}>&#x26F6;</div>
-                                    <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
-                                        <div className="flip-card-front">
-                                            <img src={pageData.memorial_picture_url} alt="Gedenkbild Vorderseite" />
-                                        </div>
-                                        <div className="flip-card-back">
-                                            <img src={pageData.memorial_picture_back_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Rückseite'} alt="Gedenkbild Rückseite" />
+                        <div className="farewell-media-area">
+                            {pageData.show_memorial_picture && pageData.memorial_picture_url && (
+                                <div className="media-container gedenkbild-container">
+                                    <div className="media-label">Gedenkbild</div>
+                                    <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
+                                        <div className="zoom-button" onClick={openSideBySideLightbox}>🔍</div>
+                                        <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
+                                            <div className="flip-card-front">
+                                                <img src={pageData.memorial_picture_url} alt="Gedenkbild Vorderseite" />
+                                            </div>
+                                            <div className="flip-card-back">
+                                                <img src={pageData.memorial_picture_back_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Rückseite'} alt="Gedenkbild Rückseite" />
+                                            </div>
                                         </div>
                                     </div>
+                                    <small className="media-helper-text">Klicken zum Umblättern</small>
                                 </div>
-                                <small className="media-helper-text">Klicken zum Umblättern</small>
-                            </div>
-                        )}
+                            )}
+                             {pageData.acknowledgement_type === 'text' && pageData.acknowledgement_text && (
+                                <div className="acknowledgement-text-container">
+                                    <p>{pageData.acknowledgement_text}</p>
+                                </div>
+                            )}
+                            {pageData.acknowledgement_type === 'image' && pageData.acknowledgement_image_url && (
+                                <div className="media-container">
+                                    <div className="media-label">Danksagung</div>
+                                    <img src={pageData.acknowledgement_image_url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
+                                    <small className="media-helper-text">Klicken zum Vergrößern</small>
+                                </div>
+                            )}
+                        </div>
                     </div>
+
+                    {pageData.events && pageData.events.filter(e => e.is_public).length > 0 && (
+                        <div className="farewell-events-area">
+                            {pageData.events.filter(e => e.is_public).map(event => (
+                                <div key={event.id} className="event-info-line">
+                                    <strong>{event.title}:</strong> {formatEventDate(event.date)}
+                                    {event.show_location && event.location && `, ${event.location.name}`}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="farewell-actions-area">
                         <button onClick={() => toggleExpandedView('condolences')}>
                             Kondolenz schreiben {pageData.condolence_count > 0 && `(${pageData.condolence_count})`}
@@ -182,3 +213,4 @@ const MemorialPage = () => {
 };
 
 export default MemorialPage;
+```</pre>

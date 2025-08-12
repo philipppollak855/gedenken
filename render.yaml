@@ -1,5 +1,5 @@
 # render.yaml
-# KORRIGIERT: Verwendet die korrekte Syntax für die Definition von Datenbanken und Services.
+# KORRIGIERT: Verwendet die 'rootDir'-Einstellung für eine robustere Konfiguration.
 
 databases:
   - name: vorsorge-db
@@ -11,12 +11,9 @@ services:
     name: vorsorge-backend
     env: python
     plan: free
-    buildCommand: |
-      pip install -r backend/requirements.txt
-      cd backend
-      python manage.py migrate
-      python manage.py createsuperuser
-    startCommand: "cd backend && gunicorn core.wsgi"
+    rootDir: backend # Teilt Render mit, im 'backend'-Ordner zu arbeiten
+    buildCommand: "pip install -r requirements.txt && python manage.py migrate && python manage.py createsuperuser"
+    startCommand: "gunicorn core.wsgi"
     envVars:
       - key: DATABASE_URL
         fromDatabase:

@@ -1,3 +1,4 @@
+<pre>```css
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
 /* ERWEITERT: Stile für Kerzen-Raster und den neuen Terminbereich. */
 
@@ -11,6 +12,9 @@
     --base-text-color: #3a3a3a;
     --subtle-text-color: #6b7280;
     --border-color: rgba(0,0,0,0.08);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes slideDown {
@@ -21,7 +25,7 @@
         padding-bottom: 0;
     }
     to {
-        max-height: 2000px;
+        max-height: 2000px; /* Adjust as needed */
         opacity: 1;
         padding-top: 4rem;
         padding-bottom: 4rem;
@@ -78,11 +82,13 @@
     max-width: 1400px;
     margin: 0 auto;
     overflow: hidden;
+    flex-grow: 1;
 }
 
 .inline-condolence-carousel {
     display: flex;
     transition: transform 0.5s ease-in-out;
+    height: 100%;
 }
 
 .inline-condolence-page {
@@ -170,6 +176,33 @@
     margin-top: 1.5rem;
     flex-shrink: 0;
     color: var(--subtle-text-color);
+}
+
+.wide-nav-bar {
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 500px;
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 20;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.wide-nav-bar button {
+    background: transparent;
+    border: none;
+    color: var(--base-text-color);
+    cursor: pointer;
 }
 
 .inline-nav-arrow {
@@ -670,3 +703,30 @@
     padding-top: 1.5rem;
     margin-top: 1.5rem;
 }
+
+.popup-content.search-popup {
+    max-width: 800px;
+}
+
+.search-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-results {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 1rem;
+    padding-bottom: 1rem;
+}
+
+.search-result-card {
+    flex: 0 0 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 1rem;
+    cursor: pointer;
+}
+```</pre>

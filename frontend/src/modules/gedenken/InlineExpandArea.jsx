@@ -248,11 +248,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
     const [candleCurrentPage, setCandleCurrentPage] = useState(0);
 
     const [showSearchPopup, setShowSearchPopup] = useState(false);
-    const navBarRef = useRef(null);
 
     const api = useApi();
     const { user } = useContext(AuthContext);
-    const carouselRef = useRef(null);
 
     useEffect(() => {
         const fetchCandleData = async () => {
@@ -280,27 +278,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
         
         fetchCandleData();
         fetchCondolenceTemplates();
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (navBarRef.current) {
-                    navBarRef.current.style.opacity = entry.isIntersecting ? '1' : '0';
-                    navBarRef.current.style.visibility = entry.isIntersecting ? 'visible' : 'hidden';
-                }
-            },
-            { rootMargin: "0px", threshold: 0.1 }
-        );
-
-        const currentCarousel = carouselRef.current;
-        if (currentCarousel) {
-            observer.observe(currentCarousel);
-        }
-
-        return () => {
-            if (currentCarousel) {
-                observer.unobserve(currentCarousel);
-            }
-        };
 
     }, [api]);
 
@@ -430,13 +407,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                         </div>
                         {condolenceView === 'cards' ? (
                             <div className="inline-cards-view">
-                                <div ref={navBarRef} className="wide-nav-bar">
-                                    <button onClick={() => handlePageChange('prev')} disabled={pageCount <= 1}><ArrowIcon direction="left" /></button>
-                                    <button onClick={() => handlePageChange('next')} disabled={pageCount <= 1}><ArrowIcon direction="right" /></button>
-                                </div>
+                                <button onClick={() => handlePageChange('prev')} className="inline-nav-arrow left" disabled={pageCount <= 1}><ArrowIcon direction="left" /></button>
                                 <div 
-                                    className="inline-condolence-carousel" 
-                                    ref={carouselRef}
+                                    className="inline-condolence-carousel"
                                     style={{ transform: `translateX(-${currentPage * 100}%)` }}
                                 >
                                     {Array.from({ length: pageCount || 1 }).map((_, pageIndex) => (
@@ -447,6 +420,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                                         </div>
                                     ))}
                                 </div>
+                                <button onClick={() => handlePageChange('next')} className="inline-nav-arrow right" disabled={pageCount <= 1}><ArrowIcon direction="right" /></button>
                             </div>
                         ) : (
                             <div className="inline-list-view">
@@ -465,11 +439,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                             <h3>Gedenkkerzen ({pageData.candle_count || 0})</h3>
                         </div>
                         <div className="inline-cards-view">
-                            <div ref={navBarRef} className="wide-nav-bar">
-                                <button onClick={() => handleCandlePageChange('prev')} disabled={candlePageCount <= 1}><ArrowIcon direction="left" /></button>
-                                <button onClick={() => handleCandlePageChange('next')} disabled={candlePageCount <= 1}><ArrowIcon direction="right" /></button>
-                            </div>
-                             <div className="inline-condolence-carousel" ref={carouselRef} style={{ transform: `translateX(-${candleCurrentPage * 100}%)` }}>
+                             <button onClick={() => handleCandlePageChange('prev')} className="inline-nav-arrow left" disabled={candlePageCount <= 1}><ArrowIcon direction="left" /></button>
+                             <div className="inline-condolence-carousel" style={{ transform: `translateX(-${candleCurrentPage * 100}%)` }}>
                                 {Array.from({ length: candlePageCount || 1 }).map((_, pageIndex) => (
                                     <div className="memorial-candle-page" key={pageIndex}>
                                         {pageData.candles.slice(pageIndex * candlesPerPage, (pageIndex + 1) * candlesPerPage).map(candle => {
@@ -491,6 +462,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                                     </div>
                                 ))}
                              </div>
+                             <button onClick={() => handleCandlePageChange('next')} className="inline-nav-arrow right" disabled={candlePageCount <= 1}><ArrowIcon direction="right" /></button>
                         </div>
                         <div className="inline-action-button-container">
                             <button className="inline-prominent-button" onClick={() => setShowCandlePopup(true)}>Gedenkkerze anzünden</button>

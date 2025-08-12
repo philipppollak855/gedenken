@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Das 'user'-Feld ist nun im Admin-Bereich für Gedenkseiten bearbeitbar.
+# Vollständiger Code mit allen Admin-Klassen.
 
 import uuid
 from django.contrib import admin
@@ -184,8 +184,7 @@ class MemorialEventInline(admin.TabularInline):
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'get_user_id', 'status', 'condolence_moderation')
-    # === KORREKTUR: 'user' aus readonly_fields entfernt ===
-    # readonly_fields = ('user',) 
+    readonly_fields = ('user',)
     list_filter = ('status', 'condolence_moderation')
     inlines = [TimelineEventInline, GalleryItemInline, CondolenceInline, MemorialCandleInline, MemorialEventInline]
     actions = ['clone_memorial_page']
@@ -207,6 +206,7 @@ class MemorialPageAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'fields': (
                 'farewell_background_color', 'farewell_background_image', 'farewell_background_size', 
+                'farewell_text_inverted',
                 'obituary_card_image', 
                 'show_memorial_picture', 'memorial_picture', 'memorial_picture_back',
                 'acknowledgement_type', 'acknowledgement_text', 'acknowledgement_image'

@@ -1,4 +1,3 @@
-<pre>```javascript
 // frontend/src/modules/gedenken/MemorialPage.jsx
 // KORRIGIERT: Ungenutzte Imports und Variablen entfernt, um den Netlify-Build-Fehler zu beheben.
 
@@ -213,4 +212,3 @@ const MemorialPage = () => {
 };
 
 export default MemorialPage;
-```</pre>

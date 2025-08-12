@@ -1,5 +1,6 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
 // STARK ERWEITERT: Kerzen-Paginierung und komplett neuer, detaillierter Terminbereich.
+// KORRIGIERT: ESLint-Warnung bezüglich fehlender Abhängigkeiten im useEffect-Hook behoben.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -290,17 +291,18 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
             { rootMargin: "0px", threshold: 0.1 }
         );
 
-        if (carouselRef.current) {
-            observer.observe(carouselRef.current);
+        const currentCarousel = carouselRef.current;
+        if (currentCarousel) {
+            observer.observe(currentCarousel);
         }
 
         return () => {
-            if (carouselRef.current) {
-                observer.unobserve(carouselRef.current);
+            if (currentCarousel) {
+                observer.unobserve(currentCarousel);
             }
         };
 
-    }, [api]);
+    }, [api, carouselRef, navBarRef]);
 
     const handleTemplateChange = (e) => {
         setMessage(e.target.value);

@@ -1,3 +1,4 @@
+<pre>```python
 # backend/api/models.py
 # ERWEITERT: Neues Feld für die Invertierung der Textfarbe hinzugefügt.
 
@@ -446,3 +447,4 @@ class MemorialEvent(models.Model):
 
     def __str__(self):
         return f"{self.title} für {self.page.first_name} {self.page.last_name}"
+```</pre>

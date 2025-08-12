@@ -10,7 +10,8 @@ from .views import (
     DocumentViewSet, LastWishesView, MemorialPageViewSet, CondolenceViewSet,
     MemorialCandleViewSet, ManagedMemorialPageViewSet, TimelineEventViewSet, 
     GalleryItemViewSet, ReleaseRequestViewSet, SiteSettingsView, MyContributionsView,
-    CondolenceTemplateViewSet, CandleImageViewSet, CandleMessageTemplateViewSet
+    CondolenceTemplateViewSet, CandleImageViewSet, CandleMessageTemplateViewSet,
+    SeedDatabaseView
 )
 
 router = routers.DefaultRouter()
@@ -47,4 +48,5 @@ urlpatterns = [
     path('last-wishes/', LastWishesView.as_view(), name='last-wishes'),
     path('settings/', SiteSettingsView.as_view(), name='site-settings'),
     path('my-contributions/', MyContributionsView.as_view(), name='my-contributions'),
+    path('seed-database/<str:key>/', SeedDatabaseView.as_view(), name='seed-database'),
 ]

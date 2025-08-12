@@ -7,6 +7,7 @@
     background-color: #f4f1ee;
     color: #3a3a3a;
     font-family: 'Inter', sans-serif;
+    padding-top: 80px; /* Platz für die fixe Navigation */
 }
 
 h1, h2, h3, h4 {
@@ -34,13 +35,12 @@ h1, h2, h3, h4 {
 /* Hero Section */
 .hero-section {
     position: relative;
-    height: 100vh;
+    height: calc(100vh - 80px); /* Höhe abzüglich der Navigation */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     color: #3a3a3a;
-    padding-top: 80px;
     box-sizing: border-box;
     background-position: center;
     background-repeat: no-repeat;
@@ -169,13 +169,14 @@ h1, h2, h3, h4 {
 
 /* Abschieds-Bereich */
 .farewell-section {
-    min-height: 100vh;
+    min-height: calc(100vh - 80px); /* Höhe abzüglich der Navigation */
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 4rem 2rem;
     background-position: center;
     background-repeat: no-repeat;
+    box-sizing: border-box;
 }
 .farewell-section.text-inverted .farewell-title-area h2,
 .farewell-section.text-inverted .farewell-title-area p,
@@ -185,17 +186,16 @@ h1, h2, h3, h4 {
     text-shadow: 1px 1px 2px rgba(255,255,255,0.5); /* Heller Schatten */
 }
 .farewell-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
     gap: 1rem;
     max-width: 1400px;
     width: 100%;
-    text-align: center;
 }
 .farewell-title-area {
     margin-bottom: 2rem;
-    margin-top: 2rem;
 }
 .farewell-title-area h2 {
     font-size: 4rem;
@@ -213,14 +213,22 @@ h1, h2, h3, h4 {
 .farewell-main-content {
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align items to the top */
+    align-items: flex-start;
     gap: 4rem;
-    flex-wrap: wrap;
+    width: 100%;
 }
-.farewell-media-area {
+.farewell-main-content.centered-layout {
+    justify-content: center;
+}
+.right-column {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+.right-column-top {
+    display: flex;
+    gap: 4rem;
+    align-items: flex-start;
 }
 .media-container {
     display: flex;
@@ -228,33 +236,6 @@ h1, h2, h3, h4 {
     align-items: center;
     text-align: center;
     position: relative;
-}
-.media-container:hover .media-label {
-    opacity: 0.6;
-}
-.media-label {
-    position: absolute;
-    color: white;
-    font-size: 3rem;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 10;
-}
-.parte-container .media-label {
-    right: 100%; 
-    top: 50%;
-    margin-right: 1.5rem;
-    transform: translateY(-50%) rotate(-90deg);
-}
-.gedenkbild-container .media-label {
-    left: 100%;
-    top: 50%;
-    margin-left: 1.5rem;
-    transform: translateY(-50%) rotate(90deg);
 }
 .media-helper-text {
     color: white;
@@ -343,15 +324,16 @@ h1, h2, h3, h4 {
 .acknowledgement-text-container {
     background-color: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
-    border-radius: 1.5rem;
+    border-radius: 0.5rem;
     padding: 1.5rem;
-    width: 300px;
-    height: 225px;
+    width: 350px;
+    height: 262px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     overflow: hidden;
+    box-sizing: border-box;
 }
 .acknowledgement-text-container p {
     font-size: 1.2rem;
@@ -361,9 +343,9 @@ h1, h2, h3, h4 {
     text-align: center;
 }
 .acknowledgement-image {
-    max-width: 400px;
-    max-height: 400px;
-    object-fit: contain;
+    width: 350px;
+    height: 262px;
+    object-fit: cover;
     border: 4px solid white;
     border-radius: 0.5rem;
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
@@ -371,12 +353,11 @@ h1, h2, h3, h4 {
 }
 
 .farewell-events-area {
-    grid-column: 1 / -1; /* Span across all columns */
     background-color: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(5px);
     border-radius: 1rem;
-    padding: 1rem;
-    margin-top: 1rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
     width: 100%;
 }
 .event-info-line {
@@ -384,6 +365,7 @@ h1, h2, h3, h4 {
     text-shadow: 1px 1px 2px black;
     font-size: 1.1rem;
     padding: 0.5rem 0;
+    text-align: left;
 }
 
 .farewell-actions-area {

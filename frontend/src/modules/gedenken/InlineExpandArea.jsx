@@ -1,3 +1,4 @@
+<pre>```javascript
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
 // STARK ERWEITERT: Kerzen-Paginierung und komplett neuer, detaillierter Terminbereich.
 
@@ -186,6 +187,49 @@ const EventCard = ({ event, pageData }) => {
     );
 };
 
+const SearchPopup = ({ onSearch, onClose, pageData, onResultClick }) => {
+    const [searchName, setSearchName] = useState('');
+    const [searchText, setSearchText] = useState('');
+    const [searchDate, setSearchDate] = useState('');
+    const [results, setResults] = useState([]);
+
+    const handleSearch = () => {
+        const filtered = pageData.condolences.filter(c => {
+            const nameMatch = searchName ? c.guest_name.toLowerCase().includes(searchName.toLowerCase()) : true;
+            const textMatch = searchText ? c.message.toLowerCase().includes(searchText.toLowerCase()) : true;
+            const dateMatch = searchDate ? new Date(c.created_at).toLocaleDateString('de-DE').includes(searchDate) : true;
+            return nameMatch && textMatch && dateMatch;
+        });
+        setResults(filtered);
+    };
+
+    return (
+        <div className="popup-overlay" onClick={onClose}>
+            <div className="popup-content search-popup" onClick={e => e.stopPropagation()}>
+                <h3>Eintrag suchen</h3>
+                <div className="search-form">
+                    <input type="text" value={searchName} onChange={e => setSearchName(e.target.value)} placeholder="Nach Name suchen..." />
+                    <input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Nach Text suchen..." />
+                    <input type="text" value={searchDate} onChange={e => setSearchDate(e.target.value)} placeholder="Nach Datum suchen (TT.MM.JJJJ)..." />
+                    <button onClick={handleSearch}>Suchen</button>
+                </div>
+                <div className="search-results">
+                    {results.map(condolence => (
+                        <div key={condolence.condolence_id} className="search-result-card" onClick={() => onResultClick(condolence)}>
+                            <strong>{condolence.guest_name}</strong>
+                            <p>{condolence.message.substring(0, 50)}...</p>
+                            <span>{new Date(condolence.created_at).toLocaleDateString('de-DE')}</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="popup-actions">
+                    <button type="button" onClick={onClose}>Schließen</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
     const [condolenceView, setCondolenceView] = useState('cards');
@@ -202,6 +246,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
     const [candleMessage, setCandleMessage] = useState('');
     const [selectedCandle, setSelectedCandle] = useState(null);
     const [candleCurrentPage, setCandleCurrentPage] = useState(0);
+
+    const [showSearchPopup, setShowSearchPopup] = useState(false);
+    const navBarRef = useRef(null);
 
     const api = useApi();
     const { user } = useContext(AuthContext);
@@ -233,6 +280,27 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
         
         fetchCandleData();
         fetchCondolenceTemplates();
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (navBarRef.current) {
+                    navBarRef.current.style.opacity = entry.isIntersecting ? '1' : '0';
+                    navBarRef.current.style.visibility = entry.isIntersecting ? 'visible' : 'hidden';
+                }
+            },
+            { rootMargin: "0px", threshold: 0.1 }
+        );
+
+        if (carouselRef.current) {
+            observer.observe(carouselRef.current);
+        }
+
+        return () => {
+            if (carouselRef.current) {
+                observer.unobserve(carouselRef.current);
+            }
+        };
+
     }, [api]);
 
     const handleTemplateChange = (e) => {
@@ -323,6 +391,11 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
         setSelectedCondolence(condolence);
     };
 
+    const handleSearchResultClick = (condolence) => {
+        setShowSearchPopup(false);
+        openCondolenceLightbox(condolence);
+    };
+
     const today = new Date();
     const isBirthday = today.getDate() === new Date(pageData.date_of_birth).getDate() && today.getMonth() === new Date(pageData.date_of_birth).getMonth();
     const yearsSinceDeath = today.getFullYear() - new Date(pageData.date_of_death).getFullYear();
@@ -350,13 +423,17 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                         <div className="inline-view-controls">
                             <h3>Kondolenzbuch</h3>
                             <div>
+                                <button onClick={() => setShowSearchPopup(true)} className="nav-button">Eintrag suchen</button>
                                 <button onClick={() => setCondolenceView('cards')} className={condolenceView === 'cards' ? 'active' : ''}>Karten</button>
                                 <button onClick={() => setCondolenceView('list')} className={condolenceView === 'list' ? 'active' : ''}>Liste</button>
                             </div>
                         </div>
                         {condolenceView === 'cards' ? (
                             <div className="inline-cards-view">
-                                <button onClick={() => handlePageChange('prev')} className="inline-nav-arrow left" disabled={pageCount <= 1}><ArrowIcon direction="left" /></button>
+                                <div ref={navBarRef} className="wide-nav-bar">
+                                    <button onClick={() => handlePageChange('prev')} disabled={pageCount <= 1}><ArrowIcon direction="left" /></button>
+                                    <button onClick={() => handlePageChange('next')} disabled={pageCount <= 1}><ArrowIcon direction="right" /></button>
+                                </div>
                                 <div 
                                     className="inline-condolence-carousel" 
                                     ref={carouselRef}
@@ -370,7 +447,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={() => handlePageChange('next')} className="inline-nav-arrow right" disabled={pageCount <= 1}><ArrowIcon direction="right" /></button>
                             </div>
                         ) : (
                             <div className="inline-list-view">
@@ -535,13 +611,22 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                         <div className="lightbox-main">
                             <h3>{selectedCandle.guest_name}</h3>
                             <p>{selectedCandle.message || "In stillem Gedenken."}</p>
-                            <span>Angezüdet am {new Date(selectedCandle.created_at).toLocaleString('de-DE')}</span>
+                            <span>Angezündet am {new Date(selectedCandle.created_at).toLocaleString('de-DE')}</span>
                         </div>
                     </div>
                  </div>
+            )}
+
+            {showSearchPopup && (
+                <SearchPopup 
+                    onClose={() => setShowSearchPopup(false)}
+                    pageData={pageData}
+                    onResultClick={handleSearchResultClick}
+                />
             )}
         </>
     );
 };
 
 export default InlineExpandArea;
+```</pre>

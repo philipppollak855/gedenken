@@ -94,6 +94,7 @@ const MemorialPage = () => {
 
     const farewellSectionClasses = `farewell-section ${pageData.farewell_text_inverted ? 'text-inverted' : ''}`;
     const hasPublicEvents = pageData.events && pageData.events.filter(e => e.is_public).length > 0;
+    const parteContainerClasses = `media-container parte-container ${hasPublicEvents ? 'align-stretch' : 'align-center'}`;
 
     return (
         <div className="memorial-page-wrapper">
@@ -142,7 +143,7 @@ const MemorialPage = () => {
                     </div>
                     <div className={`farewell-main-content ${!hasPublicEvents ? 'centered-layout' : ''}`}>
                         {pageData.obituary_card_image_url && (
-                            <div className="media-container parte-container">
+                            <div className={parteContainerClasses}>
                                 <img src={pageData.obituary_card_image_url} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image_url)} />
                             </div>
                         )}

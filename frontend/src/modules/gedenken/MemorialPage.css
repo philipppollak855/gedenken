@@ -7,7 +7,6 @@
     background-color: #f4f1ee;
     color: #3a3a3a;
     font-family: 'Inter', sans-serif;
-    padding-top: 80px; /* Platz für die fixe Navigation */
 }
 
 h1, h2, h3, h4 {
@@ -220,7 +219,13 @@ h1, h2, h3, h4 {
     width: 100%;
 }
 .farewell-main-content.centered-layout {
-    justify-content: center;
+    align-items: center;
+}
+.parte-container.align-stretch {
+    align-self: stretch;
+}
+.parte-container.align-center {
+    align-self: center;
 }
 .right-column {
     display: flex;
@@ -248,7 +253,7 @@ h1, h2, h3, h4 {
 }
 .obituary-card {
     width: 375px;
-    height: 530px;
+    height: 100%;
     object-fit: contain;
     border: 4px solid white;
     border-radius: 0.5rem;

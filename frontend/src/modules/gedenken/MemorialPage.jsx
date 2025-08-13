@@ -1,6 +1,5 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Layout im Abschiedsbereich gemÃ¤ÃŸ den neuen Vorgaben umstrukturiert.
-// NEU: Logik zur Anzeige des nÃ¤chsten/letzten Termins implementiert.
+// KORRIGIERT: Sonderzeichen direkt im Code korrigiert, um Anzeigefehler zu beheben.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -55,7 +54,6 @@ const MemorialPage = () => {
         if (slug) fetchPageData();
     }, [slug, fetchPageData]);
 
-    // NEU: Logik zur Ermittlung des anzuzeigenden Termins
     const displayedEvent = useMemo(() => {
         if (!pageData || !pageData.events || pageData.events.length === 0) {
             return null;
@@ -148,7 +146,7 @@ const MemorialPage = () => {
                             <p className="deceased-title">IN GEDENKEN AN</p>
                             <h1 className="deceased-name">{pageData.first_name} {pageData.last_name}</h1>
                             <p className="deceased-dates">
-                                * {formatDate(pageData.date_of_birth)} &nbsp;&nbsp; â€  {formatDate(pageData.date_of_death)}
+                                * {formatDate(pageData.date_of_birth)} &nbsp;&nbsp; † {formatDate(pageData.date_of_death)}
                             </p>
                         </div>
                         <img className="profile-photo" src={pageData.main_photo_url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Profilbild von ${pageData.first_name}`} />
@@ -204,7 +202,7 @@ const MemorialPage = () => {
                                 </div>
                                 {hasPublicEvents && (
                                     <div className="farewell-events-area">
-                                        <h3>NÃ¤chster Termin</h3>
+                                        <h3>Nächster Termin</h3>
                                         {(() => {
                                             const { day, month, time } = formatEventDate(displayedEvent.date);
                                             return (
@@ -228,7 +226,7 @@ const MemorialPage = () => {
                             <button onClick={() => toggleExpandedView('condolences')}>
                                 Kondolenz schreiben {pageData.condolence_count > 0 && `(${pageData.condolence_count})`}
                             </button>
-                            <button onClick={() => toggleExpandedView('candles')}>Kerze anzÃ¼nden</button>
+                            <button onClick={() => toggleExpandedView('candles')}>Kerze anzünden</button>
                             <button onClick={() => toggleExpandedView('events')}>Alle Termine</button>
                         </div>
                     </div>

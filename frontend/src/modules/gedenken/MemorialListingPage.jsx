@@ -1,70 +1,79 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// Überarbeitet mit dynamischer Schriftgröße und neuen Anzeigeregeln.
+// KORRIGIERT: Robustere Datenabfrage zur Behebung des Lade-Problems.
 
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import './MemorialListingPage.css';
 
-// Eigene Komponente, um Text an die Breite des Containers anzupassen
-const AutoFitText = ({ text, className }) => {
-    const textRef = useRef(null);
+const MemorialCard = ({ page }) => {
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
 
-    useLayoutEffect(() => {
-        const el = textRef.current;
-        if (!el) return;
-
-        const parent = el.parentElement;
-        if (!parent) return;
-
-        // Reset font size before measuring
-        el.style.fontSize = ''; 
-        const initialSize = parseFloat(window.getComputedStyle(el).fontSize);
-        
-        const resize = () => {
-            let currentSize = initialSize;
-            el.style.whiteSpace = 'nowrap';
-            el.style.display = 'inline-block';
-
-            while (el.scrollWidth > parent.clientWidth && currentSize > 8) {
-                currentSize--;
-                el.style.fontSize = `${currentSize}px`;
-            }
-        };
-        resize();
-    }, [text]);
-
-    return <h3 className={className} ref={textRef}>{text}</h3>;
+    return (
+        <Link to={`/gedenken/${page.slug}`} className="memorial-card">
+            <div className="card-image-wrapper">
+                <img src={page.main_photo_url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Gedenkbild von ${page.first_name}`} />
+            </div>
+            <div className="card-info">
+                <h3>{page.first_name} {page.last_name}</h3>
+                <p>
+                    * {formatDate(page.date_of_birth)} &nbsp;&nbsp; † {formatDate(page.date_of_death)}
+                </p>
+            </div>
+        </Link>
+    );
 };
-
 
 const MemorialListingPage = () => {
     const [pages, setPages] = useState([]);
     const [settings, setSettings] = useState({});
     const [isLoading, setIsLoading] = useState(true);
-    const [filters, setFilters] = useState({
-        firstName: '',
-        lastName: '',
-        year: '',
-        cemetery: ''
-    });
-    const scrollContainerRef = useRef(null);
+    const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 12;
 
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 Sekunden Timeout
+
             try {
+                const apiUrl = process.env.REACT_APP_API_URL;
+                if (!apiUrl) {
+                    throw new Error("API URL ist nicht definiert. Bitte überprüfen Sie Ihre Umgebungsvariablen in Netlify.");
+                }
+
                 const [pagesRes, settingsRes] = await Promise.all([
-                    fetch('http://localhost:8000/api/memorial-pages/listing/'),
-                    fetch('http://localhost:8000/api/settings/')
+                    fetch(`${apiUrl}/api/memorial-pages/listing/`, { signal: controller.signal }),
+                    fetch(`${apiUrl}/api/settings/`, { signal: controller.signal })
                 ]);
+                
+                clearTimeout(timeoutId);
+
+                if (!pagesRes.ok) {
+                    throw new Error(`Gedenkseiten konnten nicht geladen werden (Status: ${pagesRes.status})`);
+                }
+                if (!settingsRes.ok) {
+                    throw new Error(`Einstellungen konnten nicht geladen werden (Status: ${settingsRes.status})`);
+                }
+                
                 const pagesData = await pagesRes.json();
                 const settingsData = await settingsRes.json();
                 
                 setPages(pagesData);
                 setSettings(settingsData);
 
-            } catch (error) {
-                console.error("Fehler beim Laden der Daten:", error);
+            } catch (err) {
+                clearTimeout(timeoutId);
+                if (err.name === 'AbortError') {
+                    setError('Der Server antwortet nicht. Bitte versuchen Sie es später erneut.');
+                } else {
+                    setError(`Fehler beim Laden der Daten: ${err.message}`);
+                }
+                 console.error(err);
             } finally {
                 setIsLoading(false);
             }
@@ -72,133 +81,74 @@ const MemorialListingPage = () => {
         fetchData();
     }, []);
 
-    const handleScroll = (direction) => {
-        if (scrollContainerRef.current) {
-            const scrollAmount = scrollContainerRef.current.clientWidth;
-            scrollContainerRef.current.scrollBy({ 
-                left: direction === 'left' ? -scrollAmount : scrollAmount, 
-                behavior: 'smooth' 
-            });
-        }
-    };
-
-    const handleFilterChange = (e) => {
-        const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
-    };
-
-    const filteredPages = pages.filter(page => {
-        const deathYear = new Date(page.date_of_death).getFullYear().toString();
-        return (
-            page.first_name.toLowerCase().includes(filters.firstName.toLowerCase()) &&
-            page.last_name.toLowerCase().includes(filters.lastName.toLowerCase()) &&
-            (filters.year === '' || deathYear.includes(filters.year)) &&
-            (page.cemetery || '').toLowerCase().includes(filters.cemetery.toLowerCase())
+    const filteredPages = useMemo(() => {
+        return pages.filter(page =>
+            `${page.first_name} ${page.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    });
-    
-    const chunk = (arr, size) =>
-        Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
-            arr.slice(i * size, i * size + size)
-        );
+    }, [pages, searchTerm]);
 
-    const pageChunks = chunk(pages, 12);
+    const pageCount = Math.ceil(filteredPages.length / itemsPerPage);
+    const paginatedPages = filteredPages.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
-    const noSearchInput = Object.values(filters).every(val => val === '');
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+        window.scrollTo(0, 0);
+    };
 
     if (isLoading) {
-        return <div>Lade Gedenkseiten...</div>;
+        return <div className="loading-spinner"><div className="spinner"></div></div>;
     }
 
-    const listingStyle = {
-        backgroundColor: settings.listing_background_color || '#f4f1ee',
-        backgroundImage: settings.listing_background_image ? `url(${settings.listing_background_image})` : 'none',
-        color: settings.listing_text_color || '#3a3a3a'
-    };
-    
-    const searchStyle = {
-        backgroundColor: settings.search_background_color || '#e5e0da',
-        backgroundImage: settings.search_background_image ? `url(${settings.search_background_image})` : 'none',
-        color: settings.search_text_color || '#3a3a3a'
-    };
+    if (error) {
+        return <div className="error-message">{error}</div>;
+    }
 
-    const arrowStyle = {
-        color: settings.listing_arrow_color || '#8c8073'
+    const pageStyle = {
+        backgroundColor: settings.listing_background_color || '#f4f1ee',
+        color: settings.listing_text_color || '#3a3a3a',
     };
 
     return (
-        <div className="memorial-listing-page">
-            <section className="listing-hero-section" style={listingStyle}>
-                <h2 className="listing-title">{settings.listing_title || "Wir trauern um"}</h2>
-                <div className="carousel-container">
-                    <button className="scroll-arrow left" style={arrowStyle} onClick={() => handleScroll('left')}>&#8249;</button>
-                    <div className="memorial-cards-carousel" ref={scrollContainerRef}>
-                        {pageChunks.map((chunk, index) => (
-                            <div className="carousel-page" key={index}>
-                                {chunk.map(page => (
-                                    <Link to={`/gedenken/${page.slug}`} key={page.slug} className="memorial-card" style={{backgroundColor: settings.listing_card_color}}>
-                                        <img src={page.main_photo_url || 'https://placehold.co/300x400'} alt={`${page.first_name} ${page.last_name}`} />
-                                        <div className="card-info">
-                                            <AutoFitText text={page.first_name} className="card-firstname" />
-                                            <AutoFitText text={page.last_name} className="card-lastname" />
-                                            {page.birth_name_or_title && (
-                                                <div className="card-birthname-container">
-                                                    <AutoFitText
-                                                        text={page.birth_name_type === 'geb' ? `geb. ${page.birth_name_or_title}` : page.birth_name_or_title}
-                                                        className="card-birthname"
-                                                    />
-                                                </div>
-                                            )}
-                                            <p className="card-deathdate">&#10013; {new Date(page.date_of_death).toLocaleDateString()}</p>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                    <button className="scroll-arrow right" style={arrowStyle} onClick={() => handleScroll('right')}>&#8250;</button>
+        <div className="listing-page-container" style={pageStyle}>
+            <div className="listing-header">
+                <h1>{settings.listing_title || "Wir gedenken"}</h1>
+                <div className="search-section">
+                    <input
+                        type="text"
+                        placeholder="Namen suchen..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(0);
+                        }}
+                        className="search-input"
+                    />
                 </div>
-            </section>
-            <section className="search-section" style={searchStyle}>
-                <h2>{settings.search_title || "Verstorbenen Suche"}</h2>
-                <div className="search-controls">
-                    <input name="firstName" type="text" placeholder="Vorname..." value={filters.firstName} onChange={handleFilterChange} />
-                    <input name="lastName" type="text" placeholder="Nachname..." value={filters.lastName} onChange={handleFilterChange} />
-                    <input name="year" type="text" placeholder="Sterbejahr..." value={filters.year} onChange={handleFilterChange} />
-                    <input name="cemetery" type="text" placeholder="Friedhof..." value={filters.cemetery} onChange={handleFilterChange} />
+            </div>
+
+            {paginatedPages.length > 0 ? (
+                <div className="memorial-grid">
+                    {paginatedPages.map(page => (
+                        <MemorialCard key={page.slug} page={page} />
+                    ))}
                 </div>
-                <div className="search-results">
-                    {noSearchInput ? (
-                        <p className="search-helper-text">
-                            {settings.search_helper_text || "Bitte geben Sie einen oder mehrere Suchbegriffe in die obenstehenden Felder ein, um nach einem Verstorbenen zu suchen."}
-                        </p>
-                    ) : (
-                        filteredPages.slice(0, 5).map((page, index) => (
-                            <Link 
-                                to={`/gedenken/${page.slug}`} 
-                                key={page.slug} 
-                                className={`memorial-card ${index === 0 ? 'highlighted' : ''}`} 
-                                style={{backgroundColor: settings.listing_card_color}}
-                            >
-                                <img src={page.main_photo_url || 'https://placehold.co/300x400'} alt={`${page.first_name} ${page.last_name}`} />
-                                <div className="card-info">
-                                    <AutoFitText text={page.first_name} className="card-firstname" />
-                                    <AutoFitText text={page.last_name} className="card-lastname" />
-                                    {page.birth_name_or_title && (
-                                        <div className="card-birthname-container">
-                                            <AutoFitText
-                                                text={page.birth_name_type === 'geb' ? `geb. ${page.birth_name_or_title}` : page.birth_name_or_title}
-                                                className="card-birthname"
-                                            />
-                                        </div>
-                                    )}
-                                    <p className="card-deathdate">&#10013; {new Date(page.date_of_death).toLocaleDateString()}</p>
-                                </div>
-                            </Link>
-                        ))
-                    )}
+            ) : (
+                <p className="no-results">Keine Gedenkseiten gefunden.</p>
+            )}
+
+            {pageCount > 1 && (
+                <div className="pagination">
+                    {Array.from({ length: pageCount }, (_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => handlePageChange(i)}
+                            className={currentPage === i ? 'active' : ''}
+                        >
+                            {i + 1}
+                        </button>
+                    ))}
                 </div>
-            </section>
+            )}
         </div>
     );
 };

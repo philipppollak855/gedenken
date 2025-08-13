@@ -1,176 +1,142 @@
-.memorial-listing-page {
-    width: 100%;
+/* frontend/src/modules/gedenken/MemorialListingPage.css */
+/* Vollständiger Code mit Stilen für Suche und Paginierung. */
+
+.listing-page-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem;
+    padding-top: 120px;
+    min-height: 100vh;
 }
 
-.listing-hero-section {
-    height: calc(100vh - 80px);
-    margin-top: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-size: cover;
-    background-position: center;
-    padding: 1rem 2rem;
-    box-sizing: border-box;
-}
-
-.listing-title {
-    font-size: 2.5rem;
-    font-family: 'Playfair Display', serif;
-    margin-bottom: 0.5rem;
-}
-
-.carousel-container {
-    position: relative;
-    width: 100%;
-    max-width: 90vw;
-    display: flex;
-    align-items: center;
-}
-
-.memorial-cards-carousel {
-    display: flex;
-    overflow-x: hidden;
-    scroll-snap-type: x mandatory;
-    width: 100%;
-}
-
-.carousel-page {
-    flex: 0 0 100%;
-    scroll-snap-align: start;
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 1.5rem;
-    padding: 1rem;
-    box-sizing: border-box;
-    height: 100%;
-}
-
-.scroll-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(255, 255, 255, 0.2);
-    border: none;
-    font-size: 3rem;
-    cursor: pointer;
-    z-index: 10;
-    padding: 0 1rem;
-    border-radius: 50%;
-    transition: background-color 0.2s;
-}
-.scroll-arrow:hover {
-    background-color: rgba(255, 255, 255, 0.5);
-}
-.scroll-arrow.left { left: -2rem; }
-.scroll-arrow.right { right: -2rem; }
-
-.memorial-card {
-    background-color: white;
-    border-radius: 1rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.3s, box-shadow 0.3s;
-    display: flex;
-    flex-direction: column;
-    height: 380px;
-}
-.memorial-card:hover {
-    transform: translateY(-8px);
-}
-.memorial-card img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-}
-.card-info {
-    padding: 1rem;
+.listing-header {
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    justify-content: center;
-    overflow: hidden; /* Verhindert, dass der Inhalt überläuft */
+    margin-bottom: 3rem;
 }
-.card-info h3 {
-    margin: 0;
-    line-height: 1.1;
-    overflow-wrap: normal;
-    white-space: nowrap;
-}
-.card-info .card-firstname,
-.card-info .card-lastname {
-    font-weight: 700;
-    font-size: 1.5rem;
-}
-.card-birthname-container {
-    height: 1.5em;
-    margin-top: 0.75rem !important;
-    margin-bottom: 0.75rem !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.card-birthname {
-    font-size: 1rem;
-    font-weight: 400 !important;
-}
-.card-deathdate {
-    font-size: 0.9rem;
-    margin-top: auto;
+
+.listing-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .search-section {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    box-sizing: border-box;
-    background-size: cover;
-    background-position: center;
-}
-.search-section h2 {
-    font-size: 3rem;
     margin-bottom: 2rem;
 }
-.search-controls {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 3rem;
-}
-.search-controls input, .search-controls select {
-    padding: 1rem;
-    font-size: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #ccc;
-    width: 200px;
-}
-.search-results {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
+
+.search-input {
     width: 100%;
-    max-width: 90vw;
-    height: 410px;
-    align-items: center;
+    max-width: 500px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-.search-results .memorial-card {
+
+.memorial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.memorial-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.memorial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.card-image-wrapper {
     height: 380px;
-    flex-basis: calc(20% - 1.6rem);
+    background-color: #f0f0f0;
 }
-.search-results .memorial-card.highlighted {
-    transform: scale(1.05);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+
+.card-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
-.search-helper-text {
-    font-size: 1.2rem;
-    max-width: 600px;
+
+.card-info {
+    padding: 1.5rem;
     text-align: center;
-    line-height: 1.6;
+}
+
+.card-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.card-info p {
+    margin: 0;
+    color: #6b7280;
+}
+
+.no-results {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #6b7280;
+    padding: 4rem 0;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 3rem;
+}
+
+.pagination button {
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #3a3a3a;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.pagination button:hover {
+    background-color: #f0f0f0;
+}
+
+.pagination button.active {
+    background-color: #8c8073;
+    color: white;
+    border-color: #8c8073;
+}
+
+.error-message {
+    text-align: center;
+    padding: 4rem;
+    font-size: 1.2rem;
+    color: #b91c1c;
+}
+
+.loading-spinner {
+    position: fixed; inset: 0;
+    background-color: white;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+}
+.spinner {
+    animation: spin 1s linear infinite;
+    border-radius: 50%;
+    width: 6rem; height: 6rem;
+    border-top: 3px solid #6b7280;
+    border-bottom: 3px solid #6b7280;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

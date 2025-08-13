@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Neues EventLocation-Modell für Stammdaten hinzugefügt.
+# ERWEITERT: Neue Felder für die Sichtbarkeit der Parte und anpassbare Quick-Links.
 
 import uuid
 from django.db import models
@@ -40,7 +40,6 @@ class MediaAsset(models.Model):
         verbose_name_plural = "Mediathek"
         ordering = ['-uploaded_at']
 
-# === NEUES MODELL: EventLocation START ===
 class EventLocation(models.Model):
     name = models.CharField("Name des Ortes", max_length=255, help_text="z.B. 'Pfarrkirche St. Stephan'")
     address = models.CharField("Adresse (Straße, PLZ, Ort)", max_length=255)
@@ -51,7 +50,6 @@ class EventLocation(models.Model):
     class Meta:
         verbose_name = "Veranstaltungsort"
         verbose_name_plural = "Veranstaltungsorte (Stammdaten)"
-# === NEUES MODELL: EventLocation ENDE ===
 
 class SiteSettings(models.Model):
     class Meta:
@@ -75,6 +73,11 @@ class SiteSettings(models.Model):
     expend_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Expand-Bereich")
     expend_card_color = models.CharField("Karten-Hintergrundfarbe Expand", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
     expend_text_color = models.CharField("Textfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+
+    # NEU: Felder für Quick-Link-Grafiken
+    quick_link_abschied_icon = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Icon für 'Abschied'")
+    quick_link_leben_icon = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Icon für 'Mein Leben'")
+    quick_link_kondolieren_icon = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Icon für 'Kondolieren'")
 
     def __str__(self):
         return "Globale Design-Einstellungen"
@@ -180,8 +183,12 @@ class MemorialPage(models.Model):
     farewell_background_color = models.CharField("Hintergrundfarbe Abschied", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     farewell_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Abschied")
     farewell_background_size = models.CharField("Anpassung Hintergrundbild Abschied", max_length=10, choices=BackgroundSize.choices, default=BackgroundSize.COVER)
-    obituary_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Partezettel Bild")
+    farewell_text_inverted = models.BooleanField("Textfarbe im Abschiedsbereich umkehren (für helle Hintergründe)", default=False)
     
+    obituary_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Partezettel Bild")
+    show_obituary_card = models.BooleanField("Partezettel anzeigen", default=True)
+    obituary_card_publication_date = models.DateTimeField("Veröffentlichungsdatum Partezettel", null=True, blank=True, help_text="Wenn ein Datum gesetzt ist, wird der Partezettel erst ab diesem Zeitpunkt angezeigt.")
+
     show_memorial_picture = models.BooleanField("Gedenkbild anzeigen", default=True)
     memorial_picture = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild Vorderseite")
     memorial_picture_back = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild Rückseite")

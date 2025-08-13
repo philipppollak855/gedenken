@@ -1,5 +1,5 @@
 /* frontend/src/index.css */
-/* Hier können Sie globale Stile für Ihre Anwendung definieren. */
+/* Globale Stile */
 
 body {
   margin: 0;
@@ -12,15 +12,31 @@ body {
   color: #333;
 }
 
+/* Dieser Wrapper stellt sicher, dass der Inhalt unterhalb der fixen Navigation beginnt. */
+.content-wrapper {
+    padding-top: 80px; /* Muss mit der Höhe in Header.css übereinstimmen */
+}
+
+/* Allgemeine Stile für Seiten mit einem zentrierten Container (z.B. Dashboard) */
 main {
-  /* KORRIGIERT: Die maximale Breite wurde entfernt, um die volle Bildschirmbreite zu nutzen. */
-  /* max-width: 960px; */ 
-  margin: 0 auto; /* Zentriert den Inhalt weiterhin, falls eine Breite gesetzt wäre */
+  max-width: 960px;
+  margin: 2rem auto;
   padding: 20px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* Spezifische Seiten-Wrapper wie .memorial-page-wrapper oder .listing-page-container
+   sollten ihr eigenes Styling definieren und benötigen nicht das von 'main'. */
+.memorial-page-wrapper, .listing-page-container {
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    background-color: transparent;
+    max-width: none;
+}
+
 
 input, textarea {
   width: calc(100% - 20px);

@@ -1,8 +1,8 @@
 // frontend/src/App.jsx
-// AKTUALISIERT: Route für "Meine Beiträge" hinzugefügt und aktiviert.
+// KORRIGIERT: Stellt die korrekte Layout-Struktur für die fixe Navigation sicher.
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
 import HomePage from './modules/HomePage';
@@ -16,40 +16,32 @@ import MemorialPageAdmin from './modules/gedenken/MemorialPageAdmin';
 import MemorialListingPage from './modules/gedenken/MemorialListingPage';
 import MyContributions from './modules/user/MyContributions';
 
-// Layout-Komponente für Seiten mit Standard-Padding und Hintergrund
-const MainLayout = () => (
-  <main style={{ paddingTop: '100px', backgroundColor: 'transparent', boxShadow: 'none'}}>
-    <Outlet />
-  </main>
-);
-
 function App() {
   return (
     <Router>
       <AuthProvider>
         <Header />
-        <Routes>
-          <Route element={<MainLayout />}>
+        <div className="content-wrapper">
+          <Routes>
             <Route path="/" element={<HomePage />} exact />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegistrationPage />} />
             <Route 
               path="/dashboard"
-              element={<PrivateRoute><VorsorgeDashboard /></PrivateRoute>} 
+              element={<PrivateRoute><main><VorsorgeDashboard /></main></PrivateRoute>} 
             />
             <Route 
               path="/meine-beitraege"
-              element={<PrivateRoute><MyContributions /></PrivateRoute>} 
+              element={<PrivateRoute><main><MyContributions /></main></PrivateRoute>} 
             />
-          </Route>
-
-          <Route path="/gedenken" element={<MemorialListingPage />} />
-          <Route path="/gedenken/:slug" element={<MemorialPage />} />
-          <Route 
-            path="/gedenken/:slug/verwalten"
-            element={<PrivateRoute><MemorialPageAdmin /></PrivateRoute>} 
-          />
-        </Routes>
+            <Route path="/gedenken" element={<MemorialListingPage />} />
+            <Route path="/gedenken/:slug" element={<MemorialPage />} />
+            <Route 
+              path="/gedenken/:slug/verwalten"
+              element={<PrivateRoute><main><MemorialPageAdmin /></main></PrivateRoute>} 
+            />
+          </Routes>
+        </div>
       </AuthProvider>
     </Router>
   );

@@ -1,5 +1,5 @@
 # backend/api/serializers.py
-# Vollständiger Code mit allen Serializern.
+# KORRIGIERT: MemorialPageListSerializer lädt nur noch die benötigten Felder.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -151,19 +151,15 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         exclude = ['page']
 
 class MemorialPageListSerializer(serializers.ModelSerializer):
-    events = serializers.SerializerMethodField()
     main_photo_url = serializers.URLField(source='main_photo.url', read_only=True, allow_null=True)
 
     class Meta:
         model = MemorialPage
+        # === KORREKTUR: Nur die benötigten Felder werden explizit aufgeführt ===
         fields = [
-            'slug', 'first_name', 'last_name', 'birth_name_type', 'birth_name_or_title', 
-            'date_of_birth', 'date_of_death', 'main_photo_url', 'events', 'cemetery'
+            'slug', 'first_name', 'last_name', 
+            'date_of_birth', 'date_of_death', 'main_photo_url'
         ]
-    
-    def get_events(self, obj):
-        upcoming_events = obj.events.filter(date__gte=timezone.now(), is_public=True).order_by('date')[:2]
-        return MemorialEventSerializer(upcoming_events, many=True).data
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
     listing_background_image_url = serializers.URLField(source='listing_background_image.url', read_only=True, allow_null=True)
@@ -206,7 +202,7 @@ class MemorialPageSerializer(serializers.ModelSerializer):
             'donation_text', 'donation_link', 'donation_bank_details',
             'candles', 'candle_count', 'condolence_count',
             'events', 'cemetery',
-            'farewell_background_color', 'farewell_background_size',
+            'farewell_background_color', 'farewell_background_size', 'farewell_text_inverted',
             'show_memorial_picture', 
             'acknowledgement_type', 'acknowledgement_text', 
             'condolence_moderation',

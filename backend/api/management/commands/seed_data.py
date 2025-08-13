@@ -1,12 +1,12 @@
 # backend/api/management/commands/seed_data.py
-# ERWEITERT: Erstellt mehr Kerzen für Paginierung und füllt alle neuen, detaillierten Termin-Felder.
+# ERWEITERT: Erstellt 50 einzigartige, extrem detailreiche Persönlichkeiten mit massiv erweiterten, einzigartigen Datenpools.
 
 import random
 from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker
-from api.models import User, MemorialPage, Condolence, MemorialEvent, MediaAsset, CandleImage, TimelineEvent, GalleryItem, MemorialCandle
+from api.models import User, MemorialPage, Condolence, MemorialEvent, MediaAsset, CandleImage, TimelineEvent, GalleryItem, MemorialCandle, EventLocation
 
 class Command(BaseCommand):
     help = 'Seeds the database with 50 rich and varied example users and memorial pages.'
@@ -20,79 +20,71 @@ class Command(BaseCommand):
 
         fake = Faker('de_AT')
 
+        # === MASSIV ERWEITERTE DATENPOOLS ===
         personas = [
-            {'type': 'Gärtner', 'gender': 'male', 'hobby': 'seinen geliebten Garten hegte und pflegte, in dem er Ruhe und Kraft fand'},
-            {'type': 'Großmutter', 'gender': 'female', 'hobby': 'mit Hingabe für ihre Familie da war und die besten Kuchen der Welt backte'},
-            {'type': 'Musiker', 'gender': 'male', 'hobby': 'mit seiner Gitarre und seiner Stimme die Herzen der Menschen berührte'},
-            {'type': 'Reisende', 'gender': 'female', 'hobby': 'die entlegensten Winkel der Welt mit Neugier und Mut entdeckte'},
-            {'type': 'Leser', 'gender': 'male', 'hobby': 'in der Welt der Bücher zuhause war und sein Wissen gerne teilte'},
-            {'type': 'Köchin', 'gender': 'female', 'hobby': 'Familie und Freunde mit ihren kulinarischen Kreationen verwöhnte'},
-            {'type': 'Vereinsmeier', 'gender': 'male', 'hobby': 'im örtlichen Fußballverein seine zweite Heimat fand'},
+            {'type': 'Gärtner', 'gender': 'male', 'hobby': 'seinen geliebten Garten hegte und pflegte'},
+            {'type': 'Großmutter', 'gender': 'female', 'hobby': 'mit Hingabe für ihre Familie da war'},
+            {'type': 'Musiker', 'gender': 'male', 'hobby': 'mit seiner Gitarre die Herzen der Menschen berührte'},
+            {'type': 'Reisende', 'gender': 'female', 'hobby': 'die Welt mit Neugier entdeckte'},
+            {'type': 'Leser', 'gender': 'male', 'hobby': 'in der Welt der Bücher zuhause war'},
+            {'type': 'Köchin', 'gender': 'female', 'hobby': 'Freunde mit ihren Kreationen verwöhnte'},
+            {'type': 'Vereinsmeier', 'gender': 'male', 'hobby': 'im örtlichen Fußballverein seine Heimat fand'},
             {'type': 'Ärztin', 'gender': 'female', 'hobby': 'sich aufopferungsvoll um ihre Patienten kümmerte'},
             {'type': 'Tischler', 'gender': 'male', 'hobby': 'aus Holz wahre Kunstwerke schuf'},
             {'type': 'Tänzerin', 'gender': 'female', 'hobby': 'ihr Leben lang dem Tanz verbunden war'},
-            {'type': 'Lehrer', 'gender': 'male', 'hobby': 'Generationen von Schülern mit Geduld und Weisheit prägte'},
-            {'type': 'Künstlerin', 'gender': 'female', 'hobby': 'die Welt durch ihre farbenfrohen Gemälde ein bisschen bunter machte'},
-            {'type': 'Bergsteiger', 'gender': 'male', 'hobby': 'auf den höchsten Gipfeln der Alpen sein Glück fand'},
-            {'type': 'Schneiderin', 'gender': 'female', 'hobby': 'mit Nadel und Faden die schönsten Kleider zauberte'},
+            {'type': 'Lehrer', 'gender': 'male', 'hobby': 'Generationen von Schülern prägte'},
+            {'type': 'Künstlerin', 'gender': 'female', 'hobby': 'die Welt durch Gemälde bunter machte'},
+            {'type': 'Bergsteiger', 'gender': 'male', 'hobby': 'auf den höchsten Gipfeln sein Glück fand'},
+            {'type': 'Schneiderin', 'gender': 'female', 'hobby': 'mit Nadel und Faden Träume webte'},
             {'type': 'Angler', 'gender': 'male', 'hobby': 'in der Stille am Seeufer seine Mitte fand'},
-            {'type': 'Tierfreundin', 'gender': 'female', 'hobby': 'jedem Tier in Not ein liebevolles Zuhause gab'},
-            {'type': 'Fotograf', 'gender': 'male', 'hobby': 'die flüchtigen Momente des Lebens in wunderschönen Bildern festhielt'},
-            {'type': 'Chorsängerin', 'gender': 'female', 'hobby': 'mit ihrer klaren Stimme im Kirchenchor für Gänsehautmomente sorgte'},
-            {'type': 'Winzer', 'gender': 'male', 'hobby': 'mit Leidenschaft und Hingabe seinen eigenen Wein kelterte'},
+            {'type': 'Tierfreundin', 'gender': 'female', 'hobby': 'jedem Tier in Not ein Zuhause gab'},
+            {'type': 'Fotograf', 'gender': 'male', 'hobby': 'die Momente des Lebens in Bildern festhielt'},
+            {'type': 'Chorsängerin', 'gender': 'female', 'hobby': 'im Kirchenchor für Gänsehautmomente sorgte'},
+            {'type': 'Winzer', 'gender': 'male', 'hobby': 'mit Leidenschaft seinen eigenen Wein kelterte'},
             {'type': 'Historikerin', 'gender': 'female', 'hobby': 'die Geschichten der Vergangenheit lebendig werden ließ'},
+            {'type': 'Imker', 'gender': 'male', 'hobby': 'sich liebevoll um seine Bienen kümmerte'},
+            {'type': 'Bibliothekarin', 'gender': 'female', 'hobby': 'die Ordnung und den Duft von Büchern liebte'},
+            {'type': 'Schachspieler', 'gender': 'male', 'hobby': 'in strategischen Zügen dachte'},
+            {'type': 'Yogalehrerin', 'gender': 'female', 'hobby': 'innere Ruhe und Ausgeglichenheit ausstrahlte'},
+            {'type': 'Pilot', 'gender': 'male', 'hobby': 'den Wolken näher war als dem Boden'},
+            {'type': 'Konditorin', 'gender': 'female', 'hobby': 'die süßesten Versuchungen kreierte'},
+            {'type': 'Feuerwehrmann', 'gender': 'male', 'hobby': 'mutig für die Sicherheit anderer einstand'},
+            {'type': 'Floristin', 'gender': 'female', 'hobby': 'mit Blumen Geschichten erzählte'},
+            {'type': 'Astronom', 'gender': 'male', 'hobby': 'nachts die Sterne beobachtete'},
+            {'type': 'Apothekerin', 'gender': 'female', 'hobby': 'stets den richtigen Rat wusste'},
+            {'type': 'Bauer', 'gender': 'male', 'hobby': 'im Einklang mit der Natur lebte'},
+            {'type': 'Journalistin', 'gender': 'female', 'hobby': 'neugierig den Dingen auf den Grund ging'},
+            {'type': 'Uhrmacher', 'gender': 'male', 'hobby': 'die Zeit zum Stillstand bringen konnte'},
+            {'type': 'Architektin', 'gender': 'female', 'hobby': 'Räume mit Leben und Licht füllte'},
+            {'type': 'Segler', 'gender': 'male', 'hobby': 'sich vom Wind über die Meere tragen ließ'},
+            {'type': 'Richterin', 'gender': 'female', 'hobby': 'stets für Gerechtigkeit eintrat'},
+            {'type': 'Bäcker', 'gender': 'male', 'hobby': 'jeden Morgen den Duft von frischem Brot verbreitete'},
+            {'type': 'Übersetzerin', 'gender': 'female', 'hobby': 'Brücken zwischen den Kulturen baute'},
+            {'type': 'Jäger', 'gender': 'male', 'hobby': 'den Wald und seine Bewohner respektierte'},
+            {'type': 'Physikerin', 'gender': 'female', 'hobby': 'die Geheimnisse des Universums entschlüsselte'},
+            {'type': 'Taxifahrer', 'gender': 'male', 'hobby': 'immer eine gute Geschichte zu erzählen wusste'},
+            {'type': 'Krankenschwester', 'gender': 'female', 'hobby': 'mitfühlend und unermüdlich für andere da war'},
+            {'type': 'Mechaniker', 'gender': 'male', 'hobby': 'jedes noch so alte Auto wieder zum Laufen brachte'},
+            {'type': 'Goldschmiedin', 'gender': 'female', 'hobby': 'filigranen Schmuck von zeitloser Schönheit schuf'},
+            {'type': 'Philosoph', 'gender': 'male', 'hobby': 'über die großen Fragen des Lebens nachdachte'},
+            {'type': 'Mathematikerin', 'gender': 'female', 'hobby': 'in der Eleganz der Zahlen ihre Erfüllung fand'},
+            {'type': 'Förster', 'gender': 'male', 'hobby': 'den Wald wie seine Westentasche kannte'},
+            {'type': 'Stewardess', 'gender': 'female', 'hobby': 'mit einem Lächeln die Welt bereiste'},
+            {'type': 'Elektriker', 'gender': 'male', 'hobby': 'in jedem Chaos den richtigen Draht fand'},
+            {'type': 'Dichterin', 'gender': 'female', 'hobby': 'ihre Gefühle in wunderschöne Worte fasste'},
         ] * 5
 
         image_pools = {
-            'portrait_male': [
-                'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-                'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-                'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-                'https://images.pexels.com/photos/1212984/pexels-photo-1212984.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-                'https://images.pexels.com/photos/532220/pexels-photo-532220.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-            ],
-            'portrait_female': [
-                'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-                'https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-                'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-                'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-                'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1',
-            ],
-            'background_nature': [
-                'https://images.pexels.com/photos/36717/amazing-animal-beautiful-beautifull.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-                'https://images.pexels.com/photos/1528640/pexels-photo-1528640.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-            ],
-            'background_calm': [
-                'https://images.pexels.com/photos/1287145/pexels-photo-1287145.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-                'https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-            ],
-            'background_travel': [
-                'https://images.pexels.com/photos/2104152/pexels-photo-2104152.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-                'https://images.pexels.com/photos/3889852/pexels-photo-3889852.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-            ],
-            'obituary_cards': [
-                'https://images.pexels.com/photos/132474/pexels-photo-132474.jpeg?auto=compress&cs=tinysrgb&w=400&h=560&dpr=1',
-                'https://images.pexels.com/photos/776632/pexels-photo-776632.jpeg?auto=compress&cs=tinysrgb&w=400&h=560&dpr=1',
-            ],
-            'acknowledgement_images': [
-                'https://images.pexels.com/photos/450059/pexels-photo-450059.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
-                'https://images.pexels.com/photos/163064/play-stone-network-networked-163064.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
-            ],
-            'memorial_pictures': [
-                'https://images.pexels.com/photos/1105325/pexels-photo-1105325.jpeg?auto=compress&cs=tinysrgb&w=350&h=262&dpr=1',
-                'https://images.pexels.com/photos/167698/pexels-photo-167698.jpeg?auto=compress&cs=tinysrgb&w=350&h=262&dpr=1',
-            ],
-            'gallery_images': [
-                'https://images.pexels.com/photos/2693212/pexels-photo-2693212.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
-                'https://images.pexels.com/photos/3225517/pexels-photo-3225517.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
-                'https://images.pexels.com/photos/1535162/pexels-photo-1535162.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
-                'https://images.pexels.com/photos/1671325/pexels-photo-1671325.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
-            ],
-            'candle_images': [
-                'https://images.pexels.com/photos/247297/pexels-photo-247297.jpeg?auto=compress&cs=tinysrgb&w=200&h=300&dpr=1',
-                'https://images.pexels.com/photos/933099/pexels-photo-933099.jpeg?auto=compress&cs=tinysrgb&w=200&h=300&dpr=1',
-                'https://images.pexels.com/photos/1126413/pexels-photo-1126413.jpeg?auto=compress&cs=tinysrgb&w=200&h=300&dpr=1',
-            ]
+            'portrait_male': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1' for p_id in [91227, 614810, 2379004, 1212984, 532220, 842980, 837358, 1040880, 1680140, 2218786, 1516680, 3778603, 3777973, 937481, 1082962, 1222271, 1462980, 3764119, 3785079, 3760366, 810449, 1300402, 2180883, 2589653, 3184611, 428040, 697509, 1043474, 1181676, 1559486, 2102416, 2623912, 3769021, 3775576, 3781341, 3932343, 53787, 846741, 948925, 1049298, 1121796, 1310785, 1674664, 2955302, 3078421, 3762803, 3772523, 3789764, 3918418, 415829, 3760362, 3760361, 3760359, 3760358, 3760357, 3760356, 3760355, 3760354, 3760353, 3760352]],
+            'portrait_female': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=500&h=600&dpr=1' for p_id in [774909, 1065084, 733872, 1130626, 1239291, 943084, 1036623, 1181519, 1587009, 2726111, 762020, 1082959, 1181686, 1310775, 1382731, 1844036, 2169434, 2218783, 2804282, 3762813, 3769021, 3772523, 3781341, 3789764, 38554, 415829, 712521, 774095, 873212, 903661, 1024399, 1181424, 1239286, 1468379, 1542085, 1858175, 2093348, 2613260, 2776582, 3764578, 3771089, 3775576, 3781341, 3816259, 3828945, 3863793, 3918418, 4009626, 4100117, 415829]],
+            'background_nature': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' for p_id in [36717, 1528640, 417074, 257360, 1323550, 1461974, 1144176, 3408744, 1287145, 167699, 459225, 302743, 273901, 33109, 462118, 533923, 572897, 678725, 709552, 747964] * 5],
+            'background_calm': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' for p_id in [1287145, 3408744, 2387873, 1001682, 1739842, 994605, 2694037, 2832034, 3225524, 3292604, 235615, 358572, 460437, 1072179, 1118873, 1533720, 1632913, 2098085, 2129796, 2247179] * 5],
+            'background_travel': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' for p_id in [2104152, 3889852, 386009, 1450360, 2356045, 338504, 1658967, 2161447, 2440061, 258117, 1271619, 1485894, 1531660, 1631677, 208701, 2325446, 238622, 2869373, 3277935, 347141] * 5],
+            'obituary_cards': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=400&h=560&dpr=1' for p_id in [132474, 776632, 933255, 1020016, 1102915, 1655166, 2695393, 3244513, 370799, 459225, 957024, 1054289, 1118869, 1366919, 1420702, 1525041, 1640243, 1784578, 2049422, 21014] * 5],
+            'acknowledgement_images': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1' for p_id in [450059, 163064, 262508, 316466, 355948, 414579, 461049, 534164, 669615, 70741, 1595391, 1666021, 2045600, 2128249, 2255441, 260689, 296559, 3184418, 3184431, 3184465] * 5],
+            'memorial_pictures': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=350&h=262&dpr=1' for p_id in [1105325, 167698, 372098, 459301, 531321, 54124, 701439, 754082, 842811, 948873, 104827, 1122409, 1254140, 1545743, 1576958, 1638462, 170811, 2127037, 236915, 247314] * 5],
+            'gallery_images': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1' for p_id in [2693212, 3225517, 1535162, 1671325, 2086622, 2249290, 2422461, 2897883, 3028941, 3294250, 356056, 3586966, 374710, 380769, 38544, 405031, 4344860, 450062, 546819, 577585] * 5],
+            'candle_images': [f'https://images.pexels.com/photos/{p_id}/pexels-photo-{p_id}.jpeg?auto=compress&cs=tinysrgb&w=200&h=300&dpr=1' for p_id in [247297, 933099, 1126413, 1589338, 1879061, 2155553, 3045439, 3577348, 3682999, 3775602, 3933241, 4040590, 5011494, 5802273, 6253696, 1037995, 1103829, 1126413, 1470405, 1543762] * 2],
         }
         
         obituary_openings = ["In Liebe und Dankbarkeit nehmen wir Abschied von", "Nach einem langen, erfüllten Leben entschlief sanft", "Unerwartet und viel zu früh müssen wir Abschied nehmen von", "In tiefer Trauer geben wir bekannt, dass"]
@@ -113,6 +105,20 @@ class Command(BaseCommand):
             if asset:
                 candle_image, _ = CandleImage.objects.get_or_create(name=f"Kerze {asset.title[:20]}", defaults={'image': asset, 'type': 'standard'})
                 candle_images_in_db.append(candle_image)
+
+        event_locations = []
+        for _ in range(20):
+            location, _ = EventLocation.objects.get_or_create(
+                name=f"Pfarrkirche {fake.city()}",
+                defaults={'address': fake.street_address()}
+            )
+            event_locations.append(location)
+        for _ in range(20):
+            location, _ = EventLocation.objects.get_or_create(
+                name=f"{fake.street_name()} Friedhof",
+                defaults={'address': fake.street_address()}
+            )
+            event_locations.append(location)
 
         for i in range(50):
             persona = random.choice(personas)
@@ -145,61 +151,54 @@ class Command(BaseCommand):
                     'cemetery': fake.street_name() + " Friedhof", 'obituary': obituary,
                     'obituary_card_image': MediaAsset.objects.filter(file_url=random.choice(image_pools['obituary_cards'])).first(),
                     'memorial_picture': MediaAsset.objects.filter(file_url=random.choice(image_pools['memorial_pictures'])).first(),
+                    'memorial_picture_back': MediaAsset.objects.filter(file_url=random.choice(image_pools['memorial_pictures'])).first(),
                     'acknowledgement_image': MediaAsset.objects.filter(file_url=random.choice(image_pools['acknowledgement_images'])).first(),
                     'acknowledgement_type': 'image',
+                    'donation_text': f"Anstelle von Blumen bitten wir um eine Spende für '{fake.company()}'." if random.random() > 0.5 else "",
                 }
             )
             
             self.stdout.write(f'({i+1}/50) Processed page for {first_name} {last_name} ({persona["type"]})')
 
             Condolence.objects.filter(page=page).delete()
-            for _ in range(random.randint(10, 30)):
+            for _ in range(random.randint(15, 40)):
                 message = f"{random.choice(condolence_starters)} {random.choice(condolence_middles)} {random.choice(condolence_enders)}"
                 Condolence.objects.create(page=page, guest_name=f"{fake.first_name()} {fake.last_name()}", message=message, is_approved=True)
 
             MemorialEvent.objects.filter(page=page).delete()
-            # Haupt-Trauerfeier
-            MemorialEvent.objects.create(
-                page=page,
-                is_public=True,
-                title="Trauerfeier",
-                date=date_of_death + timedelta(days=7, hours=14),
-                show_location=True,
-                location_name=f"Pfarrkirche {fake.city()}",
-                location_address=fake.street_address(),
-                show_dresscode=random.choice([True, False]),
-                dresscode="Um dunkle Kleidung wird gebeten.",
-                show_condolence_note=True,
-                condolence_note="Von Beileidsbezeugungen am Grab bitten wir Abstand zu nehmen.",
-                show_donation_info=random.choice([True, False]),
-                donation_for=f"die örtliche Krebshilfe",
-                description="Anschließend findet ein Leichenschmaus im Gasthaus zur Post statt."
-            )
-            # Zusätzlicher Termin (z.B. Beisetzung)
-            if random.random() > 0.5:
-                 MemorialEvent.objects.create(
+            for _ in range(random.randint(2, 4)):
+                MemorialEvent.objects.create(
                     page=page,
                     is_public=True,
-                    title="Beisetzung der Urne",
-                    date=date_of_death + timedelta(days=14, hours=11),
+                    title=random.choice(["Trauerfeier", "Beisetzung", "Rosenkranz", "Gedenkgottesdienst"]),
+                    date=date_of_death + timedelta(days=random.randint(5, 20), hours=random.randint(9, 18)),
                     show_location=True,
-                    location_name=page.cemetery,
-                    location_address=fake.street_address(),
-                    description="Die Beisetzung findet im engsten Familienkreis statt."
+                    location=random.choice(event_locations),
+                    show_dresscode=random.choice([True, False]),
+                    dresscode="Um dunkle Kleidung wird gebeten.",
+                    show_condolence_note=True,
+                    condolence_note="Von Beileidsbezeugungen am Grab bitten wir Abstand zu nehmen.",
+                    show_donation_info=random.choice([True, False]),
+                    donation_for=f"die örtliche Krebshilfe",
+                    description="Anschließend findet ein Leichenschmaus im Gasthaus zur Post statt."
                 )
-
             
             TimelineEvent.objects.filter(page=page).delete()
-            TimelineEvent.objects.create(page=page, date=date_of_birth + timedelta(days=random.randint(6000, 8000)), title="Einschulung", description=f"{first_name} kam in die Volksschule in {fake.city()}.")
-            TimelineEvent.objects.create(page=page, date=date_of_birth + timedelta(days=random.randint(10000, 12000)), title="Erste große Reise", description=f"Die erste große Reise führte {first_name} nach {fake.country()}.")
+            for _ in range(random.randint(3, 5)):
+                TimelineEvent.objects.create(
+                    page=page,
+                    date=date_of_birth + timedelta(days=random.randint(6000, 20000)),
+                    title=fake.catch_phrase(),
+                    description=fake.paragraph(nb_sentences=2)
+                )
 
             GalleryItem.objects.filter(page=page).delete()
-            for _ in range(random.randint(4, 8)):
+            for _ in range(random.randint(6, 12)):
                 GalleryItem.objects.create(page=page, image=MediaAsset.objects.filter(file_url=random.choice(image_pools['gallery_images'])).first(), caption=fake.sentence(nb_words=4))
 
             MemorialCandle.objects.filter(page=page).delete()
             if candle_images_in_db:
-                for _ in range(random.randint(25, 50)): # Erhöhte Anzahl für Paginierung
+                for _ in range(random.randint(30, 60)):
                     MemorialCandle.objects.create(
                         page=page,
                         guest_name=f"{fake.first_name()} {fake.last_name()}",

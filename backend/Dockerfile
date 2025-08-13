@@ -1,6 +1,5 @@
 # backend/Dockerfile
-# KORRIGIERT: Verwendet ein entrypoint-Skript für Migrationen und Serverstart.
-
+# Verwendet das entrypoint-Skript für Migrationen und Serverstart.
 FROM python:3.11-slim-bullseye
 
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -14,7 +13,7 @@ RUN pip install -r requirements.txt
 
 COPY backend/ .
 
-# Kopiert das neue entrypoint-Skript in den Container
+# Kopiert das entrypoint-Skript in den Container
 COPY backend/entrypoint.sh /app/entrypoint.sh
 # Macht das Skript ausführbar
 RUN chmod +x /app/entrypoint.sh

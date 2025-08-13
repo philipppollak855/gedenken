@@ -1,11 +1,12 @@
 # docker-compose.yml
 # KORRIGIERT: Der Build-Kontext wurde angepasst, um die Render-Umgebung zu spiegeln.
+# NEU: UTF-8 Kodierung für die Datenbank erzwungen.
 
 services:
   backend:
     build:
-      context: . # Verwendet das Projekt-Hauptverzeichnis als Kontext
-      dockerfile: backend/Dockerfile # Gibt den Pfad zum Dockerfile an
+      context: . 
+      dockerfile: backend/Dockerfile 
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./backend:/app
@@ -38,6 +39,10 @@ services:
       - POSTGRES_USER=vorsorge_user
       - POSTGRES_PASSWORD=vorsorge_pass
       - POSTGRES_DB=vorsorge_db
+      # NEU: Erzwingt die korrekte Kodierung beim Erstellen der Datenbank
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      - POSTGRES_LC_COLLATE=C
+      - POSTGRES_LC_CTYPE=C.UTF-8
 
 volumes:
   postgres_data:

@@ -1,7 +1,7 @@
 /* frontend/src/modules/gedenken/MemorialPage.css */
 /* Vollständiger und korrigierter Code. */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Cormorant+Garamond:wght@400;700&display=swap');
 
 .memorial-page-wrapper {
     background-color: #f4f1ee;
@@ -10,7 +10,7 @@
 }
 
 h1, h2, h3, h4 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
 }
 
 .loading-spinner {

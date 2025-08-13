@@ -1,16 +1,16 @@
 /* frontend/src/modules/gedenken/MemorialPage.css */
 /* Vollständiger und korrigierter Code. */
 
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Source+Sans+Pro:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@400;700&display=swap');
 
 .memorial-page-wrapper {
     background-color: #f4f1ee;
     color: #3a3a3a;
-    font-family: 'Source Sans Pro', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 h1, h2, h3, h4 {
-    font-family: 'Lora', serif;
+    font-family: 'Playfair Display', serif;
 }
 
 .loading-spinner {

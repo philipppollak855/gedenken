@@ -1,50 +1,57 @@
-// frontend/src/App.jsx
-// AKTUALISIERT: Globaler Wrapper für korrekten Abstand zur fixen Navigation.
+/* frontend/src/index.css */
+/* Hier können Sie globale Stile für Ihre Anwendung definieren. */
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-
-import HomePage from './modules/HomePage';
-import LoginPage from './modules/auth/LoginPage';
-import RegistrationPage from './modules/auth/RegistrationPage';
-import Header from './components/layout/Header';
-import VorsorgeDashboard from './modules/vorsorge/VorsorgeDashboard';
-import PrivateRoute from './utils/PrivateRoute';
-import MemorialPage from './modules/gedenken/MemorialPage';
-import MemorialPageAdmin from './modules/gedenken/MemorialPageAdmin';
-import MemorialListingPage from './modules/gedenken/MemorialListingPage';
-import MyContributions from './modules/user/MyContributions';
-
-function App() {
-  return (
-    <Router>
-      <AuthProvider>
-        <Header />
-        <main className="content-wrapper">
-          <Routes>
-            <Route path="/" element={<HomePage />} exact />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegistrationPage />} />
-            <Route 
-              path="/dashboard"
-              element={<PrivateRoute><VorsorgeDashboard /></PrivateRoute>} 
-            />
-            <Route 
-              path="/meine-beitraege"
-              element={<PrivateRoute><MyContributions /></PrivateRoute>} 
-            />
-            <Route path="/gedenken" element={<MemorialListingPage />} />
-            <Route path="/gedenken/:slug" element={<MemorialPage />} />
-            <Route 
-              path="/gedenken/:slug/verwalten"
-              element={<PrivateRoute><MemorialPageAdmin /></PrivateRoute>} 
-            />
-          </Routes>
-        </main>
-      </AuthProvider>
-    </Router>
-  );
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7f6;
+  color: #333;
 }
 
-export default App;
+.content-wrapper {
+    padding-top: 80px; /* Muss mit der Höhe in Header.css übereinstimmen */
+}
+
+/* Entfernt den weißen Hintergrund für Seiten, die die volle Breite nutzen sollen */
+.memorial-page-wrapper, .listing-page-container {
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+
+main {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+input, textarea {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}

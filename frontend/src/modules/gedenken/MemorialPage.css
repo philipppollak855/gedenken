@@ -247,7 +247,7 @@ h1, h2, h3, h4 {
 }
 
 .media-group.no-events {
-    flex-direction: row; /* Wenn keine Termine da sind, nebeneinander */
+    flex-direction: column; /* Wenn keine Termine da sind, untereinander */
     align-items: center;
 }
 
@@ -255,6 +255,7 @@ h1, h2, h3, h4 {
 .media-group.no-events .flip-card-container {
     margin-bottom: 0;
 }
+
 
 .media-container {
     display: flex;

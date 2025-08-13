@@ -1,5 +1,5 @@
 // frontend/src/App.jsx
-// KORRIGIERT: Globaler Wrapper für korrekten Abstand zur fixen Navigation.
+// KORRIGIERT: Stellt die korrekte Layout-Struktur für die fixe Navigation sicher.
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -28,17 +28,17 @@ function App() {
             <Route path="/register" element={<RegistrationPage />} />
             <Route 
               path="/dashboard"
-              element={<PrivateRoute><VorsorgeDashboard /></PrivateRoute>} 
+              element={<PrivateRoute><main><VorsorgeDashboard /></main></PrivateRoute>} 
             />
             <Route 
               path="/meine-beitraege"
-              element={<PrivateRoute><MyContributions /></PrivateRoute>} 
+              element={<PrivateRoute><main><MyContributions /></main></PrivateRoute>} 
             />
             <Route path="/gedenken" element={<MemorialListingPage />} />
             <Route path="/gedenken/:slug" element={<MemorialPage />} />
             <Route 
               path="/gedenken/:slug/verwalten"
-              element={<PrivateRoute><MemorialPageAdmin /></PrivateRoute>} 
+              element={<PrivateRoute><main><MemorialPageAdmin /></main></PrivateRoute>} 
             />
           </Routes>
         </div>

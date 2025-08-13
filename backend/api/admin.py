@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Globale Suche, Gedenkseiten-Suche und neue Felder für Parte und Quick-Links.
+# VollstÃ¤ndiger Code mit allen Admin-Klassen.
 
 import uuid
 from django.contrib import admin
@@ -14,10 +14,6 @@ from .models import (
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage, 
     CandleMessageTemplate, MediaAsset, EventLocation
 )
-# NEU: Import für globale Suche
-from django.urls import path
-from django.shortcuts import render
-from django.db.models import Q
 
 @admin.register(EventLocation)
 class EventLocationAdmin(admin.ModelAdmin):
@@ -53,7 +49,7 @@ class CondolenceTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
-    raw_id_fields = ('listing_background_image', 'search_background_image', 'expend_background_image', 'quick_link_abschied_icon', 'quick_link_leben_icon', 'quick_link_kondolieren_icon')
+    raw_id_fields = ('listing_background_image', 'search_background_image', 'expend_background_image')
     fieldsets = (
         ('Gedenkseiten-Startseite', {
             'fields': ('listing_title', 'listing_background_color', 'listing_background_image', 'listing_card_color', 'listing_text_color', 'listing_arrow_color'),
@@ -63,11 +59,6 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         }),
         ('Expand-Bereich (Kondolenzen etc.)', {
             'fields': ('expend_background_color', 'expend_background_image', 'expend_card_color', 'expend_text_color'),
-        }),
-        # NEU: Fieldset für Quick-Links
-        ('Quick-Link Grafiken', {
-            'classes': ('collapse',),
-            'fields': ('quick_link_abschied_icon', 'quick_link_leben_icon', 'quick_link_kondolieren_icon'),
         }),
     )
     def has_add_permission(self, request):
@@ -106,8 +97,8 @@ class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
     fk_name = 'deceased_user'
     extra = 1
-    verbose_name = "Angehöriger"
-    verbose_name_plural = "Angehörige"
+    verbose_name = "AngehÃ¶riger"
+    verbose_name_plural = "AngehÃ¶rige"
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin):
@@ -117,7 +108,7 @@ class UserAdmin(ImportExportModelAdmin):
     list_filter = ('role', 'is_staff')
     search_fields = ('email', 'first_name', 'last_name')
     fieldsets = (
-        ('Persönliche Daten', {'fields': ('first_name', 'last_name', 'email')}),
+        ('PersÃ¶nliche Daten', {'fields': ('first_name', 'last_name', 'email')}),
         ('Berechtigungen & Status', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'consent_admin_access')}),
         ('Wichtige Daten', {'fields': ('id', 'created_at', 'updated_at')}),
     )
@@ -131,7 +122,7 @@ class UserAdmin(ImportExportModelAdmin):
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
 
-    @admin.action(description='Ausgewählte Benutzer für Tests klonen')
+    @admin.action(description='AusgewÃ¤hlte Benutzer fÃ¼r Tests klonen')
     def clone_user(self, request, queryset):
         for user in queryset:
             old_pk = user.pk
@@ -179,7 +170,7 @@ class MemorialEventInline(admin.TabularInline):
             'classes': ('collapse',),
             'fields': ('show_location', 'location')
         }),
-        ('Zusätzliche Informationen', {
+        ('ZusÃ¤tzliche Informationen', {
             'classes': ('collapse',),
             'fields': (
                 ('show_dresscode', 'dresscode'),
@@ -192,7 +183,6 @@ class MemorialEventInline(admin.TabularInline):
 
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):
-    search_fields = ('first_name', 'last_name', 'user__email', 'slug')
     list_display = ('__str__', 'get_user_id', 'status', 'condolence_moderation')
     readonly_fields = ('user',)
     list_filter = ('status', 'condolence_moderation')
@@ -217,7 +207,7 @@ class MemorialPageAdmin(admin.ModelAdmin):
             'fields': (
                 'farewell_background_color', 'farewell_background_image', 'farewell_background_size', 
                 'farewell_text_inverted',
-                'obituary_card_image', 'show_obituary_card', 'obituary_card_publication_date',
+                'obituary_card_image', 
                 'show_memorial_picture', 'memorial_picture', 'memorial_picture_back',
                 'acknowledgement_type', 'acknowledgement_text', 'acknowledgement_image'
             ),
@@ -232,7 +222,7 @@ class MemorialPageAdmin(admin.ModelAdmin):
     def get_user_id(self, obj):
         return obj.user.id
 
-    @admin.action(description='Ausgewählte Gedenkseiten klonen')
+    @admin.action(description='AusgewÃ¤hlte Gedenkseiten klonen')
     def clone_memorial_page(self, request, queryset):
         cloned_count = 0
         for page in queryset:
@@ -290,7 +280,7 @@ class ReleaseRequestAdmin(admin.ModelAdmin):
         return f"{obj.deceased_first_name} {obj.deceased_last_name}"
     deceased_full_name.short_description = "Verstorbener"
 
-    @admin.action(description='Ausgewählte Anfragen genehmigen & Angehörige anlegen')
+    @admin.action(description='AusgewÃ¤hlte Anfragen genehmigen & AngehÃ¶rige anlegen')
     def approve_requests(self, request, queryset):
         approved_count = 0
         for req in queryset.filter(status=ReleaseRequest.Status.PENDING):
@@ -329,3 +319,13 @@ class ReleaseRequestAdmin(admin.ModelAdmin):
             approved_count += 1
         
         self.message_user(request, f"{approved_count} Anfragen erfolgreich genehmigt.")
+
+
+==================================================
+Pfad: C:\Users\offic\Desktop\gedenken-main\backend\api\apps.py
+==================================================
+from django.apps import AppConfig
+
+class ApiConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'api'

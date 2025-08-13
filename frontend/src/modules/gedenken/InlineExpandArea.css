@@ -61,7 +61,7 @@
     border: 1px solid currentColor;
     color: inherit;
     padding: 0.5rem 1.5rem;
-    border-radius: 999px;
+    border-radius: 9999px;
     cursor: pointer;
     opacity: 0.6;
     transition: all 0.2s ease-in-out;
@@ -102,9 +102,9 @@
     box-sizing: border-box;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr); /* Flexible rows */
     gap: 1.5rem;
-    padding: 0 4rem; /* Platz für Pfeile */
+    padding: 0 4rem; /* Space for arrows */
     height: 100%;
 }
 
@@ -118,6 +118,7 @@
     display: flex;
     flex-direction: column;
     background-color: white;
+    min-height: 0; /* Verhindert das Schrumpfen von Flex-Items */
 }
 .inline-condolence-card:hover {
     transform: translateY(-5px);
@@ -418,6 +419,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0;
 }
 
 .memorial-candle-image-wrapper {
@@ -566,6 +568,7 @@
     gap: 1.5rem;
     flex-grow: 1;
     overflow-y: auto;
+    min-height: 0;
 }
 
 .event-card {
@@ -576,6 +579,8 @@
     display: flex;
     overflow: hidden;
     flex-shrink: 0;
+    flex-grow: 1;
+    min-height: 0;
 }
 
 .event-date-box {

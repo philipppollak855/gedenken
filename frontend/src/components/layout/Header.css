@@ -1,5 +1,5 @@
 /* frontend/src/components/layout/Header.css */
-/* Fgt Stile fr den neuen Navigations-Button hinzu. */
+/* Stellt sicher, dass die Navigation fixiert ist. */
 
 .main-header {
     background-color: #f4f1ee;
@@ -47,7 +47,7 @@
 
 .main-nav {
     display: flex;
-    align-items: center; /* Zentriert die Elemente vertikal */
+    align-items: center;
     gap: 2rem;
 }
 

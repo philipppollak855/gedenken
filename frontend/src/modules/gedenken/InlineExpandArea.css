@@ -5,13 +5,12 @@
     padding: 2rem;
     background-size: cover;
     background-position: center;
-    overflow: hidden;
     animation: slideDown 0.5s ease-out;
     border-top: 1px solid rgba(0,0,0,0.1);
     --base-text-color: #3a3a3a;
     --subtle-text-color: #6b7280;
     --border-color: rgba(0,0,0,0.08);
-    height: calc(100vh - 80px);
+    min-height: calc(100vh - 80px); /* GEÄNDERT: von height zu min-height */
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -25,7 +24,7 @@
         padding-bottom: 0;
     }
     to {
-        max-height: 100vh;
+        max-height: 150vh; /* Erhöht, um längeren Inhalt zu ermöglichen */
         opacity: 1;
         padding-top: 2rem;
         padding-bottom: 2rem;

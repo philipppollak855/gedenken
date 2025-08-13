@@ -1,5 +1,5 @@
 // frontend/src/App.jsx
-// AKTUALISIERT: Globaler Wrapper für korrekten Abstand zur fixen Navigation.
+// KORRIGIERT: Globaler Wrapper für korrekten Abstand zur fixen Navigation.
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -21,7 +21,7 @@ function App() {
     <Router>
       <AuthProvider>
         <Header />
-        <main className="content-wrapper">
+        <div className="content-wrapper">
           <Routes>
             <Route path="/" element={<HomePage />} exact />
             <Route path="/login" element={<LoginPage />} />
@@ -41,7 +41,7 @@ function App() {
               element={<PrivateRoute><MemorialPageAdmin /></PrivateRoute>} 
             />
           </Routes>
-        </main>
+        </div>
       </AuthProvider>
     </Router>
   );

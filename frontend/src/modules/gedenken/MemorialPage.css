@@ -234,7 +234,7 @@ h1, h2, h3, h4 {
 }
 .right-column-top {
     display: flex;
-    gap: 4rem;
+    gap: 2rem; /* KORRIGIERT: Abstand verringert */
     align-items: flex-start;
     flex-shrink: 0;
 }

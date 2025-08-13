@@ -220,13 +220,42 @@ h1, h2, h3, h4 {
     min-height: 0; /* Wichtiger Flexbox-Fix */
 }
 
-.parte-container, .right-column {
+.parte-container {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     min-height: 0;
     flex: 1;
+    align-items: center;
+    justify-content: center;
 }
+
+/* KORREKTUR: Container für alle rechten Elemente */
+.right-elements-container {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.media-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-group.no-events {
+    flex-direction: row; /* Wenn keine Termine da sind, nebeneinander */
+}
+
+.media-group.no-events .acknowledgement-text-container,
+.media-group.no-events .flip-card-container {
+    margin-bottom: 0;
+}
+
 
 .right-column-top {
     display: flex;
@@ -268,13 +297,13 @@ h1, h2, h3, h4 {
 
 /* Gedenkbild & Danksagung skalieren */
 .acknowledgement-text-container, .acknowledgement-image {
-    height: 210px;
-    width: 280px; /* Breite = Höhe * (140/105) */
+    height: 105px;
+    width: 140px; 
 }
 
 .flip-card-container {
-    height: 210px;
-    width: 280px; /* Breite = Höhe * (140/105) */
+    height: 105px;
+    width: 140px;
 }
 
 .flip-card-inner {
@@ -342,8 +371,8 @@ h1, h2, h3, h4 {
     border-radius: 0.5rem;
 }
 .acknowledgement-text-container p {
-    font-size: 1rem;
-    line-height: 1.5;
+    font-size: 0.8rem; /* Angepasst für kleinere Box */
+    line-height: 1.4;
     color: #3a3a3a;
     white-space: pre-wrap;
     text-align: center;
@@ -362,9 +391,10 @@ h1, h2, h3, h4 {
     border-radius: 1rem;
     padding: 1rem 1.5rem;
     box-sizing: border-box;
-    width: 100%;
-    flex: 1; /* KORREKTUR: Lässt das Feld wachsen */
-    min-height: 0; /* KORREKTUR: Erlaubt dem Feld, korrekt zu schrumpfen und zu scrollen */
+    width: 300px; /* Feste Breite für das Terminfeld */
+    height: 100%;
+    max-height: 450px; /* Maximale Höhe */
+    min-height: 0;
     overflow-y: auto; /* Scrollbar bei Bedarf */
 }
 .farewell-events-area h3 {

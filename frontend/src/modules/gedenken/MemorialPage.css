@@ -192,7 +192,15 @@ h1, h2, h3, h4 {
     max-width: 1400px;
     width: 100%;
     height: 100%;
-    padding-top: 2rem; /* NEU: Abstand oben */
+    padding-top: 2rem; 
+}
+
+.farewell-title-area h2 {
+    font-size: 4rem; /* RÜCKGÄNGIG GEMACHT */
+    font-weight: 700;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    margin-bottom: 0.25rem;
 }
 
 /* NEU: Wrapper für Hauptinhalt und Buttons */
@@ -206,7 +214,7 @@ h1, h2, h3, h4 {
 .farewell-main-content {
     display: flex;
     justify-content: center;
-    align-items: flex-end; /* KORREKTUR: Richtet Unterkanten aus */
+    align-items: flex-start; /* KORRIGIERT */
     gap: 4rem;
     width: 100%;
     flex-grow: 1;
@@ -222,7 +230,6 @@ h1, h2, h3, h4 {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    align-self: stretch;
     min-height: 0;
 }
 .right-column-top {
@@ -363,8 +370,7 @@ h1, h2, h3, h4 {
     box-sizing: border-box;
     width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    flex-grow: 1;
-    min-height: 0;
+    /* KORRIGIERT: flex-grow entfernt, damit es nicht zu groß wird */
 }
 .farewell-events-area h3 {
     margin-top: 0;
@@ -421,7 +427,7 @@ h1, h2, h3, h4 {
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
-    margin-top: 1.5rem; /* NEU: Abstand nach oben */
+    margin-top: 1.5rem; 
     flex-shrink: 0;
 }
 .farewell-actions-area button {

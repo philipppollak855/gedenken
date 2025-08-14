@@ -1,5 +1,5 @@
 # backend/api/views.py
-# Vollständiger Code mit allen Views, inklusive des neuen Seeding-Endpunkts.
+# ERWEITERT: Neuer ViewSet für EventAttendance hinzugefügt.
 
 import os
 from django.core.management import call_command
@@ -16,13 +16,13 @@ from .serializers import (
     CondolenceSerializer, MemorialCandleSerializer, TimelineEventSerializer, 
     GalleryItemSerializer, ReleaseRequestSerializer,
     MemorialPageListSerializer, SiteSettingsSerializer, CondolenceTemplateSerializer,
-    CandleImageSerializer, CandleMessageTemplateSerializer
+    CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer
 )
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
     Document, LastWishes, MemorialPage, Condolence, MemorialCandle,
     TimelineEvent, GalleryItem, ReleaseRequest, SiteSettings, CondolenceTemplate,
-    CandleImage, CandleMessageTemplate, EventLocation
+    CandleImage, CandleMessageTemplate, EventLocation, MemorialEvent, EventAttendance
 )
 
 class AllowGuestPostIsOwnerOrReadOnly(permissions.BasePermission):
@@ -247,3 +247,15 @@ class MyContributionsView(generics.GenericAPIView):
             'condolences': condolence_serializer.data,
             'candles': candle_serializer.data
         })
+
+class EventAttendanceViewSet(viewsets.ModelViewSet):
+    serializer_class = EventAttendanceSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return EventAttendance.objects.filter(event_id=self.kwargs['event_pk'])
+
+    def perform_create(self, serializer):
+        event = generics.get_object_or_404(MemorialEvent, pk=self.kwargs['event_pk'])
+        author = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(event=event, user=author)

@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Anzeige der Teilnehmer im Admin-Bereich.
+# FINAL: Vollständiger Code mit Farbwähler, Gedenkseiten-Suche und globaler Suche.
 
 import uuid
 from django.contrib import admin
@@ -7,6 +7,10 @@ from django.utils.html import format_html
 from django.utils.text import slugify
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
+from django import forms
+from django.urls import path
+from django.shortcuts import render
+from django.db.models import Q
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, 
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
@@ -14,6 +18,37 @@ from .models import (
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage, 
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
+
+# Ein benutzerdefinierter Widget für die Farbauswahl
+class ColorPickerWidget(forms.TextInput):
+    input_type = 'color'
+    template_name = 'admin/widgets/color_picker.html'
+
+# Ein benutzerdefiniertes Formular, um den Widget auf SiteSettings anzuwenden
+class SiteSettingsForm(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = '__all__'
+        widgets = {
+            'listing_background_color': ColorPickerWidget(),
+            'listing_card_color': ColorPickerWidget(),
+            'listing_text_color': ColorPickerWidget(),
+            'listing_arrow_color': ColorPickerWidget(),
+            'search_background_color': ColorPickerWidget(),
+            'search_text_color': ColorPickerWidget(),
+            'expend_background_color': ColorPickerWidget(),
+            'expend_card_color': ColorPickerWidget(),
+            'expend_text_color': ColorPickerWidget(),
+        }
+
+# Ein benutzerdefiniertes Formular, um den Widget auf MemorialPage anzuwenden
+class MemorialPageForm(forms.ModelForm):
+    class Meta:
+        model = MemorialPage
+        fields = '__all__'
+        widgets = {
+            'farewell_background_color': ColorPickerWidget(),
+        }
 
 @admin.register(EventLocation)
 class EventLocationAdmin(admin.ModelAdmin):
@@ -49,6 +84,7 @@ class CondolenceTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
+    form = SiteSettingsForm
     raw_id_fields = ('listing_background_image', 'search_background_image', 'expend_background_image')
     fieldsets = (
         ('Gedenkseiten-Startseite', {
@@ -117,6 +153,34 @@ class UserAdmin(ImportExportModelAdmin):
         FinancialItemInline, InsuranceItemInline, ContractItemInline,
     ]
     actions = ['clone_user']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('global_search/', self.admin_site.admin_view(self.global_search_view), name='global_search')
+        ]
+        return custom_urls + urls
+
+    def global_search_view(self, request):
+        query = request.GET.get('q', '')
+        results = {}
+        if query:
+            results['users'] = User.objects.filter(
+                Q(first_name__icontains=query) | Q(last_name__icontains=query) | Q(email__icontains=query)
+            )
+            results['memorial_pages'] = MemorialPage.objects.filter(
+                Q(first_name__icontains=query) | Q(last_name__icontains=query) | Q(user__email__icontains=query)
+            )
+            results['relatives'] = FamilyLink.objects.filter(
+                Q(relative_user__first_name__icontains=query) | Q(relative_user__last_name__icontains=query)
+            ).select_related('deceased_user', 'relative_user')
+        context = dict(
+            self.admin_site.each_context(request),
+            query=query,
+            results=results,
+            title="Globale Suche"
+        )
+        return render(request, "admin/global_search_results.html", context)
 
     @admin.display(description='Name')
     def get_full_name(self, obj):
@@ -196,6 +260,8 @@ class MemorialEventInline(admin.TabularInline):
 
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):
+    form = MemorialPageForm
+    search_fields = ('first_name', 'last_name', 'user__email', 'slug')
     list_display = ('__str__', 'get_user_id', 'status', 'condolence_moderation')
     readonly_fields = ('user',)
     list_filter = ('status', 'condolence_moderation')

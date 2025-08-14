@@ -232,7 +232,7 @@ class MemorialEventInline(admin.TabularInline):
     model = MemorialEvent
     extra = 1
     raw_id_fields = ('location',)
-    # inlines = [EventAttendanceInline] # VORÜBERGEHEND AUSKOMMENTIERT
+    inlines = [EventAttendanceInline]
     readonly_fields = ('attendee_count',)
     
     fieldsets = (

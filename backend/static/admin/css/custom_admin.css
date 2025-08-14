@@ -1,0 +1,38 @@
+/* Wrapper für den Farbwähler */
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Vorschau-Box des Farbwählers */
+.color-picker-preview {
+    width: 50px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+/* Globale Suchleiste in der Kopfzeile */
+.global-search-form {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+}
+.global-search-form input[type="text"] {
+    width: 250px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 4px 0 0 4px;
+    border: 1px solid #ccc;
+}
+.global-search-form button {
+    height: 30px;
+    padding: 0 15px;
+    border-radius: 0 4px 4px 0;
+    border: 1px solid #ccc;
+    border-left: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+}

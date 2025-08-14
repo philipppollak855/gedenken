@@ -1,5 +1,5 @@
 # backend/api/serializers.py
-# KORRIGIERT: MemorialPageListSerializer lädt nur noch die benötigten Felder.
+# KORRIGIERT: Fehlender EventAttendanceSerializer hinzugefügt.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -7,7 +7,8 @@ from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
     Document, LastWishes, MemorialPage, Condolence, TimelineEvent, 
     GalleryItem, MemorialCandle, ReleaseRequest, MemorialEvent, SiteSettings,
-    CondolenceTemplate, CandleImage, CandleMessageTemplate, MediaAsset, EventLocation
+    CondolenceTemplate, CandleImage, CandleMessageTemplate, MediaAsset, EventLocation,
+    EventAttendance
 )
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -18,7 +19,7 @@ class EventLocationSerializer(serializers.ModelSerializer):
         fields = ['name', 'address']
 
 class CandleImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.URLField(source='image.url', read_only=True)
+    image_url = serializers.ReadOnlyField(source='image.url')
     class Meta:
         model = CandleImage
         fields = ['id', 'name', 'image_url', 'type']
@@ -116,7 +117,7 @@ class TimelineEventSerializer(serializers.ModelSerializer):
         fields = ['event_id', 'date', 'title', 'description', 'image_url']
 
 class GalleryItemSerializer(serializers.ModelSerializer):
-    image_url = serializers.URLField(source='image.url', read_only=True)
+    image_url = serializers.ReadOnlyField(source='image.url')
     class Meta:
         model = GalleryItem
         fields = ['item_id', 'image_url', 'caption']
@@ -124,7 +125,7 @@ class GalleryItemSerializer(serializers.ModelSerializer):
 class MemorialCandleSerializer(serializers.ModelSerializer):
     is_owner = serializers.SerializerMethodField()
     page_slug = serializers.ReadOnlyField(source='page.slug')
-    candle_image_url = serializers.URLField(source='candle_image.image.url', read_only=True, allow_null=True)
+    candle_image_url = serializers.ReadOnlyField(source='candle_image.image.url')
     candle_image_id = serializers.PrimaryKeyRelatedField(
         queryset=CandleImage.objects.all(), source='candle_image', write_only=True
     )
@@ -151,20 +152,19 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         exclude = ['page']
 
 class MemorialPageListSerializer(serializers.ModelSerializer):
-    main_photo_url = serializers.URLField(source='main_photo.url', read_only=True, allow_null=True)
+    main_photo_url = serializers.ReadOnlyField(source='main_photo.url')
 
     class Meta:
         model = MemorialPage
-        # === KORREKTUR: Nur die benötigten Felder werden explizit aufgeführt ===
         fields = [
             'slug', 'first_name', 'last_name', 
             'date_of_birth', 'date_of_death', 'main_photo_url'
         ]
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
-    listing_background_image_url = serializers.URLField(source='listing_background_image.url', read_only=True, allow_null=True)
-    search_background_image_url = serializers.URLField(source='search_background_image.url', read_only=True, allow_null=True)
-    expend_background_image_url = serializers.URLField(source='expend_background_image.url', read_only=True, allow_null=True)
+    listing_background_image_url = serializers.ReadOnlyField(source='listing_background_image.url')
+    search_background_image_url = serializers.ReadOnlyField(source='search_background_image.url')
+    expend_background_image_url = serializers.ReadOnlyField(source='expend_background_image.url')
 
     class Meta:
         model = SiteSettings
@@ -176,13 +176,13 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
         ]
 
 class MemorialPageSerializer(serializers.ModelSerializer):
-    main_photo_url = serializers.URLField(source='main_photo.url', read_only=True, allow_null=True)
-    hero_background_image_url = serializers.URLField(source='hero_background_image.url', read_only=True, allow_null=True)
-    farewell_background_image_url = serializers.URLField(source='farewell_background_image.url', read_only=True, allow_null=True)
-    obituary_card_image_url = serializers.URLField(source='obituary_card_image.url', read_only=True, allow_null=True)
-    memorial_picture_url = serializers.URLField(source='memorial_picture.url', read_only=True, allow_null=True)
-    memorial_picture_back_url = serializers.URLField(source='memorial_picture_back.url', read_only=True, allow_null=True)
-    acknowledgement_image_url = serializers.URLField(source='acknowledgement_image.url', read_only=True, allow_null=True)
+    main_photo_url = serializers.ReadOnlyField(source='main_photo.url')
+    hero_background_image_url = serializers.ReadOnlyField(source='hero_background_image.url')
+    farewell_background_image_url = serializers.ReadOnlyField(source='farewell_background_image.url')
+    obituary_card_image_url = serializers.ReadOnlyField(source='obituary_card_image.url')
+    memorial_picture_url = serializers.ReadOnlyField(source='memorial_picture.url')
+    memorial_picture_back_url = serializers.ReadOnlyField(source='memorial_picture_back.url')
+    acknowledgement_image_url = serializers.ReadOnlyField(source='acknowledgement_image.url')
     
     condolences = CondolenceSerializer(many=True, read_only=True)
     timeline_events = TimelineEventSerializer(many=True, read_only=True)
@@ -235,3 +235,8 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
+
+class EventAttendanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventAttendance
+        fields = ['guest_name']

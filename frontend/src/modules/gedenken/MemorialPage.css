@@ -114,6 +114,7 @@ h1, h2, h3, h4 {
 }
 .tab-navigation button {
     background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px); /* GEÄNDERT */
     border: 1px solid rgba(255,255,255,0.3);
     color: white;
     padding: 1.5rem 3.5rem;

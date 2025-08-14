@@ -1,5 +1,5 @@
 # backend/api/views.py
-# ERWEITERT: Neuer ViewSet für EventAttendance hinzugefügt.
+# KORRIGIERT: Fehlender MemorialEventViewSet hinzugefügt, um den Build-Fehler zu beheben.
 
 import os
 from django.core.management import call_command
@@ -16,7 +16,8 @@ from .serializers import (
     CondolenceSerializer, MemorialCandleSerializer, TimelineEventSerializer, 
     GalleryItemSerializer, ReleaseRequestSerializer,
     MemorialPageListSerializer, SiteSettingsSerializer, CondolenceTemplateSerializer,
-    CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer
+    CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer,
+    MemorialEventSerializer
 )
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
@@ -247,6 +248,13 @@ class MyContributionsView(generics.GenericAPIView):
             'condolences': condolence_serializer.data,
             'candles': candle_serializer.data
         })
+
+class MemorialEventViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MemorialEventSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return MemorialEvent.objects.filter(page__slug=self.kwargs['page_slug'], is_public=True)
 
 class EventAttendanceViewSet(viewsets.ModelViewSet):
     serializer_class = EventAttendanceSerializer

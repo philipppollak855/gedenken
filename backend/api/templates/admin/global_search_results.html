@@ -1,0 +1,62 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Globale Suche</h1>
+<div id="toolbar"><form id="changelist-search" action="" method="get">
+<div><!-- DIV needed for valid HTML -->
+<label for="searchbar"><img src="/static/admin/img/search.svg" alt="Search"></label>
+<input type="text" size="40" name="q" value="{{ query }}" id="searchbar" autofocus="">
+<input type="submit" value="Suchen">
+</div>
+</form></div>
+
+{% if query %}
+    <h2>Ergebnisse für "{{ query }}"</h2>
+
+    {% if results.users %}
+    <h3>Benutzer</h3>
+    <div class="results">
+    <table id="result_list">
+        <tbody>
+        {% for user in results.users %}
+        <tr class="row1"><th><a href="{% url 'admin:api_user_change' user.pk %}">{{ user.first_name }} {{ user.last_name }} ({{ user.email }})</a></th></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% endif %}
+
+    {% if results.memorial_pages %}
+    <h3>Gedenkseiten</h3>
+    <div class="results">
+    <table id="result_list">
+        <tbody>
+        {% for page in results.memorial_pages %}
+        <tr class="row1"><th><a href="{% url 'admin:api_memorialpage_change' page.pk %}">Gedenkseite für {{ page.first_name }} {{ page.last_name }}</a></th></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% endif %}
+
+    {% if results.relatives %}
+    <h3>Angehörige</h3>
+    <div class="results">
+    <table id="result_list">
+        <tbody>
+        {% for link in results.relatives %}
+        <tr class="row1"><td>
+            <a href="{% url 'admin:api_user_change' link.relative_user.pk %}">{{ link.relative_user.first_name }} {{ link.relative_user.last_name }}</a>
+            ist Angehöriger von
+            <a href="{% url 'admin:api_memorialpage_change' link.deceased_user.pk %}">{{ link.deceased_user.first_name }} {{ link.deceased_user.last_name }}</a>
+        </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% endif %}
+
+    {% if not results.users and not results.memorial_pages and not results.relatives %}
+    <p>Keine Ergebnisse gefunden.</p>
+    {% endif %}
+{% endif %}
+{% endblock %}

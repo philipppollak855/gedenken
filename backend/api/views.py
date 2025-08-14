@@ -1,5 +1,5 @@
 # backend/api/views.py
-# Vollständiger Code mit allen Views, inklusive des neuen Seeding-Endpunkts.
+# KORRIGIERT: Der Request-Kontext wird jetzt an alle relevanten Serializer übergeben.
 
 import os
 from django.core.management import call_command
@@ -70,6 +70,8 @@ class CandleImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CandleImage.objects.all()
     serializer_class = CandleImageSerializer
     permission_classes = [permissions.AllowAny]
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 class CandleMessageTemplateViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CandleMessageTemplate.objects.all()
@@ -151,7 +153,7 @@ class MemorialPageViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'])
     def listing(self, request):
         queryset = self.get_queryset()
-        serializer = MemorialPageListSerializer(queryset, many=True)
+        serializer = MemorialPageListSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
 class CondolenceViewSet(viewsets.ModelViewSet):
@@ -179,6 +181,9 @@ class MemorialCandleViewSet(viewsets.ModelViewSet):
     serializer_class = MemorialCandleSerializer
     permission_classes = [AllowGuestPostIsOwnerOrReadOnly]
 
+    def get_serializer_context(self):
+        return {'request': self.request}
+
     def get_queryset(self):
         if 'page_slug' in self.kwargs:
             return MemorialCandle.objects.filter(page__slug=self.kwargs['page_slug'])
@@ -195,6 +200,8 @@ class ManagedMemorialPageViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     def get_queryset(self):
         return MemorialPage.objects.filter(user=self.request.user)
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 class TimelineEventViewSet(viewsets.ModelViewSet):
     serializer_class = TimelineEventSerializer
@@ -208,6 +215,8 @@ class TimelineEventViewSet(viewsets.ModelViewSet):
 class GalleryItemViewSet(viewsets.ModelViewSet):
     serializer_class = GalleryItemSerializer
     permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_context(self):
+        return {'request': self.request}
     def get_queryset(self):
         return GalleryItem.objects.filter(page__user=self.request.user, page__slug=self.kwargs['page_slug'])
     def perform_create(self, serializer):
@@ -227,6 +236,9 @@ class ReleaseRequestViewSet(viewsets.ModelViewSet):
 class SiteSettingsView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = SiteSettingsSerializer
+
+    def get_serializer_context(self):
+        return {'request': self.request}
 
     def get_object(self):
         obj, created = SiteSettings.objects.get_or_create(pk=1)

@@ -1,5 +1,5 @@
 # backend/api/views.py
-# KORRIGIERT: Fehlender MemorialEventViewSet hinzugefügt, um den Build-Fehler zu beheben.
+# ERWEITERT: Neuer ViewSet für EventAttendance hinzugefügt.
 
 import os
 from django.core.management import call_command

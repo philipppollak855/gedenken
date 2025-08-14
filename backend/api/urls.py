@@ -33,6 +33,7 @@ router.register(r'candle-message-templates', CandleMessageTemplateViewSet, basen
 pages_router = routers.NestedSimpleRouter(router, r'memorial-pages', lookup='page')
 pages_router.register(r'condolences', CondolenceViewSet, basename='page-condolences')
 pages_router.register(r'candles', MemorialCandleViewSet, basename='page-candles')
+pages_router.register(r'events', MemorialEventViewSet, basename='page-events') # Hinzugefügt für Konsistenz
 
 managed_pages_router = routers.NestedSimpleRouter(router, r'manage/memorial-pages', lookup='page')
 managed_pages_router.register(r'timeline-events', TimelineEventViewSet, basename='page-timeline-events')

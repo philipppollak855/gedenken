@@ -232,7 +232,7 @@ class MemorialEventInline(admin.TabularInline):
     model = MemorialEvent
     extra = 1
     raw_id_fields = ('location',)
-    inlines = [EventAttendanceInline]
+    # inlines = [EventAttendanceInline] # VORÜBERGEHEND AUSKOMMENTIERT
     readonly_fields = ('attendee_count',)
     
     fieldsets = (
@@ -256,6 +256,8 @@ class MemorialEventInline(admin.TabularInline):
 
     @admin.display(description='Zusagen')
     def attendee_count(self, obj):
+        # This will still throw an error if the table doesn't exist,
+        # but the check happens later, allowing migrations to run first.
         return obj.attendees.count()
 
 @admin.register(MemorialPage)

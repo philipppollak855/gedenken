@@ -1,5 +1,5 @@
 # backend/core/urls.py
-# Wir erweitern diese Datei, damit der Entwicklungs-Server die Mediendateien ausliefern kann.
+# KORRIGIERT: Mediendateien werden jetzt auch im Produktionsmodus korrekt ausgeliefert.
 
 from django.contrib import admin
 from django.urls import path, include
@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
 ]
 
-# NEU: Fügt die URL-Route für Mediendateien hinzu, aber nur im DEBUG-Modus
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Die URL-Route für Mediendateien wird jetzt immer hinzugefügt,
+# damit WhiteNoise sie auch in der Produktionsumgebung auf Render finden und ausliefern kann.
+# Der 'if settings.DEBUG:'-Check wurde entfernt, da WhiteNoise die Auslieferung sicher handhabt.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,10 +1,15 @@
-{# backend/api/templates/admin/base_site.html #}
-{# Erstellen Sie die Ordner 'templates/admin' in Ihrem 'backend/api'-Verzeichnis. #}
-
 {% extends "admin/base_site.html" %}
 {% load static %}
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}">
+{% endblock %}
+
+{% block userlinks %}
+    <form action="{% url 'admin:global_search' %}" method="get" class="global-search-form">
+        <input type="text" name="q" placeholder="Globale Suche...">
+        <button type="submit">Suchen</button>
+    </form>
+    {{ block.super }}
 {% endblock %}

@@ -1,5 +1,5 @@
 # backend/api/serializers.py
-# KORRIGIERT: MemorialPageListSerializer lädt nur noch die benötigten Felder.
+# KORRIGIERT: Alle Bild-URLs werden jetzt als absolute URLs generiert, um Anzeigefehler zu beheben.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -12,16 +12,25 @@ from .models import (
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
+# Hilfsfunktion, um absolute URLs sicher zu erstellen
+def build_absolute_url(request, url):
+    if request and url:
+        return request.build_absolute_uri(url)
+    return None
+
 class EventLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventLocation
         fields = ['name', 'address']
 
 class CandleImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.URLField(source='image.url', read_only=True)
+    image_url = serializers.SerializerMethodField()
     class Meta:
         model = CandleImage
         fields = ['id', 'name', 'image_url', 'type']
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.image.url if obj.image else None)
 
 class CandleMessageTemplateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -116,15 +125,18 @@ class TimelineEventSerializer(serializers.ModelSerializer):
         fields = ['event_id', 'date', 'title', 'description', 'image_url']
 
 class GalleryItemSerializer(serializers.ModelSerializer):
-    image_url = serializers.URLField(source='image.url', read_only=True)
+    image_url = serializers.SerializerMethodField()
     class Meta:
         model = GalleryItem
         fields = ['item_id', 'image_url', 'caption']
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.image.url if obj.image else None)
 
 class MemorialCandleSerializer(serializers.ModelSerializer):
     is_owner = serializers.SerializerMethodField()
     page_slug = serializers.ReadOnlyField(source='page.slug')
-    candle_image_url = serializers.URLField(source='candle_image.image.url', read_only=True, allow_null=True)
+    candle_image_url = serializers.SerializerMethodField()
     candle_image_id = serializers.PrimaryKeyRelatedField(
         queryset=CandleImage.objects.all(), source='candle_image', write_only=True
     )
@@ -143,6 +155,10 @@ class MemorialCandleSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.author == request.user
         return False
+    
+    def get_candle_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.candle_image.image.url if obj.candle_image and obj.candle_image.image else None)
 
 class MemorialEventSerializer(serializers.ModelSerializer):
     location = EventLocationSerializer(read_only=True)
@@ -151,20 +167,22 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         exclude = ['page']
 
 class MemorialPageListSerializer(serializers.ModelSerializer):
-    main_photo_url = serializers.URLField(source='main_photo.url', read_only=True, allow_null=True)
+    main_photo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = MemorialPage
-        # === KORREKTUR: Nur die benötigten Felder werden explizit aufgeführt ===
         fields = [
             'slug', 'first_name', 'last_name', 
             'date_of_birth', 'date_of_death', 'main_photo_url'
         ]
+    def get_main_photo_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.main_photo.url if obj.main_photo else None)
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
-    listing_background_image_url = serializers.URLField(source='listing_background_image.url', read_only=True, allow_null=True)
-    search_background_image_url = serializers.URLField(source='search_background_image.url', read_only=True, allow_null=True)
-    expend_background_image_url = serializers.URLField(source='expend_background_image.url', read_only=True, allow_null=True)
+    listing_background_image_url = serializers.SerializerMethodField()
+    search_background_image_url = serializers.SerializerMethodField()
+    expend_background_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = SiteSettings
@@ -174,15 +192,27 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'expend_background_color', 'expend_card_color', 'expend_text_color',
             'listing_background_image_url', 'search_background_image_url', 'expend_background_image_url'
         ]
+    
+    def get_listing_background_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.listing_background_image.url if obj.listing_background_image else None)
+    
+    def get_search_background_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.search_background_image.url if obj.search_background_image else None)
+        
+    def get_expend_background_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.expend_background_image.url if obj.expend_background_image else None)
 
 class MemorialPageSerializer(serializers.ModelSerializer):
-    main_photo_url = serializers.URLField(source='main_photo.url', read_only=True, allow_null=True)
-    hero_background_image_url = serializers.URLField(source='hero_background_image.url', read_only=True, allow_null=True)
-    farewell_background_image_url = serializers.URLField(source='farewell_background_image.url', read_only=True, allow_null=True)
-    obituary_card_image_url = serializers.URLField(source='obituary_card_image.url', read_only=True, allow_null=True)
-    memorial_picture_url = serializers.URLField(source='memorial_picture.url', read_only=True, allow_null=True)
-    memorial_picture_back_url = serializers.URLField(source='memorial_picture_back.url', read_only=True, allow_null=True)
-    acknowledgement_image_url = serializers.URLField(source='acknowledgement_image.url', read_only=True, allow_null=True)
+    main_photo_url = serializers.SerializerMethodField()
+    hero_background_image_url = serializers.SerializerMethodField()
+    farewell_background_image_url = serializers.SerializerMethodField()
+    obituary_card_image_url = serializers.SerializerMethodField()
+    memorial_picture_url = serializers.SerializerMethodField()
+    memorial_picture_back_url = serializers.SerializerMethodField()
+    acknowledgement_image_url = serializers.SerializerMethodField()
     
     condolences = CondolenceSerializer(many=True, read_only=True)
     timeline_events = TimelineEventSerializer(many=True, read_only=True)
@@ -216,6 +246,35 @@ class MemorialPageSerializer(serializers.ModelSerializer):
     
     def get_condolence_count(self, obj):
         return obj.condolences.filter(is_approved=True).count()
+        
+    def get_main_photo_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.main_photo.url if obj.main_photo else None)
+
+    def get_hero_background_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.hero_background_image.url if obj.hero_background_image else None)
+
+    def get_farewell_background_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.farewell_background_image.url if obj.farewell_background_image else None)
+
+    def get_obituary_card_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.obituary_card_image.url if obj.obituary_card_image else None)
+
+    def get_memorial_picture_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.memorial_picture.url if obj.memorial_picture else None)
+
+    def get_memorial_picture_back_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.memorial_picture_back.url if obj.memorial_picture_back else None)
+
+    def get_acknowledgement_image_url(self, obj):
+        request = self.context.get('request')
+        return build_absolute_url(request, obj.acknowledgement_image.url if obj.acknowledgement_image else None)
+
 
 class ReleaseRequestSerializer(serializers.ModelSerializer):
     reporter_password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)

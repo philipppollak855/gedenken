@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# Vollständiger Code mit allen Admin-Klassen.
+# ERWEITERT: Anzeige der Teilnehmer im Admin-Bereich.
 
 import uuid
 from django.contrib import admin
@@ -12,7 +12,7 @@ from .models import (
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
     TimelineEvent, GalleryItem, MemorialCandle, ReleaseRequest, FamilyLink,
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage, 
-    CandleMessageTemplate, MediaAsset, EventLocation
+    CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
 
 @admin.register(EventLocation)
@@ -158,13 +158,22 @@ class MemorialCandleInline(admin.TabularInline):
     fields = ('guest_name', 'message', 'is_private', 'created_at', 'author', 'candle_image')
     raw_id_fields = ('candle_image',)
 
+class EventAttendanceInline(admin.TabularInline):
+    model = EventAttendance
+    extra = 0
+    readonly_fields = ('guest_name', 'user', 'created_at')
+    can_delete = True
+
 class MemorialEventInline(admin.TabularInline):
     model = MemorialEvent
     extra = 1
     raw_id_fields = ('location',)
+    inlines = [EventAttendanceInline]
+    readonly_fields = ('attendee_count',)
+    
     fieldsets = (
         (None, {
-            'fields': (('is_public', 'title'), 'date')
+            'fields': (('is_public', 'title'), 'date', 'attendee_count')
         }),
         ('Ort', {
             'classes': ('collapse',),
@@ -180,6 +189,10 @@ class MemorialEventInline(admin.TabularInline):
             )
         }),
     )
+
+    @admin.display(description='Zusagen')
+    def attendee_count(self, obj):
+        return obj.attendees.count()
 
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):

@@ -1,5 +1,5 @@
 # backend/api/views.py
-# KORRIGIERT: Der Request-Kontext wird jetzt an alle relevanten Serializer übergeben.
+# ERWEITERT: Neuer ViewSet für EventAttendance hinzugefügt.
 
 import os
 from django.core.management import call_command
@@ -16,13 +16,13 @@ from .serializers import (
     CondolenceSerializer, MemorialCandleSerializer, TimelineEventSerializer, 
     GalleryItemSerializer, ReleaseRequestSerializer,
     MemorialPageListSerializer, SiteSettingsSerializer, CondolenceTemplateSerializer,
-    CandleImageSerializer, CandleMessageTemplateSerializer
+    CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer
 )
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
     Document, LastWishes, MemorialPage, Condolence, MemorialCandle,
     TimelineEvent, GalleryItem, ReleaseRequest, SiteSettings, CondolenceTemplate,
-    CandleImage, CandleMessageTemplate, EventLocation
+    CandleImage, CandleMessageTemplate, EventLocation, MemorialEvent, EventAttendance
 )
 
 class AllowGuestPostIsOwnerOrReadOnly(permissions.BasePermission):
@@ -70,8 +70,6 @@ class CandleImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CandleImage.objects.all()
     serializer_class = CandleImageSerializer
     permission_classes = [permissions.AllowAny]
-    def get_serializer_context(self):
-        return {'request': self.request}
 
 class CandleMessageTemplateViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CandleMessageTemplate.objects.all()
@@ -153,7 +151,7 @@ class MemorialPageViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'])
     def listing(self, request):
         queryset = self.get_queryset()
-        serializer = MemorialPageListSerializer(queryset, many=True, context={'request': request})
+        serializer = MemorialPageListSerializer(queryset, many=True)
         return Response(serializer.data)
 
 class CondolenceViewSet(viewsets.ModelViewSet):
@@ -181,9 +179,6 @@ class MemorialCandleViewSet(viewsets.ModelViewSet):
     serializer_class = MemorialCandleSerializer
     permission_classes = [AllowGuestPostIsOwnerOrReadOnly]
 
-    def get_serializer_context(self):
-        return {'request': self.request}
-
     def get_queryset(self):
         if 'page_slug' in self.kwargs:
             return MemorialCandle.objects.filter(page__slug=self.kwargs['page_slug'])
@@ -200,8 +195,6 @@ class ManagedMemorialPageViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     def get_queryset(self):
         return MemorialPage.objects.filter(user=self.request.user)
-    def get_serializer_context(self):
-        return {'request': self.request}
 
 class TimelineEventViewSet(viewsets.ModelViewSet):
     serializer_class = TimelineEventSerializer
@@ -215,8 +208,6 @@ class TimelineEventViewSet(viewsets.ModelViewSet):
 class GalleryItemViewSet(viewsets.ModelViewSet):
     serializer_class = GalleryItemSerializer
     permission_classes = [permissions.IsAuthenticated]
-    def get_serializer_context(self):
-        return {'request': self.request}
     def get_queryset(self):
         return GalleryItem.objects.filter(page__user=self.request.user, page__slug=self.kwargs['page_slug'])
     def perform_create(self, serializer):
@@ -237,9 +228,6 @@ class SiteSettingsView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = SiteSettingsSerializer
 
-    def get_serializer_context(self):
-        return {'request': self.request}
-
     def get_object(self):
         obj, created = SiteSettings.objects.get_or_create(pk=1)
         return obj
@@ -259,3 +247,15 @@ class MyContributionsView(generics.GenericAPIView):
             'condolences': condolence_serializer.data,
             'candles': candle_serializer.data
         })
+
+class EventAttendanceViewSet(viewsets.ModelViewSet):
+    serializer_class = EventAttendanceSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return EventAttendance.objects.filter(event_id=self.kwargs['event_pk'])
+
+    def perform_create(self, serializer):
+        event = generics.get_object_or_404(MemorialEvent, pk=self.kwargs['event_pk'])
+        author = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(event=event, user=author)

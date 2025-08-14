@@ -1,0 +1,23 @@
+<div class="color-picker-wrapper">
+    <input type="text" name="{{ widget.name }}" value="{{ widget.value|default:'#ffffff' }}" {% include "django/forms/widgets/attrs.html" %} class="vTextField">
+    <input type="color" value="{{ widget.value|default:'#ffffff' }}" class="color-picker-preview">
+</div>
+<script>
+    (function() {
+        // Stellt sicher, dass das Skript nicht mehrmals ausgeführt wird
+        if (window.colorPickerScriptLoaded) return;
+        window.colorPickerScriptLoaded = true;
+
+        document.body.addEventListener('input', function(event) {
+            if (event.target.matches('.color-picker-preview')) {
+                const textInput = event.target.previousElementSibling;
+                if (textInput) {
+                    textInput.value = event.target.value;
+                }
+            } else if (event.target.matches('.vTextField') && event.target.nextElementSibling && event.target.nextElementSibling.matches('.color-picker-preview')) {
+                const colorInput = event.target.nextElementSibling;
+                colorInput.value = event.target.value;
+            }
+        });
+    })();
+</script>

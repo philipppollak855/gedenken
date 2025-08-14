@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Neues Feld fÃ¼r die Invertierung der Textfarbe hinzugefÃ¼gt.
+# ERWEITERT: Neues Modell EventAttendance hinzugefügt.
 
 import uuid
 from django.db import models
@@ -446,3 +446,17 @@ class MemorialEvent(models.Model):
 
     def __str__(self):
         return f"{self.title} für {self.page.first_name} {self.page.last_name}"
+
+class EventAttendance(models.Model):
+    class Meta:
+        verbose_name = "Teilnahme"
+        verbose_name_plural = "Teilnahmen"
+        ordering = ['-created_at']
+    
+    event = models.ForeignKey(MemorialEvent, on_delete=models.CASCADE, related_name='attendees')
+    guest_name = models.CharField("Name des Gastes", max_length=255)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='event_attendances')
+    created_at = models.DateTimeField("Zusage am", auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.guest_name} nimmt an {self.event.title} teil"

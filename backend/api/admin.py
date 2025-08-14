@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Globale Suche, Gedenkseiten-Suche und neue Felder für Parte und Quick-Links.
+# Vollständiger Code mit allen Admin-Klassen.
 
 import uuid
 from django.contrib import admin
@@ -14,10 +14,6 @@ from .models import (
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage, 
     CandleMessageTemplate, MediaAsset, EventLocation
 )
-# NEU: Import für globale Suche
-from django.urls import path
-from django.shortcuts import render
-from django.db.models import Q
 
 @admin.register(EventLocation)
 class EventLocationAdmin(admin.ModelAdmin):
@@ -53,7 +49,7 @@ class CondolenceTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
-    raw_id_fields = ('listing_background_image', 'search_background_image', 'expend_background_image', 'quick_link_abschied_icon', 'quick_link_leben_icon', 'quick_link_kondolieren_icon')
+    raw_id_fields = ('listing_background_image', 'search_background_image', 'expend_background_image')
     fieldsets = (
         ('Gedenkseiten-Startseite', {
             'fields': ('listing_title', 'listing_background_color', 'listing_background_image', 'listing_card_color', 'listing_text_color', 'listing_arrow_color'),
@@ -63,11 +59,6 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         }),
         ('Expand-Bereich (Kondolenzen etc.)', {
             'fields': ('expend_background_color', 'expend_background_image', 'expend_card_color', 'expend_text_color'),
-        }),
-        # NEU: Fieldset für Quick-Links
-        ('Quick-Link Grafiken', {
-            'classes': ('collapse',),
-            'fields': ('quick_link_abschied_icon', 'quick_link_leben_icon', 'quick_link_kondolieren_icon'),
         }),
     )
     def has_add_permission(self, request):
@@ -192,7 +183,6 @@ class MemorialEventInline(admin.TabularInline):
 
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):
-    search_fields = ('first_name', 'last_name', 'user__email', 'slug')
     list_display = ('__str__', 'get_user_id', 'status', 'condolence_moderation')
     readonly_fields = ('user',)
     list_filter = ('status', 'condolence_moderation')
@@ -217,7 +207,7 @@ class MemorialPageAdmin(admin.ModelAdmin):
             'fields': (
                 'farewell_background_color', 'farewell_background_image', 'farewell_background_size', 
                 'farewell_text_inverted',
-                'obituary_card_image', 'show_obituary_card', 'obituary_card_publication_date',
+                'obituary_card_image', 
                 'show_memorial_picture', 'memorial_picture', 'memorial_picture_back',
                 'acknowledgement_type', 'acknowledgement_text', 'acknowledgement_image'
             ),

@@ -210,8 +210,8 @@ h1, h2, h3, h4 {
 
 .farewell-title-area p {
     color: white;
-    font-size: 1.75rem; /* GEÄNDERT */
-    margin-top: -0.75rem; /* GEÄNDERT */
+    font-size: 1.75rem;
+    margin-top: -0.75rem;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
@@ -225,14 +225,13 @@ h1, h2, h3, h4 {
 .farewell-main-content {
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: stretch; /* KORRIGIERT: Stellt sicher, dass beide Spalten die gleiche Höhe haben */
     gap: 4rem;
     width: 100%;
     flex-grow: 1;
     min-height: 0;
 }
 .parte-container {
-    align-self: stretch;
     display: flex;
     align-items: center;
     justify-content: center;

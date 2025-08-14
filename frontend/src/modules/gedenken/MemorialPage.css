@@ -188,7 +188,7 @@ h1, h2, h3, h4 {
 .farewell-grid {
     display: flex;
     flex-direction: column;
-    align-items: stretch; /* GEÄNDERT: Stellt sicher, dass der Titel linksbündig ist */
+    align-items: stretch;
     justify-content: space-around;
     gap: 1rem;
     max-width: 1400px;
@@ -210,8 +210,8 @@ h1, h2, h3, h4 {
 
 .farewell-title-area p {
     color: white;
-    font-size: 2rem; /* GEÄNDERT: Größer */
-    margin-top: -1rem; /* GEÄNDERT: Zeilenabstand verringert */
+    font-size: 1.75rem; /* GEÄNDERT */
+    margin-top: -0.75rem; /* GEÄNDERT */
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
@@ -441,18 +441,19 @@ h1, h2, h3, h4 {
     flex-shrink: 0;
 }
 .farewell-actions-area button {
-    background-color: rgba(255,255,255,0.9);
-    color: #3a3a3a;
-    border: none;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     padding: 1rem 2rem;
     border-radius: 9999px;
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
 }
 .farewell-actions-area button:hover {
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
 .farewell-actions-area.centered-large {

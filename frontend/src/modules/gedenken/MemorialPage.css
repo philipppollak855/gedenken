@@ -188,12 +188,16 @@ h1, h2, h3, h4 {
 .farewell-grid {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch; /* GEÄNDERT: Stellt sicher, dass der Titel linksbündig ist */
     justify-content: space-around;
     gap: 1rem;
     max-width: 1400px;
     width: 100%;
     height: 100%;
+}
+
+.farewell-title-area {
+    text-align: left;
 }
 
 .farewell-title-area h2 {
@@ -202,6 +206,13 @@ h1, h2, h3, h4 {
     color: white;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     margin-bottom: 0.25rem;
+}
+
+.farewell-title-area p {
+    color: white;
+    font-size: 2rem; /* GEÄNDERT: Größer */
+    margin-top: -1rem; /* GEÄNDERT: Zeilenabstand verringert */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
 .farewell-content-wrapper {

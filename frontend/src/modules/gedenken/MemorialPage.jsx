@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Sonderzeichen direkt im Code korrigiert, um Anzeigefehler zu beheben.
+// KORRIGIERT: Fehlende Variable 'hasPublicEvents' deklariert.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -114,7 +114,9 @@ const MemorialPage = () => {
 
     const isMemorialPictureVisible = pageData.show_memorial_picture && pageData.memorial_picture_url;
     
-    const hasAnyMediaContent = isParteVisible || isAcknowledgementVisible || isMemorialPictureVisible || displayedEvent;
+    const hasPublicEvents = displayedEvent !== null; // KORRIGIERT: Variable deklariert
+    
+    const hasAnyMediaContent = isParteVisible || isAcknowledgementVisible || isMemorialPictureVisible || hasPublicEvents;
     
     const farewellStyle = {
         backgroundColor: pageData.farewell_background_color || '#6d6d6d',
@@ -227,7 +229,7 @@ const MemorialPage = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="farewell-actions-area">
+                        <div className={`farewell-actions-area ${!hasAnyMediaContent ? 'centered-large' : ''}`}>
                             <button onClick={() => toggleExpandedView('condolences')}>
                                 Kondolenz schreiben {pageData.condolence_count > 0 && `(${pageData.condolence_count})`}
                             </button>

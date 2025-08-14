@@ -1,11 +1,10 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// FINAL: Logik für Teilnahme-Popup und Navigations-Button hinzugefügt.
+// KORRIGIERT: Fehlerhafte Anzeigelogik für die Parte entfernt.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import InlineExpandArea from './InlineExpandArea';
 import './MemorialPage.css';
-import useApi from '../../hooks/useApi'; // Import useApi
 
 const MemorialPage = () => {
     const [pageData, setPageData] = useState(null);
@@ -15,10 +14,7 @@ const MemorialPage = () => {
     const [showSideBySideLightbox, setShowSideBySideLightbox] = useState(false);
     const [isCardFlipped, setIsCardFlipped] = useState(false);
     const [expandedView, setExpandedView] = useState(null);
-    const [showAttendancePopup, setShowAttendancePopup] = useState(false);
-    const [selectedEventForAttendance, setSelectedEventForAttendance] = useState(null);
     const { slug } = useParams();
-    const api = useApi();
     const expandAreaRef = useRef(null);
     const farewellSectionRef = useRef(null);
 
@@ -107,48 +103,10 @@ const MemorialPage = () => {
         setShowSideBySideLightbox(true);
     };
 
-    const handleNavigate = (event) => {
-        const query = encodeURIComponent(event.location.address || event.location.name);
-        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-    };
-
-    const handleAttendClick = (event) => {
-        setSelectedEventForAttendance(event);
-        setShowAttendancePopup(true);
-    };
-    
-    const handleAttendanceSubmit = async (e) => {
-        e.preventDefault();
-        const guestName = e.target.guestName.value;
-        if (!guestName || !selectedEventForAttendance) return;
-
-        const response = await api(`/memorial-pages/${slug}/events/${selectedEventForAttendance.id}/attendees/`, {
-            method: 'POST',
-            body: JSON.stringify({ guest_name: guestName }),
-        });
-
-        if (response.ok) {
-            alert("Vielen Dank für Ihre Zusage.");
-            setShowAttendancePopup(false);
-            setSelectedEventForAttendance(null);
-        } else {
-            alert("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
-        }
-    };
-
-
     if (isLoading) return <div className="loading-spinner"><div className="spinner"></div></div>;
     if (!pageData) return <h1 className="text-center text-2xl font-bold mt-10">Gedenkseite nicht gefunden</h1>;
-    
-    const isParteVisible = pageData.show_obituary_card && 
-        (!pageData.obituary_card_publication_date || new Date(pageData.obituary_card_publication_date) <= new Date());
-    
-    const isAcknowledgementVisible = pageData.acknowledgement_type !== 'none' && 
-        (pageData.acknowledgement_text || pageData.acknowledgement_image_url);
-
-    const isMemorialPictureVisible = pageData.show_memorial_picture && pageData.memorial_picture_url;
-    
-    const hasAnyMediaContent = isParteVisible || isAcknowledgementVisible || isMemorialPictureVisible || displayedEvent;
+        
+    const hasPublicEvents = displayedEvent !== null;
     
     const farewellStyle = {
         backgroundColor: pageData.farewell_background_color || '#6d6d6d',
@@ -161,6 +119,7 @@ const MemorialPage = () => {
     };
 
     const farewellSectionClasses = `farewell-section ${pageData.farewell_text_inverted ? 'text-inverted' : ''}`;
+    const parteContainerClasses = `parte-container ${hasPublicEvents ? 'align-stretch' : 'align-center'}`;
 
     return (
         <div className="memorial-page-wrapper">
@@ -207,90 +166,67 @@ const MemorialPage = () => {
                         <h2>Abschied nehmen</h2>
                         <p>UND KONDOLIEREN</p>
                     </div>
-                    <div className="farewell-content-wrapper">
-                        <div className="farewell-main-content">
-                            {isParteVisible && (
-                                <div className="parte-container">
-                                    <img src={pageData.obituary_card_image_url || 'https://placehold.co/400x560/EFEFEF/AAAAAA&text=Parte'} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image_url)} />
-                                </div>
-                            )}
-                            <div className="right-column">
-                                <div className="right-column-top">
-                                    {isAcknowledgementVisible && (
-                                        <div className="media-container">
-                                            {pageData.acknowledgement_type === 'text' ? (
-                                                <div className="acknowledgement-text-container"><p>{pageData.acknowledgement_text}</p></div>
-                                            ) : (
-                                                <img src={pageData.acknowledgement_image_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Bild'} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
-                                            )}
-                                        </div>
-                                    )}
-                                    {isMemorialPictureVisible && (
-                                        <div className="media-container gedenkbild-container">
-                                            <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
-                                                <div className="zoom-button" onClick={openSideBySideLightbox}>🔍</div>
-                                                <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
-                                                    <div className="flip-card-front"><img src={pageData.memorial_picture_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Bild'} alt="Gedenkbild Vorderseite" /></div>
-                                                    <div className="flip-card-back"><img src={pageData.memorial_picture_back_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Rückseite'} alt="Gedenkbild Rückseite" /></div>
-                                                </div>
+                    <div className="farewell-main-content">
+                        {pageData.obituary_card_image_url && (
+                            <div className={parteContainerClasses}>
+                                <img src={pageData.obituary_card_image_url || 'https://placehold.co/400x560/EFEFEF/AAAAAA&text=Parte'} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image_url)} />
+                            </div>
+                        )}
+                        <div className="right-column">
+                            <div className="right-column-top">
+                                {pageData.acknowledgement_type === 'text' && pageData.acknowledgement_text && (
+                                    <div className="acknowledgement-text-container">
+                                        <p>{pageData.acknowledgement_text}</p>
+                                    </div>
+                                )}
+                                {pageData.acknowledgement_type === 'image' && pageData.acknowledgement_image_url && (
+                                    <div className="media-container">
+                                        <img src={pageData.acknowledgement_image_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Bild'} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
+                                    </div>
+                                )}
+                                {pageData.show_memorial_picture && pageData.memorial_picture_url && (
+                                    <div className="media-container gedenkbild-container">
+                                        <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
+                                            <div className="zoom-button" onClick={openSideBySideLightbox}>🔍</div>
+                                            <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
+                                                <div className="flip-card-front"><img src={pageData.memorial_picture_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Bild'} alt="Gedenkbild Vorderseite" /></div>
+                                                <div className="flip-card-back"><img src={pageData.memorial_picture_back_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Rückseite'} alt="Gedenkbild Rückseite" /></div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                                {displayedEvent && (
-                                    <div className="farewell-events-area">
-                                        <h3>Nächster Termin</h3>
-                                        {(() => {
-                                            const { day, month, time } = formatEventDate(displayedEvent.date);
-                                            return (
-                                                <div className="event-info-line">
-                                                    <div className="event-date-display">
-                                                        <span className="event-day">{day}</span>
-                                                        <span className="event-month">{month}</span>
-                                                    </div>
-                                                    <div className="event-details-display">
-                                                        <strong>{displayedEvent.title}</strong>
-                                                        <span>{time} Uhr{displayedEvent.show_location && displayedEvent.location && `, ${displayedEvent.location.name}`}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
-                                        <div className="event-buttons">
-                                            <button onClick={() => handleAttendClick(displayedEvent)}>Teilnehmen</button>
-                                            <button onClick={() => handleNavigate(displayedEvent)}>Navigieren</button>
                                         </div>
                                     </div>
                                 )}
                             </div>
+                            {hasPublicEvents && (
+                                <div className="farewell-events-area">
+                                    <h3>Nächster Termin</h3>
+                                    {(() => {
+                                        const { day, month, time } = formatEventDate(displayedEvent.date);
+                                        return (
+                                            <div className="event-info-line">
+                                                <div className="event-date-display">
+                                                    <span className="event-day">{day}</span>
+                                                    <span className="event-month">{month}</span>
+                                                </div>
+                                                <div className="event-details-display">
+                                                    <strong>{displayedEvent.title}</strong>
+                                                    <span>{time} Uhr{displayedEvent.show_location && displayedEvent.location && `, ${displayedEvent.location.name}`}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
                         </div>
-                        <div className={`farewell-actions-area ${!hasAnyMediaContent ? 'centered-large' : ''}`}>
-                            <button onClick={() => toggleExpandedView('condolences')}>
-                                Kondolenz schreiben {pageData.condolence_count > 0 && `(${pageData.condolence_count})`}
-                            </button>
-                            <button onClick={() => toggleExpandedView('candles')}>
-                                Kerze anzünden {pageData.candle_count > 0 && `(${pageData.candle_count})`}
-                            </button>
-                            <button onClick={() => toggleExpandedView('events')}>Alle Termine</button>
-                        </div>
+                    </div>
+                    <div className="farewell-actions-area">
+                        <button onClick={() => toggleExpandedView('condolences')}>
+                            Kondolenz schreiben {pageData.condolence_count > 0 && `(${pageData.condolence_count})`}
+                        </button>
+                        <button onClick={() => toggleExpandedView('candles')}>Kerze anzünden</button>
+                        <button onClick={() => toggleExpandedView('events')}>Alle Termine</button>
                     </div>
                 </div>
             </section>
-
-            {showAttendancePopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content attendance-popup">
-                        <h3>Teilnahme bestätigen</h3>
-                        <p>für: {selectedEventForAttendance?.title}</p>
-                        <form onSubmit={handleAttendanceSubmit}>
-                            <input type="text" name="guestName" placeholder="Ihr Name" required />
-                            <div className="popup-actions">
-                                <button type="button" onClick={() => setShowAttendancePopup(false)}>Abbrechen</button>
-                                <button type="submit">Zusagen</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             <div ref={expandAreaRef}>
                 {expandedView && (

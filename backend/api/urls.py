@@ -1,5 +1,5 @@
 # backend/api/urls.py
-# Vollständiger Code mit allen URL-Routen.
+# ERWEITERT: Neue Route für EventAttendance hinzugefügt.
 
 from django.urls import path, include
 from rest_framework_nested import routers
@@ -11,7 +11,7 @@ from .views import (
     MemorialCandleViewSet, ManagedMemorialPageViewSet, TimelineEventViewSet, 
     GalleryItemViewSet, ReleaseRequestViewSet, SiteSettingsView, MyContributionsView,
     CondolenceTemplateViewSet, CandleImageViewSet, CandleMessageTemplateViewSet,
-    SeedDatabaseView
+    SeedDatabaseView, EventAttendanceViewSet
 )
 
 router = routers.DefaultRouter()
@@ -38,10 +38,15 @@ managed_pages_router = routers.NestedSimpleRouter(router, r'manage/memorial-page
 managed_pages_router.register(r'timeline-events', TimelineEventViewSet, basename='page-timeline-events')
 managed_pages_router.register(r'gallery-items', GalleryItemViewSet, basename='page-gallery-items')
 
+# NEU: Router für die Teilnahme an Events
+events_router = routers.NestedSimpleRouter(pages_router, r'events', lookup='event')
+events_router.register(r'attendees', EventAttendanceViewSet, basename='event-attendees')
+
 urlpatterns = [
     path('', include(router.urls)),
     path('', include(pages_router.urls)),
     path('', include(managed_pages_router.urls)),
+    path('', include(events_router.urls)),
     path('register/', RegisterView.as_view(), name='auth_register'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

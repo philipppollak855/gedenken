@@ -232,7 +232,7 @@ h1, h2, h3, h4 {
     min-height: 0;
 }
 .parte-container {
-    /* KORRIGIERT: align-self entfernt */
+    align-self: stretch;
     display: flex;
     align-items: center;
     justify-content: center;

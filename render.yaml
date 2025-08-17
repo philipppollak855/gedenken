@@ -1,6 +1,5 @@
 # render.yaml
-# KORRIGIERT: Fehlende CORS-Umgebungsvariable hinzugefügt.
-# NEU: UTF-8 Kodierung für die Datenbankverbindung erzwungen.
+# KORRIGIERT: rootDir entfernt und Pfade in den Befehlen explizit gemacht.
 
 databases:
   - name: vorsorge-db
@@ -12,9 +11,9 @@ services:
     name: vorsorge-backend
     env: python
     plan: free
-    rootDir: backend
-    buildCommand: "pip install -r requirements.txt && python manage.py migrate && python manage.py createsuperuser"
-    startCommand: "gunicorn core.wsgi"
+    # rootDir wurde entfernt. Befehle laufen jetzt vom Hauptverzeichnis des Projekts.
+    buildCommand: "pip install -r backend/requirements.txt && python backend/manage.py migrate"
+    startCommand: "cd backend && gunicorn core.wsgi"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -32,6 +31,5 @@ services:
         value: "https://gedenken.netlify.app http://localhost:3000"
       - key: ALLOWED_HOSTS 
         value: "vorsorge-backend.onrender.com"
-      # NEU: Erzwingt die korrekte Client-Kodierung für die Datenbank
       - key: PGCLIENTENCODING
         value: utf8

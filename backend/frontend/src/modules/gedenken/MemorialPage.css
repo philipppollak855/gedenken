@@ -1,0 +1,551 @@
+/* frontend/src/modules/gedenken/MemorialPage.css */
+/* Vollständiger und korrigierter Code. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@400;700&display=swap');
+
+.memorial-page-wrapper {
+    background-color: #f4f1ee;
+    color: #3a3a3a;
+    font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+}
+
+.loading-spinner {
+    position: fixed; inset: 0;
+    background-color: white;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+}
+.spinner {
+    animation: spin 1s linear infinite;
+    border-radius: 50%;
+    width: 6rem; height: 6rem;
+    border-top: 3px solid #6b7280;
+    border-bottom: 3px solid #6b7280;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    height: calc(100vh - 80px); /* HÃ¶he abzÃ¼glich der Navigation */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #3a3a3a;
+    box-sizing: border-box;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+.hero-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.info-box {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    padding: 2rem 4rem;
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+    width: 90%;
+    max-width: 1400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    position: relative;
+}
+.info-text {
+    text-align: left;
+    flex-grow: 1;
+    padding-right: 250px;
+}
+.profile-photo {
+    position: absolute;
+    right: -3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 380px;
+    height: 460px;
+    object-fit: cover;
+    border: 8px solid white;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+.deceased-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.deceased-name {
+    font-size: 5rem;
+    font-weight: 700;
+    margin: 0.25rem 0;
+}
+.deceased-dates {
+    font-size: 1.5rem;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 4rem; /* Angepasster Abstand */
+    padding-right: 300px;
+}
+.tab-navigation button {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 1.5rem 3.5rem;
+    font-size: 1.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 9999px;
+    transition: all 0.2s;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+.tab-navigation button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+.tab-navigation button.active {
+    background-color: #8c8073;
+    color: white;
+    border-color: #8c8073;
+}
+
+/* Quick Links */
+.quick-links {
+    position: fixed;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 30;
+    opacity: 0.4;
+    transition: opacity 0.3s;
+}
+.quick-links:hover {
+    opacity: 1;
+}
+.quick-links a {
+    background-color: rgba(255, 255, 255, 0.9);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    text-decoration: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+.quick-links a:hover {
+    transform: scale(1.1);
+}
+
+/* Abschieds-Bereich */
+.farewell-section {
+    height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.farewell-section.text-inverted .farewell-title-area h2,
+.farewell-section.text-inverted .farewell-title-area p,
+.farewell-section.text-inverted .media-label,
+.farewell-section.text-inverted .media-helper-text {
+    color: #3a3a3a;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+}
+.farewell-grid {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 1rem;
+    max-width: 1400px;
+    width: 100%;
+    height: 100%;
+}
+
+.farewell-title-area {
+    text-align: left;
+}
+
+.farewell-title-area h2 {
+    font-size: 4rem; 
+    font-weight: 700;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    margin-bottom: 0.25rem;
+}
+
+.farewell-title-area p {
+    color: white;
+    font-size: 1.75rem;
+    margin-top: -0.75rem;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.farewell-content-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.farewell-main-content {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 4rem;
+    width: 100%;
+    flex-grow: 1;
+    min-height: 0;
+}
+.parte-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0;
+}
+.right-column-top {
+    display: flex;
+    gap: 4rem;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+.media-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+.media-helper-text {
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    margin-top: 1rem;
+    display: inline-block;
+    font-size: 0.8rem;
+}
+.obituary-card {
+    width: auto;
+    height: 100%;
+    max-height: 530px;
+    aspect-ratio: 210 / 297;
+    object-fit: cover;
+    border: 4px solid white;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+.obituary-card:hover {
+    transform: scale(1.02);
+}
+
+/* Gedenkbild Flip-Card */
+.flip-card-container {
+    perspective: 1000px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.3s;
+}
+.flip-card-container:hover {
+    transform: scale(1.02);
+}
+.flip-card-container:hover .zoom-button {
+    opacity: 1;
+}
+.flip-card-inner {
+    position: relative;
+    width: 350px; 
+    height: 262px;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+.flip-card-inner.is-flipped {
+    transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border: 4px solid white;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+.flip-card-front img, .flip-card-back img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.flip-card-back {
+    transform: rotateY(180deg);
+}
+.zoom-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Danksagung */
+.acknowledgement-text-container {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    width: 350px;
+    height: 262px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.acknowledgement-text-container p {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: #3a3a3a;
+    white-space: pre-wrap;
+    text-align: center;
+}
+.acknowledgement-image {
+    width: 350px;
+    height: 262px;
+    object-fit: cover;
+    border: 4px solid white;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+
+.farewell-events-area {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-grow: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.farewell-events-area h3 {
+    margin-top: 0;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+.event-info-line {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    font-size: 1.1rem;
+    padding: 0.75rem 0;
+}
+.event-date-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 0.5rem;
+    width: 60px;
+    height: 60px;
+}
+.event-day {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.event-month {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+.event-details-display {
+    display: flex;
+    flex-direction: column;
+}
+.event-details-display strong {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+.event-details-display span {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.event-buttons {
+    margin-top: auto;
+    padding-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.event-buttons button {
+    background-color: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.farewell-actions-area {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem; 
+    flex-shrink: 0;
+}
+.farewell-actions-area button {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    padding: 1rem 2rem;
+    border-radius: 9999px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.farewell-actions-area button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.farewell-actions-area.centered-large {
+    margin-top: 0;
+    align-self: center;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.farewell-actions-area.centered-large button {
+    padding: 1.5rem 3rem;
+    font-size: 1.5rem;
+}
+
+/* Lightbox fÃ¼r Vollbildansicht */
+.lightbox {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    cursor: pointer;
+    animation: fadeIn 0.3s;
+}
+.lightbox img {
+    max-width: 90%;
+    max-height: 90%;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    animation: zoomIn 0.3s;
+}
+.lightbox-side-by-side {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    height: 90%;
+}
+.lightbox-side-by-side img {
+    max-width: 48%;
+    max-height: 100%;
+    object-fit: contain;
+}
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.manage-button-container {
+    text-align: center;
+    padding: 2rem 0;
+}
+.manage-button-link {
+    display: inline-block;
+    background-color: #bfae9e;
+    color: #1f2937;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+}
+
+.popup-content.attendance-popup p {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}

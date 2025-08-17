@@ -1,0 +1,62 @@
+/* frontend/src/index.css */
+/* Globale Stile */
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7f6;
+  color: #333;
+}
+
+/* Dieser Wrapper stellt sicher, dass der Inhalt unterhalb der fixen Navigation beginnt. */
+.content-wrapper {
+    padding-top: 80px; /* Muss mit der Höhe in Header.css übereinstimmen */
+}
+
+/* Allgemeine Stile für Seiten mit einem zentrierten Container (z.B. Dashboard) */
+main {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Spezifische Seiten-Wrapper wie .memorial-page-wrapper oder .listing-page-container
+   sollten ihr eigenes Styling definieren und benötigen nicht das von 'main'. */
+.memorial-page-wrapper, .listing-page-container {
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    background-color: transparent;
+    max-width: none;
+}
+
+
+input, textarea {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}

@@ -1,0 +1,12 @@
+/* backend/static/admin/css/custom.css */
+/* Erstellen Sie die Ordner 'static/admin/css' in Ihrem 'backend'-Verzeichnis. */
+
+.submit-row {
+    position: sticky;
+    bottom: 0;
+    z-index: 1000;
+    background: #f8f8f8;
+    border-top: 1px solid #ddd;
+    margin: 0 -15px;
+    padding: 10px 15px;
+}

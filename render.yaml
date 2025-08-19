@@ -1,5 +1,6 @@
 # render.yaml
 # KORRIGIERT: "collectstatic" zum Build-Befehl hinzugefügt.
+# NEU: --chdir Flag für Gunicorn hinzugefügt, um das Arbeitsverzeichnis explizit zu setzen.
 
 databases:
   - name: vorsorge-db
@@ -13,9 +14,11 @@ services:
     plan: free
     # Wir sagen Render, dass der 'backend'-Ordner das Hauptverzeichnis ist.
     rootDir: backend
-    # NEU: "python manage.py collectstatic" sammelt alle CSS/JS-Dateien.
+    # "collectstatic" sammelt alle CSS/JS-Dateien.
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
-    startCommand: "gunicorn core.wsgi"
+    # NEU: --chdir setzt das Arbeitsverzeichnis für Gunicorn explizit auf den aktuellen Ordner (backend),
+    # um Pfadprobleme zu verhindern.
+    startCommand: "gunicorn --chdir . core.wsgi"
     envVars:
       - key: DATABASE_URL
         fromDatabase:

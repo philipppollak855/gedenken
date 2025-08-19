@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Neues Modell EventAttendance hinzugefügt.
+# FINAL: Korrekte Einrückung für EventAttendance.
 
 import uuid
 from django.db import models

@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Stellt sicher, dass die Button-Funktionen an den expandierten Bereich weitergegeben werden.
+// KORRIGIERT: Interaktive Buttons werden jetzt sowohl in der Vorschau als auch in der Detailansicht der Termine angezeigt.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -281,7 +281,9 @@ const MemorialPage = () => {
                                             );
                                         })()}
                                         <div className="event-buttons">
-                                            <button onClick={() => toggleExpandedView('events')}>Alle Termine anzeigen</button>
+                                            <button onClick={() => handleAttendClick(displayedEvent)}>Teilnehmen</button>
+                                            <button onClick={() => handleNavigate(displayedEvent)}>Navigation</button>
+                                            <button onClick={() => handleCalendarClick(displayedEvent)}>Im Kalender speichern</button>
                                         </div>
                                     </div>
                                 )}

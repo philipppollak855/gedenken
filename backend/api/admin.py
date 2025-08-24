@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Verschachtelte Inlines, die vom Standard-Admin nicht unterstützt werden, wurden entfernt.
+# KORRIGIERT: Die komplexe 'manage_attendees'-Funktion, die den Fehler verursachte, wurde durch eine einfache Zählung ersetzt.
 
 import uuid
 from django.contrib import admin
@@ -240,16 +240,14 @@ class MemorialEventInline(admin.TabularInline):
     model = MemorialEvent
     extra = 1
     raw_id_fields = ('location',)
-    readonly_fields = ('manage_attendees',)
-    fields = ('is_public', 'title', 'date', 'location', 'manage_attendees')
+    readonly_fields = ('attendee_count',)
+    fields = ('is_public', 'title', 'date', 'location', 'attendee_count')
     
-    @admin.display(description='Zusagen & Details')
-    def manage_attendees(self, obj):
+    @admin.display(description='Zusagen')
+    def attendee_count(self, obj):
         if obj.pk:
-            count = obj.attendees.count()
-            url = reverse('admin:api_memorialevent_change', args=[obj.pk])
-            return mark_safe(f'<a href="{url}" target="_blank">{count} Zusagen / Details bearbeiten</a>')
-        return "Bitte zuerst speichern, um Details zu bearbeiten."
+            return obj.attendees.count()
+        return 0
 
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):

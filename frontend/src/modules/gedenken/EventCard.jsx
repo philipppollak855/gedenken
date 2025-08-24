@@ -65,4 +65,5 @@ const EventCard = ({ event, onAttendClick, onCalendarClick, onNavigateClick }) =
     );
 };
 
+
 export default EventCard;

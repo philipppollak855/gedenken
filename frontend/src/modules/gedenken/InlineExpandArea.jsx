@@ -1,10 +1,10 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// STARK ERWEITERT: Kerzen-Paginierung und komplett neuer, detaillierter Terminbereich.
-// KORRIGIERT: ESLint-Warnung bezüglich fehlender Abhängigkeiten im useEffect-Hook behoben.
+// KORRIGIERT: Stellt sicher, dass alle notwendigen Click-Handler an jede EventCard weitergegeben werden.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
 import AuthContext from '../../context/AuthContext';
+import EventCard from './EventCard';
 import './InlineExpandArea.css';
 
 const ArrowIcon = ({ direction = 'right' }) => (
@@ -90,103 +90,6 @@ const MemorialCandleDisplay = ({ candle, onClick, isAnniversary, isBirthday }) =
     );
 };
 
-const EventCard = ({ event, pageData }) => {
-    if (!event.is_public) {
-        return null;
-    }
-
-    const eventDate = new Date(event.date);
-    const day = eventDate.toLocaleDateString('de-DE', { day: '2-digit' });
-    const month = eventDate.toLocaleDateString('de-DE', { month: 'short' });
-    const weekday = eventDate.toLocaleDateString('de-DE', { weekday: 'long' });
-    const time = eventDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-
-    const handleSaveToCalendar = () => {
-        const formatDateForICS = (date) => {
-            return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-        }
-        const startDate = formatDateForICS(eventDate);
-        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000)));
-
-        const icsContent = [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'BEGIN:VEVENT',
-            `UID:${event.id}@gedenkseite.at`,
-            `DTSTAMP:${formatDateForICS(new Date())}`,
-            `DTSTART:${startDate}`,
-            `DTEND:${endDate}`,
-            `SUMMARY:${event.title} für ${pageData.first_name} ${pageData.last_name}`,
-            `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
-            `LOCATION:${event.location.name}, ${event.location.address}`,
-            'END:VEVENT',
-            'END:VCALENDAR'
-        ].join('\r\n');
-
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${event.title}.ics`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const handleNavigation = () => {
-        const query = encodeURIComponent(event.location.address || event.location.name);
-        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-    };
-
-    return (
-        <div className="event-card">
-            <div className="event-date-box">
-                <span className="day">{day}</span>
-                <span className="month">{month}</span>
-            </div>
-            <div className="event-details">
-                <div className="event-header">
-                    <div>
-                        <h3>{event.title}</h3>
-                        <div className="event-time-location">
-                            <span className="weekday-time">{weekday}, {time} Uhr</span>
-                            {event.show_location && event.location && (
-                                <span className="location-info">{event.location.name}</span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="event-actions">
-                         {event.show_location && event.location?.address && (
-                            <button onClick={handleNavigation} className="action-button nav-button">Navigation</button>
-                         )}
-                        <button onClick={handleSaveToCalendar} className="action-button calendar-button">Im Kalender speichern</button>
-                    </div>
-                </div>
-                <div className="event-info-grid">
-                    {event.show_dresscode && event.dresscode && (
-                        <div className="info-item">
-                            <strong>Kleidung:</strong>
-                            <span>{event.dresscode}</span>
-                        </div>
-                    )}
-                    {event.show_condolence_note && event.condolence_note && (
-                        <div className="info-item">
-                            <strong>Kondolenz:</strong>
-                            <span>{event.condolence_note}</span>
-                        </div>
-                    )}
-                    {event.show_donation_info && event.donation_for && (
-                         <div className="info-item info-item-full">
-                            <strong>Spende:</strong>
-                            <span>Anstelle von Blumen bitten wir um eine Spende zugunsten von: <strong>{event.donation_for}</strong></span>
-                        </div>
-                    )}
-                </div>
-                {event.description && <p className="event-description">{event.description}</p>}
-            </div>
-        </div>
-    );
-};
-
 const SearchPopup = ({ onClose, pageData, onResultClick }) => {
     const [searchName, setSearchName] = useState('');
     const [searchText, setSearchText] = useState('');
@@ -231,7 +134,7 @@ const SearchPopup = ({ onClose, pageData, onResultClick }) => {
 };
 
 
-const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
+const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClick, onCalendarClick, onNavigateClick }) => {
     const [condolenceView, setCondolenceView] = useState('cards');
     const [showCondolencePopup, setShowCondolencePopup] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
@@ -477,7 +380,16 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                         </div>
                         <div className="event-list">
                             {pageData.events.length > 0 ? (
-                                pageData.events.map(event => <EventCard key={event.id} event={event} pageData={pageData} />)
+                                pageData.events.map(event => 
+                                    <EventCard 
+                                        key={event.id} 
+                                        event={event} 
+                                        pageData={pageData} 
+                                        onAttendClick={onAttendClick}
+                                        onCalendarClick={onCalendarClick}
+                                        onNavigateClick={onNavigateClick}
+                                    />
+                                )
                             ) : (
                                 <p className="placeholder-content">Derzeit sind keine öffentlichen Termine bekannt.</p>
                             )}
@@ -495,8 +407,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
             </section>
 
             {showCondolencePopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content">
+                <div className="popup-overlay" onClick={() => setShowCondolencePopup(false)}>
+                    <div className="popup-content" onClick={e => e.stopPropagation()}>
                         <h3>Kondolenz verfassen</h3>
                         <form onSubmit={handleCondolenceSubmit}>
                             <input 
@@ -528,8 +440,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
             )}
 
             {showCandlePopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content candle-popup">
+                <div className="popup-overlay" onClick={() => setShowCandlePopup(false)}>
+                    <div className="popup-content candle-popup" onClick={e => e.stopPropagation()}>
                         <h3>Gedenkkerze anzünden</h3>
                         <p className="popup-helper-text">Wählen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft für die Angehörigen.</p>
                         <form onSubmit={handleCandleSubmit}>

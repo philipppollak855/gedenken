@@ -1,11 +1,12 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Die Logik für die Teilnahme- und Navigationsbuttons wurde wiederhergestellt.
+// KORRIGIERT: Stellt sicher, dass die korrekten Event-Handler für die Buttons an alle Komponenten weitergegeben werden.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import InlineExpandArea from './InlineExpandArea';
+import EventCard from './EventCard';
 import './MemorialPage.css';
-import useApi from '../../hooks/useApi'; // Wichtig für die Teilnahme-Funktion
+import useApi from '../../hooks/useApi';
 
 const MemorialPage = () => {
     const [pageData, setPageData] = useState(null);
@@ -17,6 +18,8 @@ const MemorialPage = () => {
     const [expandedView, setExpandedView] = useState(null);
     const [showAttendancePopup, setShowAttendancePopup] = useState(false);
     const [selectedEventForAttendance, setSelectedEventForAttendance] = useState(null);
+    const [showCalendarPopup, setShowCalendarPopup] = useState(false);
+    const [selectedEventForCalendar, setSelectedEventForCalendar] = useState(null);
     const { slug } = useParams();
     const api = useApi();
     const expandAreaRef = useRef(null);
@@ -25,16 +28,6 @@ const MemorialPage = () => {
     const formatDate = (dateString) => {
         if (!dateString) return '';
         return new Date(dateString).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
-    };
-    
-    const formatEventDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return {
-            day: date.toLocaleDateString('de-DE', { day: '2-digit' }),
-            month: date.toLocaleDateString('de-DE', { month: 'short' }),
-            time: date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
-        };
     };
 
     const fetchPageData = useCallback(async () => {
@@ -59,28 +52,16 @@ const MemorialPage = () => {
     }, [slug, fetchPageData]);
 
     const displayedEvent = useMemo(() => {
-        if (!pageData || !pageData.events || pageData.events.length === 0) {
-            return null;
-        }
-
+        if (!pageData || !pageData.events || pageData.events.length === 0) return null;
         const now = new Date();
         const publicEvents = pageData.events.filter(e => e.is_public);
-
         const upcomingEvents = publicEvents
             .filter(event => new Date(event.date) > now)
             .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        if (upcomingEvents.length > 0) {
-            return upcomingEvents[0];
-        }
-
-        const pastEvents = publicEvents
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
-        
+        if (upcomingEvents.length > 0) return upcomingEvents[0];
+        const pastEvents = publicEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
         return pastEvents.length > 0 ? pastEvents[0] : null;
-
     }, [pageData]);
-
 
     const handleHeroLinkClick = (e, view) => {
         e.preventDefault();
@@ -94,7 +75,6 @@ const MemorialPage = () => {
     const toggleExpandedView = (view) => {
         const isOpening = expandedView !== view;
         setExpandedView(prev => prev === view ? null : view);
-        
         if (isOpening) {
             setTimeout(() => {
                 expandAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -121,20 +101,63 @@ const MemorialPage = () => {
         e.preventDefault();
         const guestName = e.target.guestName.value;
         if (!guestName || !selectedEventForAttendance) return;
-
         const response = await api(`/memorial-pages/${slug}/events/${selectedEventForAttendance.id}/attendees/`, {
             method: 'POST',
             body: JSON.stringify({ guest_name: guestName }),
         });
-
         if (response.ok) {
             alert("Vielen Dank für Ihre Zusage.");
             setShowAttendancePopup(false);
             setSelectedEventForAttendance(null);
+            fetchPageData(); // Daten neu laden, um Zusage-Anzahl zu aktualisieren (optional)
         } else {
             alert("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
         }
     };
+
+    const handleCalendarClick = (event) => {
+        setSelectedEventForCalendar(event);
+        setShowCalendarPopup(true);
+    };
+
+    const generateIcsFile = (event) => {
+        const eventDate = new Date(event.date);
+        const formatDateForICS = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const startDate = formatDateForICS(eventDate);
+        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000))); // Assume 1 hour duration
+        const icsContent = [
+            'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
+            `UID:${event.id}@gedenkseite.at`, `DTSTAMP:${formatDateForICS(new Date())}`,
+            `DTSTART:${startDate}`, `DTEND:${endDate}`,
+            `SUMMARY:${event.title} für ${pageData.first_name} ${pageData.last_name}`,
+            `DESCRIPTION:${(event.description || '').replace(/\n/g, '\\n')}`,
+            `LOCATION:${event.location?.name || ''}, ${event.location?.address || ''}`,
+            'END:VEVENT', 'END:VCALENDAR'
+        ].join('\r\n');
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${event.title}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const generateGoogleCalendarUrl = (event) => {
+        const eventDate = new Date(event.date);
+        const formatDateForGoogle = (date) => date.toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z';
+        const startDate = formatDateForGoogle(eventDate);
+        const endDate = formatDateForGoogle(new Date(eventDate.getTime() + (60 * 60 * 1000))); // Assume 1 hour duration
+        const params = new URLSearchParams({
+            action: 'TEMPLATE',
+            text: `${event.title} für ${pageData.first_name} ${pageData.last_name}`,
+            dates: `${startDate}/${endDate}`,
+            details: event.description || '',
+            location: `${event.location?.name || ''}, ${event.location?.address || ''}`,
+        });
+        return `https://www.google.com/calendar/render?${params.toString()}`;
+    };
+
 
     if (isLoading) return <div className="loading-spinner"><div className="spinner"></div></div>;
     if (!pageData) return <h1 className="text-center text-2xl font-bold mt-10">Gedenkseite nicht gefunden</h1>;
@@ -235,25 +258,13 @@ const MemorialPage = () => {
                                 {displayedEvent && (
                                     <div className="farewell-events-area">
                                         <h3>Nächster Termin</h3>
-                                        {(() => {
-                                            const { day, month, time } = formatEventDate(displayedEvent.date);
-                                            return (
-                                                <div className="event-info-line">
-                                                    <div className="event-date-display">
-                                                        <span className="event-day">{day}</span>
-                                                        <span className="event-month">{month}</span>
-                                                    </div>
-                                                    <div className="event-details-display">
-                                                        <strong>{displayedEvent.title}</strong>
-                                                        <span>{time} Uhr{displayedEvent.show_location && displayedEvent.location && `, ${displayedEvent.location.name}`}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
-                                        <div className="event-buttons">
-                                            <button onClick={() => handleAttendClick(displayedEvent)}>Teilnehmen</button>
-                                            <button onClick={() => handleNavigate(displayedEvent)}>Navigieren</button>
-                                        </div>
+                                        <EventCard 
+                                            event={displayedEvent} 
+                                            pageData={pageData}
+                                            onAttendClick={handleAttendClick}
+                                            onCalendarClick={handleCalendarClick}
+                                            onNavigateClick={handleNavigate}
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -272,8 +283,8 @@ const MemorialPage = () => {
             </section>
 
             {showAttendancePopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content attendance-popup">
+                <div className="popup-overlay" onClick={() => setShowAttendancePopup(false)}>
+                    <div className="popup-content attendance-popup" onClick={e => e.stopPropagation()}>
                         <h3>Teilnahme bestätigen</h3>
                         <p>für: {selectedEventForAttendance?.title}</p>
                         <form onSubmit={handleAttendanceSubmit}>
@@ -287,6 +298,22 @@ const MemorialPage = () => {
                 </div>
             )}
 
+            {showCalendarPopup && selectedEventForCalendar && (
+                <div className="popup-overlay" onClick={() => setShowCalendarPopup(false)}>
+                    <div className="popup-content" onClick={e => e.stopPropagation()}>
+                        <h3>Termin speichern</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+                            <a href={generateGoogleCalendarUrl(selectedEventForCalendar)} target="_blank" rel="noopener noreferrer" className="action-button">Google Kalender</a>
+                            <button onClick={() => generateIcsFile(selectedEventForCalendar)} className="action-button">iCal / Outlook</button>
+                            <button onClick={() => generateIcsFile(selectedEventForCalendar)} className="action-button">Apple Kalender</button>
+                        </div>
+                         <div className="popup-actions">
+                            <button type="button" onClick={() => setShowCalendarPopup(false)}>Schließen</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div ref={expandAreaRef}>
                 {expandedView && (
                     <InlineExpandArea
@@ -294,6 +321,9 @@ const MemorialPage = () => {
                         pageData={pageData}
                         settings={settings}
                         onDataReload={fetchPageData}
+                        onAttendClick={handleAttendClick}
+                        onCalendarClick={handleCalendarClick}
+                        onNavigateClick={handleNavigate}
                     />
                 )}
             </div>

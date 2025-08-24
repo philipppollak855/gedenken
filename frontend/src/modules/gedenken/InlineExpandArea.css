@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* ERWEITERT: Stile für Kerzen-Raster und den neuen Terminbereich. */
+/* HINZUGEFÜGT: Stile für das Kalender-Auswahlfenster. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -719,4 +719,30 @@
     border-radius: 4px;
     padding: 1rem;
     cursor: pointer;
+}
+
+/* NEUE STILE FÜR KALENDER-POPUP */
+.popup-content .action-button {
+    background-color: #8c8073;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 1rem;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+.popup-content .action-button:hover {
+    background-color: #6d6d6d;
+}
+.popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
 }

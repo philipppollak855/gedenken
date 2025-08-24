@@ -1,6 +1,5 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// STARK ERWEITERT: Kerzen-Paginierung und komplett neuer, detaillierter Terminbereich.
-// KORRIGIERT: ESLint-Warnung bezüglich fehlender Abhängigkeiten im useEffect-Hook behoben.
+// ERWEITERT: Fügt einen "Teilnehmen"-Button und eine erweiterte Kalender-Auswahl (Google, Apple, iCal) hinzu.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -90,7 +89,7 @@ const MemorialCandleDisplay = ({ candle, onClick, isAnniversary, isBirthday }) =
     );
 };
 
-const EventCard = ({ event, pageData }) => {
+const EventCard = ({ event, pageData, onAttendClick, onCalendarClick, onNavigateClick }) => {
     if (!event.is_public) {
         return null;
     }
@@ -100,42 +99,6 @@ const EventCard = ({ event, pageData }) => {
     const month = eventDate.toLocaleDateString('de-DE', { month: 'short' });
     const weekday = eventDate.toLocaleDateString('de-DE', { weekday: 'long' });
     const time = eventDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-
-    const handleSaveToCalendar = () => {
-        const formatDateForICS = (date) => {
-            return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-        }
-        const startDate = formatDateForICS(eventDate);
-        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000)));
-
-        const icsContent = [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'BEGIN:VEVENT',
-            `UID:${event.id}@gedenkseite.at`,
-            `DTSTAMP:${formatDateForICS(new Date())}`,
-            `DTSTART:${startDate}`,
-            `DTEND:${endDate}`,
-            `SUMMARY:${event.title} für ${pageData.first_name} ${pageData.last_name}`,
-            `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
-            `LOCATION:${event.location.name}, ${event.location.address}`,
-            'END:VEVENT',
-            'END:VCALENDAR'
-        ].join('\r\n');
-
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${event.title}.ics`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const handleNavigation = () => {
-        const query = encodeURIComponent(event.location.address || event.location.name);
-        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-    };
 
     return (
         <div className="event-card">
@@ -156,9 +119,10 @@ const EventCard = ({ event, pageData }) => {
                     </div>
                     <div className="event-actions">
                          {event.show_location && event.location?.address && (
-                            <button onClick={handleNavigation} className="action-button nav-button">Navigation</button>
+                            <button onClick={() => onNavigateClick(event)} className="action-button nav-button">Navigation</button>
                          )}
-                        <button onClick={handleSaveToCalendar} className="action-button calendar-button">Im Kalender speichern</button>
+                        <button onClick={() => onCalendarClick(event)} className="action-button calendar-button">Im Kalender speichern</button>
+                        <button onClick={() => onAttendClick(event)} className="action-button">Teilnehmen</button>
                     </div>
                 </div>
                 <div className="event-info-grid">
@@ -248,6 +212,10 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
     const [candleCurrentPage, setCandleCurrentPage] = useState(0);
 
     const [showSearchPopup, setShowSearchPopup] = useState(false);
+    const [showCalendarPopup, setShowCalendarPopup] = useState(false);
+    const [selectedEventForCalendar, setSelectedEventForCalendar] = useState(null);
+    const [showAttendancePopup, setShowAttendancePopup] = useState(false);
+    const [selectedEventForAttendance, setSelectedEventForAttendance] = useState(null);
 
     const api = useApi();
     const { user } = useContext(AuthContext);
@@ -385,6 +353,81 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
         return candleImages.filter(c => c.type === 'standard');
     };
 
+    const handleAttendClick = (event) => {
+        setSelectedEventForAttendance(event);
+        setShowAttendancePopup(true);
+    };
+
+    const handleAttendanceSubmit = async (e) => {
+        e.preventDefault();
+        const guestName = e.target.guestName.value;
+        if (!guestName || !selectedEventForAttendance) return;
+
+        const response = await api(`/memorial-pages/${pageData.slug}/events/${selectedEventForAttendance.id}/attendees/`, {
+            method: 'POST',
+            body: JSON.stringify({ guest_name: guestName }),
+        });
+
+        if (response.ok) {
+            alert("Vielen Dank für Ihre Zusage.");
+            setShowAttendancePopup(false);
+            setSelectedEventForAttendance(null);
+        } else {
+            alert("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
+        }
+    };
+
+    const handleCalendarClick = (event) => {
+        setSelectedEventForCalendar(event);
+        setShowCalendarPopup(true);
+    };
+
+    const handleNavigateClick = (event) => {
+        const query = encodeURIComponent(event.location.address || event.location.name);
+        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    };
+
+    const generateIcsFile = (event) => {
+        const eventDate = new Date(event.date);
+        const formatDateForICS = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const startDate = formatDateForICS(eventDate);
+        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000)));
+
+        const icsContent = [
+            'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
+            `UID:${event.id}@gedenkseite.at`, `DTSTAMP:${formatDateForICS(new Date())}`,
+            `DTSTART:${startDate}`, `DTEND:${endDate}`,
+            `SUMMARY:${event.title} für ${pageData.first_name} ${pageData.last_name}`,
+            `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
+            `LOCATION:${event.location.name}, ${event.location.address}`,
+            'END:VEVENT', 'END:VCALENDAR'
+        ].join('\r\n');
+
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${event.title}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const generateGoogleCalendarUrl = (event) => {
+        const eventDate = new Date(event.date);
+        const formatDateForGoogle = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const startDate = formatDateForGoogle(eventDate);
+        const endDate = formatDateForGoogle(new Date(eventDate.getTime() + (60 * 60 * 1000)));
+
+        const params = new URLSearchParams({
+            action: 'TEMPLATE',
+            text: `${event.title} für ${pageData.first_name} ${pageData.last_name}`,
+            dates: `${startDate}/${endDate}`,
+            details: event.description,
+            location: `${event.location.name}, ${event.location.address}`,
+        });
+        return `https://www.google.com/calendar/render?${params.toString()}`;
+    };
+
     const areaStyle = {
         backgroundColor: settings?.expend_background_color || '#f4f1ee',
         backgroundImage: settings?.expend_background_image_url ? `url(${settings.expend_background_image_url})` : 'none',
@@ -477,7 +520,16 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                         </div>
                         <div className="event-list">
                             {pageData.events.length > 0 ? (
-                                pageData.events.map(event => <EventCard key={event.id} event={event} pageData={pageData} />)
+                                pageData.events.map(event => 
+                                    <EventCard 
+                                        key={event.id} 
+                                        event={event} 
+                                        pageData={pageData} 
+                                        onAttendClick={handleAttendClick}
+                                        onCalendarClick={handleCalendarClick}
+                                        onNavigateClick={handleNavigateClick}
+                                    />
+                                )
                             ) : (
                                 <p className="placeholder-content">Derzeit sind keine öffentlichen Termine bekannt.</p>
                             )}
@@ -597,6 +649,38 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                     pageData={pageData}
                     onResultClick={handleSearchResultClick}
                 />
+            )}
+
+            {showAttendancePopup && (
+                <div className="popup-overlay">
+                    <div className="popup-content attendance-popup">
+                        <h3>Teilnahme bestätigen</h3>
+                        <p>für: {selectedEventForAttendance?.title}</p>
+                        <form onSubmit={handleAttendanceSubmit}>
+                            <input type="text" name="guestName" placeholder="Ihr Name" required />
+                            <div className="popup-actions">
+                                <button type="button" onClick={() => setShowAttendancePopup(false)}>Abbrechen</button>
+                                <button type="submit">Zusagen</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showCalendarPopup && selectedEventForCalendar && (
+                <div className="popup-overlay" onClick={() => setShowCalendarPopup(false)}>
+                    <div className="popup-content" onClick={e => e.stopPropagation()}>
+                        <h3>Termin speichern</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+                            <a href={generateGoogleCalendarUrl(selectedEventForCalendar)} target="_blank" rel="noopener noreferrer" className="action-button">Google Kalender</a>
+                            <button onClick={() => generateIcsFile(selectedEventForCalendar)} className="action-button">iCal / Outlook</button>
+                            <button onClick={() => generateIcsFile(selectedEventForCalendar)} className="action-button">Apple Kalender</button>
+                        </div>
+                         <div className="popup-actions">
+                            <button type="button" onClick={() => setShowCalendarPopup(false)}>Schließen</button>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );

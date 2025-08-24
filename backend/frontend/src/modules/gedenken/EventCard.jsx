@@ -1,10 +1,9 @@
 // frontend/src/modules/gedenken/EventCard.jsx
-// Diese neue, wiederverwendbare Komponente stellt einen einzelnen Termin dar.
-// ERWEITERT: Enthält jetzt den "Teilnehmen"-Button.
+// KORRIGIERT: Stellt sicher, dass alle Buttons korrekt angezeigt und die richtigen Funktionen aufgerufen werden.
 
 import React from 'react';
 
-const EventCard = ({ event, pageData, onAttendClick, onCalendarClick, onNavigateClick }) => {
+const EventCard = ({ event, onAttendClick, onCalendarClick, onNavigateClick }) => {
     if (!event || !event.is_public) {
         return null;
     }

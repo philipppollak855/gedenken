@@ -1,11 +1,10 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Verwendet jetzt die neue EventCard-Komponente für die Vorschau des nächsten Termins.
-// ERWEITERT: Fügt Logik für Teilnahme und Kalender-Export hinzu.
+// KORRIGIERT: Stellt sicher, dass die korrekten Event-Handler für die Buttons an alle Komponenten weitergegeben werden.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import InlineExpandArea from './InlineExpandArea';
-import EventCard from './EventCard'; // Import der neuen Komponente
+import EventCard from './EventCard';
 import './MemorialPage.css';
 import useApi from '../../hooks/useApi';
 
@@ -110,6 +109,7 @@ const MemorialPage = () => {
             alert("Vielen Dank für Ihre Zusage.");
             setShowAttendancePopup(false);
             setSelectedEventForAttendance(null);
+            fetchPageData(); // Daten neu laden, um Zusage-Anzahl zu aktualisieren (optional)
         } else {
             alert("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
         }
@@ -131,7 +131,7 @@ const MemorialPage = () => {
             `DTSTART:${startDate}`, `DTEND:${endDate}`,
             `SUMMARY:${event.title} für ${pageData.first_name} ${pageData.last_name}`,
             `DESCRIPTION:${(event.description || '').replace(/\n/g, '\\n')}`,
-            `LOCATION:${event.location.name}, ${event.location.address}`,
+            `LOCATION:${event.location?.name || ''}, ${event.location?.address || ''}`,
             'END:VEVENT', 'END:VCALENDAR'
         ].join('\r\n');
         const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
@@ -153,7 +153,7 @@ const MemorialPage = () => {
             text: `${event.title} für ${pageData.first_name} ${pageData.last_name}`,
             dates: `${startDate}/${endDate}`,
             details: event.description || '',
-            location: `${event.location.name}, ${event.location.address}`,
+            location: `${event.location?.name || ''}, ${event.location?.address || ''}`,
         });
         return `https://www.google.com/calendar/render?${params.toString()}`;
     };
@@ -283,8 +283,8 @@ const MemorialPage = () => {
             </section>
 
             {showAttendancePopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content attendance-popup">
+                <div className="popup-overlay" onClick={() => setShowAttendancePopup(false)}>
+                    <div className="popup-content attendance-popup" onClick={e => e.stopPropagation()}>
                         <h3>Teilnahme bestätigen</h3>
                         <p>für: {selectedEventForAttendance?.title}</p>
                         <form onSubmit={handleAttendanceSubmit}>

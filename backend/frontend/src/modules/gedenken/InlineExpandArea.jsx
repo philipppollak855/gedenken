@@ -1,11 +1,10 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// KORRIGIERT: Verwendet jetzt die neue, externe EventCard-Komponente.
-// ERWEITERT: Leitet die neuen Click-Handler an die EventCard weiter.
+// KORRIGIERT: Stellt sicher, dass alle notwendigen Click-Handler an jede EventCard weitergegeben werden.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
 import AuthContext from '../../context/AuthContext';
-import EventCard from './EventCard'; // Import der neuen Komponente
+import EventCard from './EventCard';
 import './InlineExpandArea.css';
 
 const ArrowIcon = ({ direction = 'right' }) => (
@@ -408,8 +407,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             </section>
 
             {showCondolencePopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content">
+                <div className="popup-overlay" onClick={() => setShowCondolencePopup(false)}>
+                    <div className="popup-content" onClick={e => e.stopPropagation()}>
                         <h3>Kondolenz verfassen</h3>
                         <form onSubmit={handleCondolenceSubmit}>
                             <input 
@@ -441,8 +440,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             )}
 
             {showCandlePopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content candle-popup">
+                <div className="popup-overlay" onClick={() => setShowCandlePopup(false)}>
+                    <div className="popup-content candle-popup" onClick={e => e.stopPropagation()}>
                         <h3>Gedenkkerze anzünden</h3>
                         <p className="popup-helper-text">Wählen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft für die Angehörigen.</p>
                         <form onSubmit={handleCandleSubmit}>

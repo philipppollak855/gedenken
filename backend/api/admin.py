@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Die komplexe 'manage_attendees'-Funktion, die den Fehler verursachte, wurde durch eine einfache Zählung ersetzt.
+# HINZUGEFÜGT: Eine benutzerdefinierte Admin-Ansicht für eine Terminübersicht.
 
 import uuid
 from django.contrib import admin
@@ -10,8 +10,10 @@ from import_export import resources
 from django import forms
 from django.urls import path, reverse
 from django.shortcuts import render
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
+from django.utils import timezone
+from datetime import timedelta
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem,
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
@@ -19,6 +21,27 @@ from .models import (
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
+
+# NEU: Die View-Funktion für das Dashboard
+def upcoming_events_view(request):
+    days = int(request.GET.get('days', 7))
+    start_date = timezone.now()
+    end_date = start_date + timedelta(days=days)
+
+    events = MemorialEvent.objects.filter(
+        date__range=[start_date, end_date]
+    ).annotate(
+        attendee_count=Count('attendees')
+    ).select_related('page').order_by('date')
+
+    context = dict(
+        request.current_app.admin_site.each_context(request),
+        events=events,
+        selected_days=days,
+        title=f"Kommende Termine der nächsten {days} Tage"
+    )
+    return render(request, "admin/api/upcoming_events.html", context)
+
 
 # Ein benutzerdefinierter Widget für die Farbauswahl
 class ColorPickerWidget(forms.TextInput):
@@ -158,7 +181,8 @@ class UserAdmin(ImportExportModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('global_search/', self.admin_site.admin_view(self.global_search_view), name='global_search')
+            path('global_search/', self.admin_site.admin_view(self.global_search_view), name='global_search'),
+            path('upcoming_events/', self.admin_site.admin_view(upcoming_events_view), name='api_user_upcoming_events'),
         ]
         return custom_urls + urls
 
@@ -347,7 +371,7 @@ class ReleaseRequestAdmin(admin.ModelAdmin):
     actions = ['approve_requests']
 
     def deceased_full_name(self, obj):
-        return f"{obj.deceased_first_name} {obj.deceased_last_name}"
+        return f"{obj.first_name} {obj.last_name}"
     deceased_full_name.short_description = "Verstorbener"
 
     @admin.action(description='Ausgewählte Anfragen genehmigen & Angehörige anlegen')

@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+
+    <div class="module" id="changelist">
+        <div class="changelist-form-container">
+            <div class="object-tools" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #ddd;">
+                <strong>Zeitraum:</strong> &nbsp;
+                <a href="{% url 'admin:api_user_upcoming_events' %}?days=7" class="button {% if selected_days == 7 %}default{% endif %}">Nächste 7 Tage</a>
+                <a href="{% url 'admin:api_user_upcoming_events' %}?days=14" class="button {% if selected_days == 14 %}default{% endif %}">Nächste 14 Tage</a>
+                <a href="{% url 'admin:api_user_upcoming_events' %}?days=30" class="button {% if selected_days == 30 %}default{% endif %}">Nächste 30 Tage</a>
+            </div>
+
+            {% if events %}
+            <div class="results">
+                <table id="result_list">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="sortable column-date">
+                                <div class="text"><a>Datum & Uhrzeit</a></div>
+                            </th>
+                            <th scope="col" class="sortable column-title">
+                                <div class="text"><a>Termin</a></div>
+                            </th>
+                            <th scope="col" class="sortable column-page">
+                                <div class="text"><a>Gedenkseite</a></div>
+                            </th>
+                            <th scope="col" class="sortable column-attendees">
+                                <div class="text"><a>Zusagen</a></div>
+                            </th>
+                            <th scope="col">
+                                <div class="text"><a>Aktionen</a></div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr class="{% cycle 'row1' 'row2' %}">
+                            <td>{{ event.date|date:"d. F Y, H:i" }} Uhr</td>
+                            <td>{{ event.title }}</td>
+                            <td><a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></td>
+                            <td>{{ event.attendee_count }}</td>
+                            <td>
+                                <a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="button">Zusagen ansehen / Bearbeiten</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>Keine Termine im ausgewählten Zeitraum gefunden.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

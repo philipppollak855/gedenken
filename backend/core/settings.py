@@ -1,9 +1,10 @@
 # backend/core/settings.py
-# HINZUGEFÜGT: Neue BACKEND_URL-Einstellung für absolute Medien-URLs.
+# HINZUGEFÜGT: Link zum neuen Termin-Dashboard in der Admin-Navigation.
 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.urls import reverse_lazy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
@@ -101,6 +102,7 @@ JAZZMIN_SETTINGS = {
     "copyright": "Ihre Bestattung GmbH",
     "topmenu_links": [
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Terminübersicht", "url": "admin:api_user_upcoming_events", "permissions": ["api.view_memorialevent"]},
         {"name": "Frontend ansehen", "url": "http://localhost:3000", "new_window": True},
         {"model": "api.User"},
     ],

@@ -1,9 +1,10 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Interaktive Buttons werden jetzt sowohl in der Vorschau als auch in der Detailansicht der Termine angezeigt.
+// KORRIGIERT: Verwendet jetzt die neue EventCard-Komponente für die Vorschau des nächsten Termins.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import InlineExpandArea from './InlineExpandArea';
+import EventCard from './EventCard'; // Import der neuen Komponente
 import './MemorialPage.css';
 import useApi from '../../hooks/useApi';
 
@@ -27,16 +28,6 @@ const MemorialPage = () => {
     const formatDate = (dateString) => {
         if (!dateString) return '';
         return new Date(dateString).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
-    };
-    
-    const formatEventDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return {
-            day: date.toLocaleDateString('de-DE', { day: '2-digit' }),
-            month: date.toLocaleDateString('de-DE', { month: 'short' }),
-            time: date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
-        };
     };
 
     const fetchPageData = useCallback(async () => {
@@ -265,26 +256,13 @@ const MemorialPage = () => {
                                 {displayedEvent && (
                                     <div className="farewell-events-area">
                                         <h3>Nächster Termin</h3>
-                                        {(() => {
-                                            const { day, month, time } = formatEventDate(displayedEvent.date);
-                                            return (
-                                                <div className="event-info-line">
-                                                    <div className="event-date-display">
-                                                        <span className="event-day">{day}</span>
-                                                        <span className="event-month">{month}</span>
-                                                    </div>
-                                                    <div className="event-details-display">
-                                                        <strong>{displayedEvent.title}</strong>
-                                                        <span>{time} Uhr{displayedEvent.show_location && displayedEvent.location && `, ${displayedEvent.location.name}`}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
-                                        <div className="event-buttons">
-                                            <button onClick={() => handleAttendClick(displayedEvent)}>Teilnehmen</button>
-                                            <button onClick={() => handleNavigate(displayedEvent)}>Navigation</button>
-                                            <button onClick={() => handleCalendarClick(displayedEvent)}>Im Kalender speichern</button>
-                                        </div>
+                                        <EventCard 
+                                            event={displayedEvent} 
+                                            pageData={pageData}
+                                            onAttendClick={handleAttendClick}
+                                            onCalendarClick={handleCalendarClick}
+                                            onNavigateClick={handleNavigate}
+                                        />
                                     </div>
                                 )}
                             </div>

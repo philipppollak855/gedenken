@@ -8,9 +8,10 @@ from django.utils.text import slugify
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django import forms
-from django.urls import path
+from django.urls import path, reverse
 from django.shortcuts import render
 from django.db.models import Q
+from django.utils.safestring import mark_safe
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem,
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
@@ -228,37 +229,27 @@ class EventAttendanceInline(admin.TabularInline):
     readonly_fields = ('guest_name', 'user', 'created_at')
     can_delete = True
 
+@admin.register(MemorialEvent)
+class MemorialEventAdmin(admin.ModelAdmin):
+    list_display = ('title', 'page', 'date')
+    inlines = [EventAttendanceInline]
+    list_filter = ('page',)
+    search_fields = ('title', 'page__first_name', 'page__last_name')
+
 class MemorialEventInline(admin.TabularInline):
     model = MemorialEvent
     extra = 1
     raw_id_fields = ('location',)
-    # inlines = [EventAttendanceInline] # <-- ENTFERNT: Dies war die Fehlerursache
-    readonly_fields = ('attendee_count',)
+    readonly_fields = ('manage_attendees',)
+    fields = ('is_public', 'title', 'date', 'location', 'manage_attendees')
     
-    fieldsets = (
-        (None, {
-            'fields': (('is_public', 'title'), 'date', 'attendee_count')
-        }),
-        ('Ort', {
-            'classes': ('collapse',),
-            'fields': ('show_location', 'location')
-        }),
-        ('Zusätzliche Informationen', {
-            'classes': ('collapse',),
-            'fields': (
-                ('show_dresscode', 'dresscode'),
-                ('show_condolence_note', 'condolence_note'),
-                ('show_donation_info', 'donation_for'),
-                'description'
-            )
-        }),
-    )
-
-    @admin.display(description='Zusagen')
-    def attendee_count(self, obj):
-        if obj and obj.pk:
-            return obj.attendees.count()
-        return 0
+    @admin.display(description='Zusagen & Details')
+    def manage_attendees(self, obj):
+        if obj.pk:
+            count = obj.attendees.count()
+            url = reverse('admin:api_memorialevent_change', args=[obj.pk])
+            return mark_safe(f'<a href="{url}" target="_blank">{count} Zusagen / Details bearbeiten</a>')
+        return "Bitte zuerst speichern, um Details zu bearbeiten."
 
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):

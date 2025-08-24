@@ -1,9 +1,9 @@
 // frontend/src/modules/gedenken/EventCard.jsx
-// KORRIGIERT: Stellt sicher, dass alle Buttons korrekt angezeigt und die richtigen Funktionen aufgerufen werden.
+// HINZUGEFÜGT: Eine "isCompact"-Ansicht, die zusätzliche Details ausblendet.
 
 import React from 'react';
 
-const EventCard = ({ event, onAttendClick, onCalendarClick, onNavigateClick }) => {
+const EventCard = ({ event, pageData, onAttendClick, onCalendarClick, onNavigateClick, isCompact = false }) => {
     if (!event || !event.is_public) {
         return null;
     }
@@ -15,11 +15,13 @@ const EventCard = ({ event, onAttendClick, onCalendarClick, onNavigateClick }) =
     const time = eventDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
     return (
-        <div className="event-card">
-            <div className="event-date-box">
-                <span className="day">{day}</span>
-                <span className="month">{month}</span>
-            </div>
+        <div className={`event-card ${isCompact ? 'is-compact' : ''}`}>
+            {!isCompact && (
+                <div className="event-date-box">
+                    <span className="day">{day}</span>
+                    <span className="month">{month}</span>
+                </div>
+            )}
             <div className="event-details">
                 <div className="event-header">
                     <div>
@@ -39,31 +41,25 @@ const EventCard = ({ event, onAttendClick, onCalendarClick, onNavigateClick }) =
                         <button onClick={() => onAttendClick(event)} className="action-button">Teilnehmen</button>
                     </div>
                 </div>
-                <div className="event-info-grid">
-                    {event.show_dresscode && event.dresscode && (
-                        <div className="info-item">
-                            <strong>Kleidung:</strong>
-                            <span>{event.dresscode}</span>
+                {!isCompact && (
+                    <>
+                        <div className="event-info-grid">
+                            {event.show_dresscode && event.dresscode && (
+                                <div className="info-item"><strong>Kleidung:</strong><span>{event.dresscode}</span></div>
+                            )}
+                            {event.show_condolence_note && event.condolence_note && (
+                                <div className="info-item"><strong>Kondolenz:</strong><span>{event.condolence_note}</span></div>
+                            )}
+                            {event.show_donation_info && event.donation_for && (
+                                 <div className="info-item info-item-full"><strong>Spende:</strong><span>Anstelle von Blumen bitten wir um eine Spende zugunsten von: <strong>{event.donation_for}</strong></span></div>
+                            )}
                         </div>
-                    )}
-                    {event.show_condolence_note && event.condolence_note && (
-                        <div className="info-item">
-                            <strong>Kondolenz:</strong>
-                            <span>{event.condolence_note}</span>
-                        </div>
-                    )}
-                    {event.show_donation_info && event.donation_for && (
-                         <div className="info-item info-item-full">
-                            <strong>Spende:</strong>
-                            <span>Anstelle von Blumen bitten wir um eine Spende zugunsten von: <strong>{event.donation_for}</strong></span>
-                        </div>
-                    )}
-                </div>
-                {event.description && <p className="event-description">{event.description}</p>}
+                        {event.description && <p className="event-description">{event.description}</p>}
+                    </>
+                )}
             </div>
         </div>
     );
 };
-
 
 export default EventCard;

@@ -1,10 +1,10 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: Stellt sicher, dass die korrekten Event-Handler für die Buttons an alle Komponenten weitergegeben werden.
+// KORRIGIERT: Verwendet jetzt die neue EventCard-Komponente für die Vorschau des nächsten Termins.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import InlineExpandArea from './InlineExpandArea';
-import EventCard from './EventCard';
+import EventCard from './EventCard'; // Import der neuen Komponente
 import './MemorialPage.css';
 import useApi from '../../hooks/useApi';
 
@@ -109,7 +109,6 @@ const MemorialPage = () => {
             alert("Vielen Dank für Ihre Zusage.");
             setShowAttendancePopup(false);
             setSelectedEventForAttendance(null);
-            fetchPageData(); // Daten neu laden, um Zusage-Anzahl zu aktualisieren (optional)
         } else {
             alert("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
         }
@@ -124,14 +123,14 @@ const MemorialPage = () => {
         const eventDate = new Date(event.date);
         const formatDateForICS = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         const startDate = formatDateForICS(eventDate);
-        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000))); // Assume 1 hour duration
+        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000)));
         const icsContent = [
             'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
             `UID:${event.id}@gedenkseite.at`, `DTSTAMP:${formatDateForICS(new Date())}`,
             `DTSTART:${startDate}`, `DTEND:${endDate}`,
             `SUMMARY:${event.title} für ${pageData.first_name} ${pageData.last_name}`,
-            `DESCRIPTION:${(event.description || '').replace(/\n/g, '\\n')}`,
-            `LOCATION:${event.location?.name || ''}, ${event.location?.address || ''}`,
+            `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
+            `LOCATION:${event.location.name}, ${event.location.address}`,
             'END:VEVENT', 'END:VCALENDAR'
         ].join('\r\n');
         const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
@@ -145,19 +144,18 @@ const MemorialPage = () => {
 
     const generateGoogleCalendarUrl = (event) => {
         const eventDate = new Date(event.date);
-        const formatDateForGoogle = (date) => date.toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z';
+        const formatDateForGoogle = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         const startDate = formatDateForGoogle(eventDate);
-        const endDate = formatDateForGoogle(new Date(eventDate.getTime() + (60 * 60 * 1000))); // Assume 1 hour duration
+        const endDate = formatDateForGoogle(new Date(eventDate.getTime() + (60 * 60 * 1000)));
         const params = new URLSearchParams({
             action: 'TEMPLATE',
             text: `${event.title} für ${pageData.first_name} ${pageData.last_name}`,
             dates: `${startDate}/${endDate}`,
-            details: event.description || '',
-            location: `${event.location?.name || ''}, ${event.location?.address || ''}`,
+            details: event.description,
+            location: `${event.location.name}, ${event.location.address}`,
         });
         return `https://www.google.com/calendar/render?${params.toString()}`;
     };
-
 
     if (isLoading) return <div className="loading-spinner"><div className="spinner"></div></div>;
     if (!pageData) return <h1 className="text-center text-2xl font-bold mt-10">Gedenkseite nicht gefunden</h1>;
@@ -264,6 +262,7 @@ const MemorialPage = () => {
                                             onAttendClick={handleAttendClick}
                                             onCalendarClick={handleCalendarClick}
                                             onNavigateClick={handleNavigate}
+                                            isCompact={true}
                                         />
                                     </div>
                                 )}
@@ -283,8 +282,8 @@ const MemorialPage = () => {
             </section>
 
             {showAttendancePopup && (
-                <div className="popup-overlay" onClick={() => setShowAttendancePopup(false)}>
-                    <div className="popup-content attendance-popup" onClick={e => e.stopPropagation()}>
+                <div className="popup-overlay">
+                    <div className="popup-content attendance-popup">
                         <h3>Teilnahme bestätigen</h3>
                         <p>für: {selectedEventForAttendance?.title}</p>
                         <form onSubmit={handleAttendanceSubmit}>

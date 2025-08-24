@@ -35,11 +35,12 @@ services:
     image: postgres:16
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    ports: # <-- DIESE ZEILEN HINZUFÜGEN
+      - "5432:5432" # <-- DIESE ZEILEN HINZUFÜGEN
     environment:
       - POSTGRES_USER=vorsorge_user
       - POSTGRES_PASSWORD=vorsorge_pass
       - POSTGRES_DB=vorsorge_db
-      # NEU: Erzwingt die korrekte Kodierung beim Erstellen der Datenbank
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
       - POSTGRES_LC_COLLATE=C
       - POSTGRES_LC_CTYPE=C.UTF-8

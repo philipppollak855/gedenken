@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: MEDIA_ROOT wurde an den persistenten Speicherort von Render angepasst.
+# HINZUGEFÜGT: Neue BACKEND_URL-Einstellung für absolute Medien-URLs.
 
 import os
 from pathlib import Path
@@ -11,6 +11,9 @@ load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-dev')
 DEBUG = os.getenv('DEBUG', '1') == '1'
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1 backend').split(' ')
+
+# NEU: Die URL Ihres Backend-Servers
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -87,7 +90,6 @@ REST_FRAMEWORK = {
 }
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
-# KORREKTUR: MEDIA-Einstellungen für Render anpassen
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join('/var/media', 'media'))
 

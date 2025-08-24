@@ -1,5 +1,5 @@
 # backend/api/models.py
-# FINAL: Korrekte Einrückung für EventAttendance.
+# KORRIGIERT: Die 'url'-Eigenschaft gibt jetzt eine absolute URL zurück.
 
 import uuid
 from django.db import models
@@ -7,6 +7,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils.text import slugify
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.conf import settings # Hinzugefügt
 
 class MediaAsset(models.Model):
     class AssetType(models.TextChoices):
@@ -22,9 +23,15 @@ class MediaAsset(models.Model):
 
     @property
     def url(self):
+        # Wenn eine externe URL vorhanden ist, diese verwenden
+        if self.file_url:
+            return self.file_url
+        # Wenn eine Datei hochgeladen wurde, die absolute URL erstellen
         if self.file_upload:
-            return self.file_upload.url
-        return self.file_url
+            # Stellt sicher, dass die BACKEND_URL aus den settings.py verwendet wird
+            backend_url = getattr(settings, 'BACKEND_URL', '')
+            return f"{backend_url}{self.file_upload.url}"
+        return None
 
     def clean(self):
         if self.file_upload and self.file_url:
@@ -40,6 +47,8 @@ class MediaAsset(models.Model):
         verbose_name_plural = "Mediathek"
         ordering = ['-uploaded_at']
 
+# ... (restlicher Code der Datei bleibt unverändert)
+# (Der restliche Code der Datei bleibt unverändert und wird hier zur Übersichtlichkeit weggelassen)
 class EventLocation(models.Model):
     name = models.CharField("Name des Ortes", max_length=255, help_text="z.B. 'Pfarrkirche St. Stephan'")
     address = models.CharField("Adresse (Straße, PLZ, Ort)", max_length=255)

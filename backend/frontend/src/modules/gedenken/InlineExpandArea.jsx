@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// ERWEITERT: Fügt einen "Teilnehmen"-Button und eine erweiterte Kalender-Auswahl (Google, Apple, iCal) hinzu.
+// ERWEITERT: Nimmt Button-Funktionen entgegen und rendert sie in jeder EventCard.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -195,7 +195,7 @@ const SearchPopup = ({ onClose, pageData, onResultClick }) => {
 };
 
 
-const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
+const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClick, onCalendarClick, onNavigateClick }) => {
     const [condolenceView, setCondolenceView] = useState('cards');
     const [showCondolencePopup, setShowCondolencePopup] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
@@ -212,10 +212,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
     const [candleCurrentPage, setCandleCurrentPage] = useState(0);
 
     const [showSearchPopup, setShowSearchPopup] = useState(false);
-    const [showCalendarPopup, setShowCalendarPopup] = useState(false);
-    const [selectedEventForCalendar, setSelectedEventForCalendar] = useState(null);
-    const [showAttendancePopup, setShowAttendancePopup] = useState(false);
-    const [selectedEventForAttendance, setSelectedEventForAttendance] = useState(null);
 
     const api = useApi();
     const { user } = useContext(AuthContext);
@@ -353,81 +349,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
         return candleImages.filter(c => c.type === 'standard');
     };
 
-    const handleAttendClick = (event) => {
-        setSelectedEventForAttendance(event);
-        setShowAttendancePopup(true);
-    };
-
-    const handleAttendanceSubmit = async (e) => {
-        e.preventDefault();
-        const guestName = e.target.guestName.value;
-        if (!guestName || !selectedEventForAttendance) return;
-
-        const response = await api(`/memorial-pages/${pageData.slug}/events/${selectedEventForAttendance.id}/attendees/`, {
-            method: 'POST',
-            body: JSON.stringify({ guest_name: guestName }),
-        });
-
-        if (response.ok) {
-            alert("Vielen Dank für Ihre Zusage.");
-            setShowAttendancePopup(false);
-            setSelectedEventForAttendance(null);
-        } else {
-            alert("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
-        }
-    };
-
-    const handleCalendarClick = (event) => {
-        setSelectedEventForCalendar(event);
-        setShowCalendarPopup(true);
-    };
-
-    const handleNavigateClick = (event) => {
-        const query = encodeURIComponent(event.location.address || event.location.name);
-        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-    };
-
-    const generateIcsFile = (event) => {
-        const eventDate = new Date(event.date);
-        const formatDateForICS = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-        const startDate = formatDateForICS(eventDate);
-        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000)));
-
-        const icsContent = [
-            'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
-            `UID:${event.id}@gedenkseite.at`, `DTSTAMP:${formatDateForICS(new Date())}`,
-            `DTSTART:${startDate}`, `DTEND:${endDate}`,
-            `SUMMARY:${event.title} für ${pageData.first_name} ${pageData.last_name}`,
-            `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
-            `LOCATION:${event.location.name}, ${event.location.address}`,
-            'END:VEVENT', 'END:VCALENDAR'
-        ].join('\r\n');
-
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${event.title}.ics`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const generateGoogleCalendarUrl = (event) => {
-        const eventDate = new Date(event.date);
-        const formatDateForGoogle = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-        const startDate = formatDateForGoogle(eventDate);
-        const endDate = formatDateForGoogle(new Date(eventDate.getTime() + (60 * 60 * 1000)));
-
-        const params = new URLSearchParams({
-            action: 'TEMPLATE',
-            text: `${event.title} für ${pageData.first_name} ${pageData.last_name}`,
-            dates: `${startDate}/${endDate}`,
-            details: event.description,
-            location: `${event.location.name}, ${event.location.address}`,
-        });
-        return `https://www.google.com/calendar/render?${params.toString()}`;
-    };
-
     const areaStyle = {
         backgroundColor: settings?.expend_background_color || '#f4f1ee',
         backgroundImage: settings?.expend_background_image_url ? `url(${settings.expend_background_image_url})` : 'none',
@@ -525,9 +446,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                                         key={event.id} 
                                         event={event} 
                                         pageData={pageData} 
-                                        onAttendClick={handleAttendClick}
-                                        onCalendarClick={handleCalendarClick}
-                                        onNavigateClick={handleNavigateClick}
+                                        onAttendClick={onAttendClick}
+                                        onCalendarClick={onCalendarClick}
+                                        onNavigateClick={onNavigateClick}
                                     />
                                 )
                             ) : (
@@ -649,38 +570,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload }) => {
                     pageData={pageData}
                     onResultClick={handleSearchResultClick}
                 />
-            )}
-
-            {showAttendancePopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content attendance-popup">
-                        <h3>Teilnahme bestätigen</h3>
-                        <p>für: {selectedEventForAttendance?.title}</p>
-                        <form onSubmit={handleAttendanceSubmit}>
-                            <input type="text" name="guestName" placeholder="Ihr Name" required />
-                            <div className="popup-actions">
-                                <button type="button" onClick={() => setShowAttendancePopup(false)}>Abbrechen</button>
-                                <button type="submit">Zusagen</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {showCalendarPopup && selectedEventForCalendar && (
-                <div className="popup-overlay" onClick={() => setShowCalendarPopup(false)}>
-                    <div className="popup-content" onClick={e => e.stopPropagation()}>
-                        <h3>Termin speichern</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
-                            <a href={generateGoogleCalendarUrl(selectedEventForCalendar)} target="_blank" rel="noopener noreferrer" className="action-button">Google Kalender</a>
-                            <button onClick={() => generateIcsFile(selectedEventForCalendar)} className="action-button">iCal / Outlook</button>
-                            <button onClick={() => generateIcsFile(selectedEventForCalendar)} className="action-button">Apple Kalender</button>
-                        </div>
-                         <div className="popup-actions">
-                            <button type="button" onClick={() => setShowCalendarPopup(false)}>Schließen</button>
-                        </div>
-                    </div>
-                </div>
             )}
         </>
     );

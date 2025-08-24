@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# HINZUGEFÜGT: Eine benutzerdefinierte Admin-Ansicht für eine Terminübersicht.
+# KORRIGIERT: Die benutzerdefinierte Admin-Ansicht greift jetzt korrekt auf den Admin-Kontext zu.
 
 import uuid
 from django.contrib import admin
@@ -35,7 +35,8 @@ def upcoming_events_view(request):
     ).select_related('page').order_by('date')
 
     context = dict(
-        request.current_app.admin_site.each_context(request),
+        # KORRIGIERT: Direkter Zugriff auf admin.site anstatt request.current_app
+        admin.site.each_context(request),
         events=events,
         selected_days=days,
         title=f"Kommende Termine der nächsten {days} Tage"
@@ -264,14 +265,16 @@ class MemorialEventInline(admin.TabularInline):
     model = MemorialEvent
     extra = 1
     raw_id_fields = ('location',)
-    readonly_fields = ('attendee_count',)
-    fields = ('is_public', 'title', 'date', 'location', 'attendee_count')
+    readonly_fields = ('manage_attendees',)
+    fields = ('is_public', 'title', 'date', 'location', 'manage_attendees')
     
-    @admin.display(description='Zusagen')
-    def attendee_count(self, obj):
+    @admin.display(description='Zusagen & Details')
+    def manage_attendees(self, obj):
         if obj.pk:
-            return obj.attendees.count()
-        return 0
+            count = obj.attendees.count()
+            url = reverse('admin:api_memorialevent_change', args=[obj.pk])
+            return mark_safe(f'<a href="{url}" target="_blank">{count} Zusagen / Details bearbeiten</a>')
+        return "Bitte zuerst speichern, um Details zu bearbeiten."
 
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):

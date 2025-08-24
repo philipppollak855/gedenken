@@ -256,8 +256,8 @@ class MemorialEventInline(admin.TabularInline):
 
     @admin.display(description='Zusagen')
     def attendee_count(self, obj):
-        # KORREKTUR: Prüfen, ob das Objekt bereits eine PK hat, bevor die DB abgefragt wird.
-        if obj.pk:
+        # KORREKTUR 2: Prüfen, ob das Objekt existiert UND eine PK hat.
+        if obj and obj.pk:
             return obj.attendees.count()
         return 0
 

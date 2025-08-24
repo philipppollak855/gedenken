@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# FINAL: Vollständiger Code mit Farbwähler, Gedenkseiten-Suche und globaler Suche.
+# KORRIGIERT: Die attendee_count Methode prüft nun, ob das Objekt existiert, bevor die Zählung erfolgt.
 
 import uuid
 from django.contrib import admin
@@ -12,10 +12,10 @@ from django.urls import path
 from django.shortcuts import render
 from django.db.models import Q
 from .models import (
-    User, DigitalLegacyItem, FinancialItem, InsuranceItem, 
+    User, DigitalLegacyItem, FinancialItem, InsuranceItem,
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
     TimelineEvent, GalleryItem, MemorialCandle, ReleaseRequest, FamilyLink,
-    SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage, 
+    SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
 
@@ -256,9 +256,10 @@ class MemorialEventInline(admin.TabularInline):
 
     @admin.display(description='Zusagen')
     def attendee_count(self, obj):
-        # This will still throw an error if the table doesn't exist,
-        # but the check happens later, allowing migrations to run first.
-        return obj.attendees.count()
+        # KORREKTUR: Prüfen, ob das Objekt bereits eine PK hat, bevor die DB abgefragt wird.
+        if obj.pk:
+            return obj.attendees.count()
+        return 0
 
 @admin.register(MemorialPage)
 class MemorialPageAdmin(admin.ModelAdmin):

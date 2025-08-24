@@ -1,5 +1,6 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
 // KORRIGIERT: Verwendet jetzt die neue EventCard-Komponente für die Vorschau des nächsten Termins.
+// ERWEITERT: Fügt Logik für Teilnahme und Kalender-Export hinzu.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -123,13 +124,13 @@ const MemorialPage = () => {
         const eventDate = new Date(event.date);
         const formatDateForICS = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         const startDate = formatDateForICS(eventDate);
-        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000)));
+        const endDate = formatDateForICS(new Date(eventDate.getTime() + (60 * 60 * 1000))); // Assume 1 hour duration
         const icsContent = [
             'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
             `UID:${event.id}@gedenkseite.at`, `DTSTAMP:${formatDateForICS(new Date())}`,
             `DTSTART:${startDate}`, `DTEND:${endDate}`,
             `SUMMARY:${event.title} für ${pageData.first_name} ${pageData.last_name}`,
-            `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
+            `DESCRIPTION:${(event.description || '').replace(/\n/g, '\\n')}`,
             `LOCATION:${event.location.name}, ${event.location.address}`,
             'END:VEVENT', 'END:VCALENDAR'
         ].join('\r\n');
@@ -144,18 +145,19 @@ const MemorialPage = () => {
 
     const generateGoogleCalendarUrl = (event) => {
         const eventDate = new Date(event.date);
-        const formatDateForGoogle = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const formatDateForGoogle = (date) => date.toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z';
         const startDate = formatDateForGoogle(eventDate);
-        const endDate = formatDateForGoogle(new Date(eventDate.getTime() + (60 * 60 * 1000)));
+        const endDate = formatDateForGoogle(new Date(eventDate.getTime() + (60 * 60 * 1000))); // Assume 1 hour duration
         const params = new URLSearchParams({
             action: 'TEMPLATE',
             text: `${event.title} für ${pageData.first_name} ${pageData.last_name}`,
             dates: `${startDate}/${endDate}`,
-            details: event.description,
+            details: event.description || '',
             location: `${event.location.name}, ${event.location.address}`,
         });
         return `https://www.google.com/calendar/render?${params.toString()}`;
     };
+
 
     if (isLoading) return <div className="loading-spinner"><div className="spinner"></div></div>;
     if (!pageData) return <h1 className="text-center text-2xl font-bold mt-10">Gedenkseite nicht gefunden</h1>;

@@ -1,5 +1,6 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
 // KORRIGIERT: Verwendet jetzt die neue, externe EventCard-Komponente.
+// ERWEITERT: Leitet die neuen Click-Handler an die EventCard weiter.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';

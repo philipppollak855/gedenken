@@ -1,5 +1,6 @@
 // frontend/src/modules/gedenken/EventCard.jsx
 // Diese neue, wiederverwendbare Komponente stellt einen einzelnen Termin dar.
+// ERWEITERT: Enthält jetzt den "Teilnehmen"-Button.
 
 import React from 'react';
 

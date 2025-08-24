@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Die attendee_count Methode prüft nun, ob das Objekt existiert, bevor die Zählung erfolgt.
+# KORRIGIERT: Verschachtelte Inlines, die vom Standard-Admin nicht unterstützt werden, wurden entfernt.
 
 import uuid
 from django.contrib import admin
@@ -232,7 +232,7 @@ class MemorialEventInline(admin.TabularInline):
     model = MemorialEvent
     extra = 1
     raw_id_fields = ('location',)
-    inlines = [EventAttendanceInline]
+    # inlines = [EventAttendanceInline] # <-- ENTFERNT: Dies war die Fehlerursache
     readonly_fields = ('attendee_count',)
     
     fieldsets = (
@@ -256,7 +256,6 @@ class MemorialEventInline(admin.TabularInline):
 
     @admin.display(description='Zusagen')
     def attendee_count(self, obj):
-        # KORREKTUR 2: Prüfen, ob das Objekt existiert UND eine PK hat.
         if obj and obj.pk:
             return obj.attendees.count()
         return 0

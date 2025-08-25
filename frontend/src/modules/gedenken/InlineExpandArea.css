@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* HINZUGEFÜGT: Stile für die kompakte Ansicht der EventCard. */
+/* HINZUGEFÜGT: Stile für Chronik und Galerie. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -777,4 +777,32 @@
     color: white;
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+}
+
+/* NEU: Stile für Galerie */
+.inline-gallery-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 0 2rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+.gallery-image-container {
+    background-color: var(--card-bg, white);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.gallery-image-container img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    display: block;
+}
+.gallery-image-container p {
+    padding: 0.75rem;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--base-text-color);
 }

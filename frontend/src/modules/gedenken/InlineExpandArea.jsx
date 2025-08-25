@@ -1,11 +1,13 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// KORRIGIERT: Stellt sicher, dass alle notwendigen Click-Handler an jede EventCard weitergegeben werden.
+// ERWEITERT: Fügt die Logik und das Markup für die neuen Sektionen "Chronik", "Galerie" und "Geschichten" hinzu.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
 import AuthContext from '../../context/AuthContext';
 import EventCard from './EventCard';
 import './InlineExpandArea.css';
+
+// ... (bestehende ArrowIcon, CondolenceCard, CondolenceListItem, MemorialCandleDisplay und SearchPopup Komponenten bleiben unverändert) ...
 
 const ArrowIcon = ({ direction = 'right' }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ transform: direction === 'left' ? 'rotate(180deg)' : 'none' }}>
@@ -133,6 +135,49 @@ const SearchPopup = ({ onClose, pageData, onResultClick }) => {
     );
 };
 
+// NEU: Platzhalter für Chronik, Galerie und Geschichten
+const TimelineView = ({ timelineEvents, style }) => (
+    <div className="inline-list-view" style={style}>
+        {timelineEvents && timelineEvents.length > 0 ? (
+            timelineEvents.map(event => (
+                <div key={event.event_id} className="inline-condolence-list-item">
+                    <div className="inline-list-item-header">
+                        <h4>{new Date(event.date).toLocaleDateString('de-DE', { year: 'numeric', month: 'long' })} - {event.title}</h4>
+                    </div>
+                    <p>{event.description}</p>
+                </div>
+            ))
+        ) : (
+            <p className="placeholder-content">Es wurden noch keine Einträge in der Chronik hinterlegt.</p>
+        )}
+    </div>
+);
+
+const GalleryView = ({ galleryItems, style }) => (
+    <div className="inline-gallery-view" style={style}>
+        {galleryItems && galleryItems.length > 0 ? (
+            galleryItems.map(item => (
+                <div key={item.item_id} className="gallery-image-container">
+                    <img src={item.image_url} alt={item.caption || 'Galeriebild'} />
+                    {item.caption && <p>{item.caption}</p>}
+                </div>
+            ))
+        ) : (
+            <p className="placeholder-content">Es sind noch keine Bilder in der Galerie vorhanden.</p>
+        )}
+    </div>
+);
+
+const StoriesView = ({ style }) => (
+    <div className="inline-list-view" style={style}>
+        <div className="placeholder-content">
+            <h3>Geschichten & Anekdoten</h3>
+            <p>Hier könnten bald geteilte Geschichten und Erinnerungen erscheinen.</p>
+            {/* Hier könnte zukünftig ein Button zum Einreichen von Geschichten sein */}
+        </div>
+    </div>
+);
+
 
 const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClick, onCalendarClick, onNavigateClick }) => {
     const [condolenceView, setCondolenceView] = useState('cards');
@@ -197,7 +242,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             : (currentPage - 1 + pageCount) % pageCount;
         setCurrentPage(newPage);
     };
-    
     const candlesPerPage = 15;
     const candlePageCount = Math.ceil((pageData.candles?.length || 0) / candlesPerPage);
 
@@ -304,6 +348,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                         <div className="inline-view-controls">
                             <h3>Kondolenzbuch</h3>
                             <div>
+                                <button onClick={() => setCondolenceView('cards')} className={condolenceView === 'cards' ? 'active' : ''}>Karten</button>
                                 <button onClick={() => setCondolenceView('list')} className={condolenceView === 'list' ? 'active' : ''}>Liste</button>
                                 <button onClick={() => setShowSearchPopup(true)} className="nav-button">Eintrag suchen</button>
                             </div>
@@ -327,7 +372,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                             </div>
                         ) : (
                             <div className="inline-list-view">
-                               {pageData.condolences.map(c => <CondolenceListItem key={c.condolence_id} condolence={c} style={cardStyle} />)}
+                                {pageData.condolences.map(c => <CondolenceListItem key={c.condolence_id} condolence={c} style={cardStyle} />)}
                             </div>
                         )}
                         <div className="inline-action-button-container">
@@ -336,7 +381,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                     </>
                 );
             case 'candles':
-                return (
+                 return (
                     <>
                         <div className="inline-view-controls">
                             <h3>Gedenkkerzen ({pageData.candle_count || 0})</h3>
@@ -396,6 +441,28 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                         </div>
                     </>
                 );
+            // NEUE FÄLLE
+            case 'chronik':
+                return (
+                    <>
+                        <div className="inline-view-controls"><h3>Chronik des Lebens</h3></div>
+                        <TimelineView timelineEvents={pageData.timeline_events} style={cardStyle} />
+                    </>
+                );
+            case 'galerie':
+                return (
+                    <>
+                        <div className="inline-view-controls"><h3>Galerie der Erinnerungen</h3></div>
+                        <GalleryView galleryItems={pageData.gallery_items} style={cardStyle} />
+                    </>
+                );
+            case 'geschichten':
+                return (
+                     <>
+                        <div className="inline-view-controls"><h3>Geteilte Geschichten</h3></div>
+                        <StoriesView style={cardStyle} />
+                    </>
+                );
             default: return null;
         }
     };
@@ -407,7 +474,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             </section>
 
             {showCondolencePopup && (
-                <div className="popup-overlay" onClick={() => setShowCondolencePopup(false)}>
+                 <div className="popup-overlay" onClick={() => setShowCondolencePopup(false)}>
                     <div className="popup-content" onClick={e => e.stopPropagation()}>
                         <h3>Kondolenz verfassen</h3>
                         <form onSubmit={handleCondolenceSubmit}>
@@ -475,9 +542,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             )}
             
             {selectedCondolence && (
-                <div className="lightbox-overlay" onClick={() => setSelectedCondolence(null)}>
+                 <div className="lightbox-overlay" onClick={() => setSelectedCondolence(null)}>
                     <div className="lightbox-content" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setSelectedCondolence(null)} className="close-button lightbox-close">&times;</button>
+                        <button onClick={() => setSelectedCondolence(null)} className="close-button lightbox-close">×</button>
                         <div className="lightbox-main">
                             <h3>{selectedCondolence.guest_name}</h3>
                             <p>{selectedCondolence.message}</p>
@@ -490,7 +557,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             {selectedCandle && (
                  <div className="lightbox-overlay" onClick={() => setSelectedCandle(null)}>
                     <div className="lightbox-content candle-lightbox" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setSelectedCandle(null)} className="close-button lightbox-close">&times;</button>
+                        <button onClick={() => setSelectedCandle(null)} className="close-button lightbox-close">×</button>
                         <div className="candle-lightbox-image-wrapper">
                             <img src={selectedCandle.candle_image_url} alt="Gedenkkerze" />
                         </div>
@@ -500,7 +567,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                             <span>Angezündet am {new Date(selectedCandle.created_at).toLocaleString('de-DE')}</span>
                         </div>
                     </div>
-                 </div>
+                </div>
             )}
 
             {showSearchPopup && (

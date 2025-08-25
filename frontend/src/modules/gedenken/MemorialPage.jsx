@@ -2,7 +2,7 @@
 // ERWEITERT: Fügt einen neuen Hauptbereich "Mein Leben" mit den Expand-Bereichen "Chronik", "Galerie" und "Geschichten" hinzu.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import InlineExpandArea from './InlineExpandArea';
 import EventCard from './EventCard';
 import './MemorialPage.css';

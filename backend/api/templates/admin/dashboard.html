@@ -1,0 +1,78 @@
+<!-- backend/api/templates/admin/dashboard.html -->
+<!-- DIESE DATEI IST NEU -->
+
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    <div class="dashboard-grid">
+        
+        <div class="dashboard-widget stat-widget">
+            <h2>Auf einen Blick</h2>
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="value">{{ stats.total_users }}</div>
+                    <div class="label">Benutzer</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value">{{ stats.total_pages }}</div>
+                    <div class="label">Gedenkseiten</div>
+                </div>
+                <div class="stat-item warning">
+                    <div class="value">{{ stats.pending_releases }}</div>
+                    <div class="label">Offene Freigaben</div>
+                </div>
+                <div class="stat-item danger">
+                    <div class="value">{{ stats.unapproved_condolences }}</div>
+                    <div class="label">Ungelesene Kondolenzen</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-widget quick-links-widget">
+            <h2>Schnellzugriff</h2>
+            <div class="quick-links">
+                <a href="{% url 'admin:api_memorialpage_add' %}"><i class="fas fa-book-dead"></i> Neue Gedenkseite</a>
+                <a href="{% url 'admin:api_user_add' %}"><i class="fas fa-user-plus"></i> Neuen Benutzer anlegen</a>
+                <a href="{% url 'admin:api_releaserequest_changelist' %}"><i class="fas fa-key"></i> Freigabe-Anfragen prüfen</a>
+                <a href="{% url 'admin:api_mediaasset_changelist' %}"><i class="fas fa-photo-video"></i> Mediathek verwalten</a>
+            </div>
+        </div>
+
+        <div class="dashboard-widget activity-widget">
+            <h2>Letzte Kondolenzen</h2>
+            <div class="activity-list">
+                <ul>
+                    {% for condolence in latest_condolences %}
+                    <li>
+                        <strong>{{ condolence.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
+                        <div class="meta">{{ condolence.created_at|timesince }} ago</div>
+                    </li>
+                    {% empty %}
+                    <li>Keine Kondolenzen vorhanden.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="dashboard-widget activity-widget">
+            <h2>Letzte Gedenkkerzen</h2>
+            <div class="activity-list">
+                <ul>
+                    {% for candle in latest_candles %}
+                    <li>
+                        <strong>{{ candle.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
+                        <div class="meta">{{ candle.created_at|timesince }} ago</div>
+                    </li>
+                    {% empty %}
+                    <li>Keine Kerzen angezündet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

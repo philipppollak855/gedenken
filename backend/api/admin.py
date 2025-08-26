@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Die benutzerdefinierte Admin-Ansicht greift jetzt korrekt auf den Admin-Kontext zu.
+# ERWEITERT: Fügt ein modernes, benutzerdefiniertes Dashboard als Admin-Startseite hinzu.
 
 import uuid
 from django.contrib import admin
@@ -22,27 +22,39 @@ from .models import (
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
 
-# NEU: Die View-Funktion fÃ¼r das Dashboard
-def upcoming_events_view(request):
-    days = int(request.GET.get('days', 7))
-    start_date = timezone.now()
-    end_date = start_date + timedelta(days=days)
+# --------------------------------------------------------------
+# 1. Benutzerdefiniertes Admin-Dashboard
+# --------------------------------------------------------------
 
-    events = MemorialEvent.objects.filter(
-        date__range=[start_date, end_date]
-    ).annotate(
-        attendee_count=Count('attendees')
-    ).select_related('page').order_by('date')
+def admin_dashboard_view(request):
+    """
+    Die Logik für unser neues Admin-Dashboard.
+    Sammelt Statistiken und die neuesten Aktivitäten.
+    """
+    stats = {
+        'total_users': User.objects.count(),
+        'total_pages': MemorialPage.objects.count(),
+        'pending_releases': ReleaseRequest.objects.filter(status=ReleaseRequest.Status.PENDING).count(),
+        'unapproved_condolences': Condolence.objects.filter(is_approved=False).count(),
+    }
+    latest_condolences = Condolence.objects.order_by('-created_at')[:5]
+    latest_candles = MemorialCandle.objects.order_by('-created_at')[:5]
+    
+    context = {
+        **admin.site.each_context(request),
+        "title": "Dashboard",
+        "stats": stats,
+        "latest_condolences": latest_condolences,
+        "latest_candles": latest_candles,
+    }
+    return render(request, "admin/dashboard.html", context)
 
-    context = dict(
-        # KORRIGIERT: Direkter Zugriff auf admin.site anstatt request.current_app
-        admin.site.each_context(request),
-        events=events,
-        selected_days=days,
-        title=f"Kommende Termine der nÃ¤chsten {days} Tage"
-    )
-    return render(request, "admin/api/upcoming_events.html", context)
+# Wir "patchen" die Admin-Site, um unsere Dashboard-Ansicht als Index zu verwenden.
+admin.site.index = admin_dashboard_view
 
+
+# (Der restliche Code der Datei bleibt unverändert)
+# ...
 
 # Ein benutzerdefinierter Widget fÃ¼r die Farbauswahl
 class ColorPickerWidget(forms.TextInput):
@@ -183,7 +195,6 @@ class UserAdmin(ImportExportModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('global_search/', self.admin_site.admin_view(self.global_search_view), name='global_search'),
-            path('upcoming_events/', self.admin_site.admin_view(upcoming_events_view), name='api_user_upcoming_events'),
         ]
         return custom_urls + urls
 

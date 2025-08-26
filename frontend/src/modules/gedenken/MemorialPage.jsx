@@ -1,6 +1,6 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
 // ERWEITERT: Fügt einen neuen Hauptbereich "Mein Leben" mit den Expand-Bereichen "Chronik", "Galerie" und "Geschichten" hinzu.
-// KORRIGIERT: Scroll-Verhalten zu den Sektionen zentriert.
+// KORRIGIERT: Scroll-Verhalten zu den Sektionen zentriert und Timing-Problem beim Klick behoben.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -21,12 +21,13 @@ const MemorialPage = () => {
     const [selectedEventForAttendance, setSelectedEventForAttendance] = useState(null);
     const [showCalendarPopup, setShowCalendarPopup] = useState(false);
     const [selectedEventForCalendar, setSelectedEventForCalendar] = useState(null);
-    const [activeMainView, setActiveMainView] = useState('abschied'); // NEU: 'abschied' oder 'leben'
+    const [activeMainView, setActiveMainView] = useState('abschied');
     const { slug } = useParams();
     const api = useApi();
     const expandAreaRef = useRef(null);
     const farewellSectionRef = useRef(null);
-    const lifeSectionRef = useRef(null); // NEU
+    const lifeSectionRef = useRef(null);
+    const isInitialMount = useRef(true); // Verhindert Scrollen beim ersten Laden
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -54,6 +55,17 @@ const MemorialPage = () => {
         if (slug) fetchPageData();
     }, [slug, fetchPageData]);
 
+    // KORREKTUR: Dieser useEffect sorgt dafür, dass das Scrollen NACH dem Rendern der Sektion passiert.
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        const targetRef = activeMainView === 'abschied' ? farewellSectionRef : lifeSectionRef;
+        targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, [activeMainView]);
+
+
     const displayedEvent = useMemo(() => {
         if (!pageData || !pageData.events || pageData.events.length === 0) return null;
         const now = new Date();
@@ -69,17 +81,11 @@ const MemorialPage = () => {
     const handleHeroLinkClick = (e, view) => {
         e.preventDefault();
         setActiveMainView(view);
-        const targetRef = view === 'abschied' ? farewellSectionRef : lifeSectionRef;
-        // Scrollt zur Mitte des jeweiligen Bereichs
-        targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     const handleTabClick = (view) => {
         setActiveMainView(view);
-        setExpandedView(null); // Expand-Bereich schließen beim Tab-Wechsel
-        const targetRef = view === 'abschied' ? farewellSectionRef : lifeSectionRef;
-        // Scrollt zur Mitte des jeweiligen Bereichs
-        targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setExpandedView(null);
     };
 
     const toggleExpandedView = (view) => {

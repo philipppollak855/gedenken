@@ -1,19 +1,17 @@
 # backend/core/wsgi.py
-# KORRIGIERT: Die Anwendung wird mit WhiteNoise umwickelt, um statische UND Mediendateien in der Produktion korrekt auszuliefern.
+# KORRIGIERT: Die manuelle WhiteNoise-Integration wurde entfernt, da dies
+# bereits durch die Middleware und den STATICFILES_STORAGE in den
+# Produktionseinstellungen (production.py) abgedeckt ist.
+# Dies behebt den MIME-Type-Fehler in der Produktionsumgebung.
 
 import os
 from django.core.wsgi import get_wsgi_application
-from django.conf import settings
-from whitenoise import WhiteNoise
 
 # Standard-Anwendung laden
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 application = get_wsgi_application()
 
-# WhiteNoise-Wrapper fÃ¼r statische und Mediendateien
-# Dieser Code wird nur ausgefÃ¼hrt, wenn DEBUG=False ist (also in der Produktion auf Render)
-if not settings.DEBUG:
-    # WhiteNoise anweisen, die statischen Dateien aus STATIC_ROOT zu bedienen
-    application = WhiteNoise(application, root=settings.STATIC_ROOT)
-    # WhiteNoise anweisen, ZUSÃ„TZLICH die Mediendateien aus MEDIA_ROOT zu bedienen
-    application.add_files(settings.MEDIA_ROOT, prefix=settings.MEDIA_URL)
+# Die manuelle WhiteNoise-Umwicklung wird hier nicht mehr benötigt,
+# da 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# in production.py als STATICFILES_STORAGE definiert ist.
+# Diese moderne Methode ist robuster und wird empfohlen.

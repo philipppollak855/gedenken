@@ -1,0 +1,171 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    .dashboard-widget {
+        background: #fff;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .dashboard-widget h2 {
+        margin-top: 0;
+        font-size: 1.2rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: #f9f9f9;
+        border-radius: 4px;
+    }
+    .stat-item .value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+    .stat-item .label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .quick-links a {
+        display: block;
+        background: #8c8073;
+        color: white;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+    .quick-links a:hover {
+        background: #6d6d6d;
+    }
+    .activity-list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .activity-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.9rem;
+    }
+    .activity-list li:last-child {
+        border-bottom: none;
+    }
+    .activity-list .meta {
+        color: #999;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    <div class="dashboard-grid">
+        
+        <!-- Statistik-Widget -->
+        <div class="dashboard-widget">
+            <h2>Auf einen Blick</h2>
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="value">{{ stats.total_users }}</div>
+                    <div class="label">Benutzer</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value">{{ stats.total_pages }}</div>
+                    <div class="label">Gedenkseiten</div>
+                </div>
+                <div class="stat-item" style="background-color: #fff3cd;">
+                    <div class="value">{{ stats.pending_releases }}</div>
+                    <div class="label">Offene Freigaben</div>
+                </div>
+                <div class="stat-item" style="background-color: #d1ecf1;">
+                    <div class="value">{{ stats.unapproved_condolences }}</div>
+                    <div class="label">Ungelesene Kondolenzen</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schnellzugriff-Widget -->
+        <div class="dashboard-widget">
+            <h2>Schnellzugriff</h2>
+            <div class="quick-links">
+                <a href="{% url 'admin:api_memorialpage_add' %}">+ Neue Gedenkseite anlegen</a>
+                <a href="{% url 'admin:api_user_add' %}">+ Neuen Benutzer anlegen</a>
+                <a href="{% url 'admin:api_releaserequest_changelist' %}">Freigabe-Anfragen prüfen</a>
+            </div>
+        </div>
+
+        <!-- Kommende Termine -->
+        <div class="dashboard-widget">
+            <h2>Kommende Termine (30 Tage)</h2>
+            <div class="activity-list">
+                <ul>
+                    {% for event in upcoming_events %}
+                    <li>
+                        <strong>{{ event.title }}</strong> für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a>
+                        <div class="meta">{{ event.date|date:"d. F Y, H:i" }} Uhr | {{ event.attendee_count }} Zusagen</div>
+                    </li>
+                    {% empty %}
+                    <li>Keine kommenden Termine.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Letzte Kondolenzen -->
+        <div class="dashboard-widget">
+            <h2>Letzte Kondolenzen</h2>
+            <div class="activity-list">
+                <ul>
+                    {% for condolence in latest_condolences %}
+                    <li>
+                        <strong>{{ condolence.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
+                        <div class="meta">{{ condolence.created_at|timesince }} ago</div>
+                    </li>
+                    {% empty %}
+                    <li>Keine Kondolenzen vorhanden.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Letzte Kerzen -->
+        <div class="dashboard-widget">
+            <h2>Letzte Gedenkkerzen</h2>
+            <div class="activity-list">
+                <ul>
+                    {% for candle in latest_candles %}
+                    <li>
+                        <strong>{{ candle.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
+                        <div class="meta">{{ candle.created_at|timesince }} ago</div>
+                    </li>
+                    {% empty %}
+                    <li>Keine Kerzen angezündet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

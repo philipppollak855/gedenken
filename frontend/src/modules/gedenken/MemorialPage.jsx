@@ -1,5 +1,6 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
 // ERWEITERT: Fügt einen neuen Hauptbereich "Mein Leben" mit den Expand-Bereichen "Chronik", "Galerie" und "Geschichten" hinzu.
+// KORRIGIERT: Scroll-Verhalten zu den Sektionen zentriert.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -69,7 +70,8 @@ const MemorialPage = () => {
         e.preventDefault();
         setActiveMainView(view);
         const targetRef = view === 'abschied' ? farewellSectionRef : lifeSectionRef;
-        targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Scrollt zur Mitte des jeweiligen Bereichs
+        targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     const handleTabClick = (view) => {
@@ -194,7 +196,7 @@ const MemorialPage = () => {
             )}
             
             <aside className="quick-links">
-                <a href="#abschied" onClick={(e) => handleHeroLinkClick(e, 'abschied')} title="Abschied nehmen">🕯️</a>
+                <a href="#abschied" onClick={(e) => handleHeroLinkClick(e, 'abschied')} title="Abschied nehmen">🕊️</a>
                 <a href="#leben" onClick={(e) => handleHeroLinkClick(e, 'leben')} title="Mein Leben">📖</a>
             </aside>
 
@@ -206,7 +208,7 @@ const MemorialPage = () => {
                             <p className="deceased-title">IN GEDENKEN AN</p>
                             <h1 className="deceased-name">{pageData.first_name} {pageData.last_name}</h1>
                             <p className="deceased-dates">
-                                * {formatDate(pageData.date_of_birth)}    † {formatDate(pageData.date_of_death)}
+                                * {formatDate(pageData.date_of_birth)} &nbsp;&nbsp; † {formatDate(pageData.date_of_death)}
                             </p>
                         </div>
                         <img className="profile-photo" src={pageData.main_photo_url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Profilbild von ${pageData.first_name}`} />

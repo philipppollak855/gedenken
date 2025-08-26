@@ -1,5 +1,5 @@
 <!-- backend/api/templates/admin/base_site.html -->
-<!-- DIESE DATEI MUSS ERSETZT WERDEN -->
+<!-- KORRIGIERT: Fehlender endblock-Tag hinzugefügt und JavaScript für die Sidebar-Gruppierung eingefügt. -->
 
 {% extends "admin/base_site.html" %}
 {% load static %}
@@ -7,4 +7,72 @@
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}">
-{% endblock %
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definiere die Gruppen und die Schlüsselwörter, nach denen gesucht werden soll
+    const groups = {
+        'Hauptverwaltung': ['Gedenkseiten', 'Benutzer', 'Freigabe-Anfragen'],
+        'Nutzerinhalte': ['Termine', 'Kondolenzen', 'Gedenkkerzen', 'Galerie', 'Chronik', 'Teilnahmen'],
+        'Vorsorge-Daten': ['Letzte Wünsche', 'Dokumente', 'Vertrags-Einträge', 'Versicherungs-Einträge', 'Finanz-Einträge', 'Digitaler Nachlass'],
+        'System & Vorlagen': ['Globale Design-Einstellungen', 'Mediathek', 'Veranstaltungsorte', 'Kondolenz-Vorlagen', 'Kerzenbilder', 'Gedenkkerzen-Vorlagen'],
+        'System-Verknüpfungen': ['Angehörigen-Verknüpfungen', 'Benutzergruppen']
+    };
+
+    const sidebar = document.querySelector('#sidebartoc .nav-pills');
+    if (!sidebar) return;
+
+    // Erstelle für jede Gruppe einen Container
+    Object.keys(groups).forEach(groupName => {
+        const groupWrapper = document.createElement('li');
+        groupWrapper.classList.add('nav-item', 'menu-open', 'nav-group-wrapper');
+        
+        const groupHeader = document.createElement('a');
+        groupHeader.href = '#';
+        groupHeader.classList.add('nav-link', 'nav-group-header');
+        groupHeader.innerHTML = `<p>${groupName}<i class="right fas fa-angle-left"></i></p>`;
+        
+        const groupContent = document.createElement('ul');
+        groupContent.classList.add('nav', 'nav-treeview');
+        
+        groupWrapper.appendChild(groupHeader);
+        groupWrapper.appendChild(groupContent);
+        
+        // Finde die passenden Listenelemente und verschiebe sie in den neuen Container
+        const keywords = groups[groupName];
+        const allNavItems = Array.from(sidebar.querySelectorAll('.nav-item > .nav-link p'));
+
+        keywords.forEach(keyword => {
+            const navItem = allNavItems.find(p => p.textContent.trim().includes(keyword));
+            if (navItem) {
+                const parentLi = navItem.closest('.nav-item');
+                if(parentLi) {
+                    groupContent.appendChild(parentLi);
+                }
+            }
+        });
+        
+        // Füge die neue Gruppe nur hinzu, wenn sie auch Inhalt hat
+        if (groupContent.children.length > 0) {
+            sidebar.appendChild(groupWrapper);
+        }
+    });
+
+    // Event Listener für das Auf- und Zuklappen
+    sidebar.addEventListener('click', function(e) {
+        const header = e.target.closest('.nav-group-header');
+        if (header) {
+            e.preventDefault();
+            const wrapper = header.closest('.nav-group-wrapper');
+            wrapper.classList.toggle('menu-open');
+        }
+    });
+});
+</script>
+{% endblock %}
+```
+
+Bitte ersetzen Sie den Inhalt Ihrer lokalen Datei `backend/api/templates/admin/base_site.html` mit diesem korrigierten Code. Danach sollte der Fehler behoben se

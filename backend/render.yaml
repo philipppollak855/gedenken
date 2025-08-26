@@ -1,6 +1,5 @@
 # render.yaml
-# KORRIGIERT: "collectstatic" zum Build-Befehl hinzugefügt.
-# NEU: --chdir Flag für Gunicorn hinzugefügt, um das Arbeitsverzeichnis explizit zu setzen.
+# HINZUGEFÜGT: Ein persistenter Speicher ("Disk") für Media-Uploads.
 
 databases:
   - name: vorsorge-db
@@ -12,13 +11,16 @@ services:
     name: vorsorge-backend
     env: python
     plan: free
-    # Wir sagen Render, dass der 'backend'-Ordner das Hauptverzeichnis ist.
     rootDir: backend
-    # "collectstatic" sammelt alle CSS/JS-Dateien.
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
-    # NEU: --chdir setzt das Arbeitsverzeichnis für Gunicorn explizit auf den aktuellen Ordner (backend),
-    # um Pfadprobleme zu verhindern.
+    # KORRIGIERT: Führt die Migration einmalig mit --fake-initial aus, um die DB-Historie zu synchronisieren.
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --fake-initial"
     startCommand: "gunicorn --chdir . core.wsgi"
+    
+    disks:
+      - name: media-storage
+        mountPath: /var/media
+        sizeGB: 1
+
     envVars:
       - key: DATABASE_URL
         fromDatabase:

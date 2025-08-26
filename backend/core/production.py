@@ -1,6 +1,5 @@
 # backend/core/production.py
-# KORRIGIERT: Fügt die entscheidende STATICFILES_STORAGE-Einstellung hinzu,
-# damit WhiteNoise die statischen Dateien korrekt verwalten kann.
+# FINAL: Bereinigt, um nur noch produktionsspezifische Overrides zu enthalten.
 
 import os
 import dj_database_url
@@ -18,19 +17,6 @@ DATABASES = {
         ssl_require=True
     )
 }
-
-# Statische Dateien (für Admin-Panel) mit Whitenoise
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
-
-# DIESE ZEILE IST ENTSCHEIDEND:
-# Sie weist Django an, WhiteNoise für die Verwaltung der statischen Dateien zu verwenden.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Fügt Whitenoise zur Middleware hinzu (an der korrekten Position)
-if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
-    # Fügt die Middleware nach der SecurityMiddleware ein
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # CORS - Erlaubt dem Frontend, mit dem Backend zu kommunizieren
 CORS_ALLOWED_ORIGINS_STRING = os.environ.get('CORS_ALLOWED_ORIGINS', '')

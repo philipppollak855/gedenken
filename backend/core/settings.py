@@ -1,19 +1,17 @@
 # backend/core/settings.py
-# HINZUGEFÃœGT: Link zum neuen Termin-Dashboard in der Admin-Navigation.
+# FINAL: Zentralisiert die WhiteNoise-Konfiguration, um Fehler in der Produktion zu beheben.
 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from django.urls import reverse_lazy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-development')
+SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-dev')
 DEBUG = os.getenv('DEBUG', '1') == '1'
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1 backend').split(' ')
 
-# NEU: Die URL Ihres Backend-Servers
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
 INSTALLED_APPS = [
@@ -24,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic', # WICHTIG: Für WhiteNoise
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -32,9 +31,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # WICHTIG: Sollte hier sein
+    'whitenoise.middleware.WhiteNoiseMiddleware', # WICHTIG: An die zweite Stelle setzen
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,7 +79,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # FÃ¼r WhiteNoise
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' # WICHTIG: Hier definieren
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.User'
@@ -102,50 +101,58 @@ JAZZMIN_SETTINGS = {
     "copyright": "Ihre Bestattung GmbH",
     "topmenu_links": [
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "TerminÃ¼bersicht", "url": "admin:api_user_upcoming_events", "permissions": ["api.view_memorialevent"]},
         {"name": "Frontend ansehen", "url": "http://localhost:3000", "new_window": True},
-        {"model": "api.User"},
     ],
-    "order_with_respect_to": ["api", "api.user", "api.memorialpage", "api.condolence"],
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "api.User": "fas fa-user",
-        "api.MemorialPage": "fas fa-book-dead",
-        "api.Condolence": "fas fa-comment-dots",
+    "order_with_respect_to": ["api", "auth"],
+    "apps": {
+        "api": {
+            "name": "Hauptverwaltung",
+            "icon": "fas fa-cogs",
+            "models": {
+                "user": {"label": "Plattform-Benutzer", "icon": "fas fa-user"},
+                "memorialpage": {"label": "Gedenkseiten", "icon": "fas fa-book-dead"},
+                "releaserequest": {"label": "Freigabe-Anfragen", "icon": "fas fa-key"},
+            }
+        },
     },
+    "custom_links": {
+        "api": [
+            {
+                "name": "System & Vorlagen", "icon": "fas fa-cogs",
+                "models": ("api.sitesettings", "api.mediaasset", "api.eventlocation", "api.condolencetemplate", "api.candleimage", "api.candlemessagetemplate")
+            },
+            {
+                "name": "Nutzerinhalte", "icon": "fas fa-stream",
+                "models": ("api.memorialevent", "api.condolence", "api.memorialcandle", "api.galleryitem", "api.timelineevent", "api.eventattendance")
+            },
+            {
+                "name": "Vorsorge-Daten", "icon": "fas fa-file-invoice",
+                "models": ("api.lastwishes", "api.document", "api.contractitem", "api.insuranceitem", "api.financialitem", "api.digitallegacyitem")
+            },
+             {
+                "name": "System-Verknüpfungen", "icon": "fas fa-link",
+                "models": ("api.familylink", "auth.group")
+            }
+        ]
+    },
+    "hide_apps": ["auth"],
+    "icons": {
+        "api.sitesettings": "fas fa-sliders-h", "api.mediaasset": "fas fa-photo-video", "api.eventlocation": "fas fa-map-marker-alt",
+        "api.condolencetemplate": "fas fa-paste", "api.candleimage": "fas fa-image", "api.candlemessagetemplate": "fas fa-comment-alt",
+        "api.memorialevent": "fas fa-calendar-alt", "api.galleryitem": "fas fa-images", "api.timelineevent": "fas fa-stream",
+        "api.eventattendance": "fas fa-user-check", "api.lastwishes": "fas fa-hand-holding-heart", "api.document": "fas fa-file-alt",
+        "api.contractitem": "fas fa-file-signature", "api.insuranceitem": "fas fa-shield-alt", "api.financialitem": "fas fa-euro-sign",
+        "api.digitallegacyitem": "fas fa-cloud", "auth.group": "fas fa-users",
+    },
+    "show_ui_builder": True,
 }
-
 JAZZMIN_UI_TWEAKS = {
-    "navbar_small_text": False,
-    "footer_small_text": False,
-    "body_small_text": True,
-    "brand_small_text": False,
-    "brand_colour": "navbar-dark",
-    "accent": "accent-primary",
-    "navbar": "navbar-dark",
-    "no_navbar_border": False,
-    "navbar_fixed": True,
-    "layout_boxed": False,
-    "footer_fixed": True,
-    "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-primary",
-    "sidebar_nav_small_text": False,
-    "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": False,
-    "sidebar_nav_compact_style": False,
-    "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": False,
     "theme": "darkly",
     "button_classes": {
-        "primary": "btn-primary",
-        "secondary": "btn-secondary",
-        "info": "btn-info",
-        "warning": "btn-warning",
-        "danger": "btn-danger",
-        "success": "btn-success"
+        "primary": "btn-primary", "secondary": "btn-secondary", "info": "btn-info",
+        "warning": "btn-warning", "danger": "btn-danger", "success": "btn-success"
     }
 }
 
-# Lade Produktions-Einstellungen, wenn DJANGO_ENV auf 'production' gesetzt ist
 if os.environ.get('DJANGO_ENV') == 'production':
     from .production import *

@@ -1,5 +1,4 @@
 # backend/api/models.py
-# KORRIGIERT: Die 'url'-Eigenschaft gibt jetzt eine absolute URL zurück.
 
 import uuid
 from django.db import models
@@ -7,64 +6,45 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils.text import slugify
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.conf import settings # Hinzugefügt
+from django.conf import settings
 
+# ... (MediaAsset, EventLocation models remain unchanged)
 class MediaAsset(models.Model):
     class AssetType(models.TextChoices):
         IMAGE = 'image', 'Bild'
         DOCUMENT = 'document', 'Dokument'
         OTHER = 'other', 'Andere'
-
     title = models.CharField("Titel / Name", max_length=255)
     file_upload = models.FileField("Datei-Upload (Lokal)", upload_to='media_assets/%Y/%m/', blank=True, null=True)
     file_url = models.URLField("Datei-URL (Extern)", max_length=1024, blank=True, null=True)
     asset_type = models.CharField("Dateityp", max_length=10, choices=AssetType.choices, default=AssetType.IMAGE)
     uploaded_at = models.DateTimeField("Hochgeladen am", auto_now_add=True)
-
     @property
     def url(self):
-        # Wenn eine externe URL vorhanden ist, diese verwenden
-        if self.file_url:
-            return self.file_url
-        # Wenn eine Datei hochgeladen wurde, die absolute URL erstellen
+        if self.file_url: return self.file_url
         if self.file_upload:
-            # Stellt sicher, dass die BACKEND_URL aus den settings.py verwendet wird
             backend_url = getattr(settings, 'BACKEND_URL', '')
             return f"{backend_url}{self.file_upload.url}"
         return None
-
     def clean(self):
-        if self.file_upload and self.file_url:
-            raise ValidationError("Bitte geben Sie entweder einen Datei-Upload oder eine URL an, nicht beides.")
-        if not self.file_upload and not self.file_url:
-            raise ValidationError("Sie müssen entweder eine Datei hochladen oder eine URL angeben.")
+        if self.file_upload and self.file_url: raise ValidationError("Bitte geben Sie entweder einen Datei-Upload oder eine URL an, nicht beides.")
+        if not self.file_upload and not self.file_url: raise ValidationError("Sie müssen entweder eine Datei hochladen oder eine URL angeben.")
+    def __str__(self): return self.title
+    class Meta: verbose_name = "Mediendatei"; verbose_name_plural = "Mediathek"; ordering = ['-uploaded_at']
 
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name = "Mediendatei"
-        verbose_name_plural = "Mediathek"
-        ordering = ['-uploaded_at']
-
-# ... (restlicher Code der Datei bleibt unverändert)
-# (Der restliche Code der Datei bleibt unverändert und wird hier zur Übersichtlichkeit weggelassen)
 class EventLocation(models.Model):
     name = models.CharField("Name des Ortes", max_length=255, help_text="z.B. 'Pfarrkirche St. Stephan'")
     address = models.CharField("Adresse (Straße, PLZ, Ort)", max_length=255)
+    def __str__(self): return self.name
+    class Meta: verbose_name = "Veranstaltungsort"; verbose_name_plural = "Veranstaltungsorte (Stammdaten)"
 
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Veranstaltungsort"
-        verbose_name_plural = "Veranstaltungsorte (Stammdaten)"
 
 class SiteSettings(models.Model):
     class Meta:
         verbose_name = "Globale Design-Einstellungen"
         verbose_name_plural = "Globale Design-Einstellungen"
 
+    # Gedenkseiten-Startseite
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir trauern um")
     listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     listing_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Startseite")
@@ -72,16 +52,24 @@ class SiteSettings(models.Model):
     listing_text_color = models.CharField("Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
     listing_arrow_color = models.CharField("Pfeilfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #8c8073", default="#8c8073")
     
+    # Verstorbenen-Suche
     search_title = models.CharField("Titel im Suchbereich", max_length=100, blank=True, default="Verstorbenen Suche")
     search_helper_text = models.TextField("Hilfstext im Suchbereich", blank=True, default="Bitte geben Sie einen oder mehrere Suchbegriffe in die obenstehenden Felder ein, um nach einem Verstorbenen zu suchen.")
     search_background_color = models.CharField("Hintergrundfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #e5e0da")
     search_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Suche")
     search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
 
+    # Expand-Bereich
     expend_background_color = models.CharField("Hintergrundfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     expend_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Expand-Bereich")
     expend_card_color = models.CharField("Karten-Hintergrundfarbe Expand", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
     expend_text_color = models.CharField("Textfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+
+    # NEU: Farben für Dashboard-Statistiken
+    stat_users_color = models.CharField("Farbe Statistik 'Benutzer'", max_length=7, blank=True, default="#d1ecf1", help_text="Hex-Code")
+    stat_pages_color = models.CharField("Farbe Statistik 'Gedenkseiten'", max_length=7, blank=True, default="#d1ecf1", help_text="Hex-Code")
+    stat_releases_color = models.CharField("Farbe Statistik 'Freigaben'", max_length=7, blank=True, default="#fff3cd", help_text="Hex-Code")
+    stat_condolences_color = models.CharField("Farbe Statistik 'Kondolenzen'", max_length=7, blank=True, default="#f8d7da", help_text="Hex-Code")
 
     def __str__(self):
         return "Globale Design-Einstellungen"

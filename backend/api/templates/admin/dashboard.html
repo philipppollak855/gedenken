@@ -3,137 +3,73 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<style>
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-    }
-    .dashboard-widget {
-        background: #fff;
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .dashboard-widget h2 {
-        margin-top: 0;
-        font-size: 1.2rem;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 0.75rem;
-        margin-bottom: 1rem;
-    }
-    .stat-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-    .stat-item {
-        text-align: center;
-        padding: 1rem;
-        background: #f9f9f9;
-        border-radius: 4px;
-    }
-    .stat-item .value {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #333;
-    }
-    .stat-item .label {
-        font-size: 0.9rem;
-        color: #666;
-    }
-    .quick-links a {
-        display: block;
-        background: #8c8073;
-        color: white;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        border-radius: 4px;
-        text-decoration: none;
-        text-align: center;
-        font-weight: 500;
-        transition: background-color 0.2s;
-    }
-    .quick-links a:hover {
-        background: #6d6d6d;
-    }
-    .activity-list ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    .activity-list li {
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 0.9rem;
-    }
-    .activity-list li:last-child {
-        border-bottom: none;
-    }
-    .activity-list .meta {
-        color: #999;
-        font-size: 0.8rem;
-    }
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_dashboard.css' %}">
 {% endblock %}
 
 {% block content %}
-<div id="content-main">
+<div id="content-main" style="
+    --stat-users-color: {{ settings.stat_users_color|default:'#d1ecf1' }};
+    --stat-pages-color: {{ settings.stat_pages_color|default:'#d1ecf1' }};
+    --stat-releases-color: {{ settings.stat_releases_color|default:'#fff3cd' }};
+    --stat-condolences-color: {{ settings.stat_condolences_color|default:'#f8d7da' }};
+">
     <h1>{{ title }}</h1>
     <div class="dashboard-grid">
         
-        <!-- Statistik-Widget -->
-        <div class="dashboard-widget">
+        <div class="dashboard-widget stat-widget">
             <h2>Auf einen Blick</h2>
             <div class="stat-grid">
-                <div class="stat-item">
+                <div class="stat-item users">
                     <div class="value">{{ stats.total_users }}</div>
                     <div class="label">Benutzer</div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item pages">
                     <div class="value">{{ stats.total_pages }}</div>
                     <div class="label">Gedenkseiten</div>
                 </div>
-                <div class="stat-item" style="background-color: #fff3cd;">
+                <div class="stat-item releases">
                     <div class="value">{{ stats.pending_releases }}</div>
                     <div class="label">Offene Freigaben</div>
                 </div>
-                <div class="stat-item" style="background-color: #d1ecf1;">
+                <div class="stat-item condolences">
                     <div class="value">{{ stats.unapproved_condolences }}</div>
                     <div class="label">Ungelesene Kondolenzen</div>
                 </div>
             </div>
         </div>
 
-        <!-- Schnellzugriff-Widget -->
-        <div class="dashboard-widget">
+        <div class="dashboard-widget quick-links-widget">
             <h2>Schnellzugriff</h2>
             <div class="quick-links">
-                <a href="{% url 'admin:api_memorialpage_add' %}">+ Neue Gedenkseite anlegen</a>
-                <a href="{% url 'admin:api_user_add' %}">+ Neuen Benutzer anlegen</a>
-                <a href="{% url 'admin:api_releaserequest_changelist' %}">Freigabe-Anfragen prüfen</a>
+                <a href="{% url 'admin:api_memorialpage_add' %}"><i class="fas fa-book-dead"></i> Neue Gedenkseite</a>
+                <a href="{% url 'admin:api_user_add' %}"><i class="fas fa-user-plus"></i> Neuen Benutzer anlegen</a>
+                <a href="{% url 'admin:api_releaserequest_changelist' %}"><i class="fas fa-key"></i> Freigabe-Anfragen prüfen</a>
+                <a href="{% url 'admin:api_mediaasset_changelist' %}"><i class="fas fa-photo-video"></i> Mediathek verwalten</a>
             </div>
         </div>
 
-        <!-- Kommende Termine -->
-        <div class="dashboard-widget">
-            <h2>Kommende Termine (30 Tage)</h2>
+        <div class="dashboard-widget activity-widget full-width">
+            <h2>Kommende Termine (Nächste 30 Tage)</h2>
             <div class="activity-list">
-                <ul>
-                    {% for event in upcoming_events %}
-                    <li>
-                        <strong>{{ event.title }}</strong> für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a>
-                        <div class="meta">{{ event.date|date:"d. F Y, H:i" }} Uhr | {{ event.attendee_count }} Zusagen</div>
-                    </li>
-                    {% empty %}
-                    <li>Keine kommenden Termine.</li>
-                    {% endfor %}
-                </ul>
+                <table>
+                    <tbody>
+                        {% for event in upcoming_events %}
+                        <tr>
+                            <td><span class="event-date">{{ event.date|date:"d. M" }}</span></td>
+                            <td><strong>{{ event.title }}</strong> für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></td>
+                            <td><span class="meta">{{ event.date|date:"H:i" }} Uhr</span></td>
+                            <td><span class="meta">{{ event.attendee_count }} Zusagen</span></td>
+                            <td><a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="button">Details</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5">Keine kommenden Termine gefunden.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Letzte Kondolenzen -->
-        <div class="dashboard-widget">
+        <div class="dashboard-widget activity-widget">
             <h2>Letzte Kondolenzen</h2>
             <div class="activity-list">
                 <ul>
@@ -149,8 +85,7 @@
             </div>
         </div>
 
-        <!-- Letzte Kerzen -->
-        <div class="dashboard-widget">
+        <div class="dashboard-widget activity-widget">
             <h2>Letzte Gedenkkerzen</h2>
             <div class="activity-list">
                 <ul>

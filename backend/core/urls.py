@@ -1,21 +1,19 @@
 # backend/core/urls.py
-# KORRIGIERT: Verwendet die standardmäßige und robusteste Methode zur Einbindung der Admin-Site-URLs.
+# HINZUGEFÃœGT: Automatische Weiterleitung von der Startseite zum Admin-Bereich.
 
+from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
-from api.admin import custom_admin_site # Importieren der benutzerdefinierten Admin-Site
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/admin/', permanent=True)),
+    # Leitet die Haupt-URL ("/") direkt zum Admin-Interface weiter.
+    path('', RedirectView.as_view(url='/admin/api/', permanent=True)),
     
-    # KORREKTUR: Die einfachste und korrekte Methode ist, direkt auf das .urls Attribut der
-    # Admin-Site-Instanz zu verweisen. Dies stellt sicher, dass Django die Namespaces
-    # korrekt verwaltet und löst die zugrundeliegenden URL-Konflikte.
-    path('admin/', custom_admin_site.urls),
-    
+    path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 ]
 
+# Liefert Mediendateien in der Entwicklung und Produktion korrekt aus.
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

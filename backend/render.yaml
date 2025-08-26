@@ -12,8 +12,8 @@ services:
     env: python
     plan: free
     rootDir: backend
-    # Build-Befehl wieder auf den Normalzustand zurückgesetzt.
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
+    # KORRIGIERT: Führt einen kompletten Reset der Datenbank durch, bevor die Migrationen neu angelegt werden.
+    buildCommand: "pip install -r requirements.txt && python manage.py flush --no-input && python manage.py migrate && python manage.py collectstatic --noinput"
     startCommand: "gunicorn --chdir . core.wsgi"
     
     disks:

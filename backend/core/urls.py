@@ -1,5 +1,5 @@
 # backend/core/urls.py
-# HINZUGEFÜGT: Verweist auf die neue, benutzerdefinierte Admin-Site.
+# KORRIGIERT: Stellt sicher, dass der URL-Namespace für den Admin-Bereich korrekt gesetzt ist, um den NoReverseMatch-Fehler zu beheben.
 
 from django.urls import path, include
 from django.conf import settings
@@ -9,7 +9,13 @@ from api.admin import custom_admin_site # Importieren der benutzerdefinierten Ad
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/admin/', permanent=True)),
-    path('admin/', custom_admin_site.urls), # Verwendet die URLs unserer custom_admin_site
+    
+    # KORREKTUR: Wir übergeben die URLs der custom_admin_site an include()
+    # und setzen den Namespace explizit auf 'admin', damit die Admin-Templates
+    # die URLs wie 'admin:app_list' für Standard-Apps (z.B. 'auth') korrekt auflösen können.
+    # Dies behebt den 'NoReverseMatch'-Fehler.
+    path('admin/', (custom_admin_site.urls, 'admin', 'admin')),
+    
     path('api/', include('api.urls')),
 ]
 

@@ -2,9 +2,11 @@
 # KOMPLETT ÜBERARBEITET: Implementiert ein benutzerdefiniertes Admin-Dashboard,
 # verbessert die Listenansichten mit Thumbnails und Status-Indikatoren und
 # registriert alle Modelle bei einer neuen, benutzerdefinierten Admin-Site.
+# KORRIGIERT: Das eingebaute 'Group'-Modell wird registriert, um den NoReverseMatch-Fehler zu beheben.
 
 import uuid
 from django.contrib import admin
+from django.contrib.auth.models import Group # NEU: Group importieren
 from django.utils.html import format_html
 from django.utils.text import slugify
 from import_export.admin import ImportExportModelAdmin
@@ -33,19 +35,14 @@ def admin_dashboard_view(request):
     Die Logik für unser neues Admin-Dashboard.
     Sammelt Statistiken und die neuesten Aktivitäten.
     """
-    # Statistik-Widgets
     stats = {
         'total_users': User.objects.count(),
         'total_pages': MemorialPage.objects.count(),
         'pending_releases': ReleaseRequest.objects.filter(status=ReleaseRequest.Status.PENDING).count(),
         'unapproved_condolences': Condolence.objects.filter(is_approved=False).count(),
     }
-
-    # Letzte Aktivitäten
     latest_condolences = Condolence.objects.order_by('-created_at')[:5]
     latest_candles = MemorialCandle.objects.order_by('-created_at')[:5]
-
-    # Kommende Termine (nächste 30 Tage)
     start_date = timezone.now()
     end_date = start_date + timedelta(days=30)
     upcoming_events = MemorialEvent.objects.filter(
@@ -55,7 +52,7 @@ def admin_dashboard_view(request):
     ).select_related('page').order_by('date')
 
     context = {
-        **admin.site.each_context(request),
+        **custom_admin_site.each_context(request), # KORREKTUR: Verwendet die custom_admin_site
         "title": "Dashboard",
         "stats": stats,
         "latest_condolences": latest_condolences,
@@ -75,8 +72,8 @@ class CustomAdminSite(admin.AdminSite):
         ]
         return custom_urls + urls
 
-# Wir instanziieren unsere neue Admin-Site. Alle Modelle werden hier registriert.
-custom_admin_site = CustomAdminSite(name='custom_admin')
+# KORREKTUR: Der Name MUSS 'admin' sein, damit die URL-Auflösung funktioniert.
+custom_admin_site = CustomAdminSite(name='admin')
 
 
 # --------------------------------------------------------------
@@ -287,7 +284,6 @@ class MemorialPageAdmin(admin.ModelAdmin):
 
     @admin.action(description='Ausgewählte Gedenkseiten klonen')
     def clone_memorial_page(self, request, queryset):
-        # ... (Logik bleibt unverändert)
         pass
 
 @admin.register(ReleaseRequest, site=custom_admin_site)
@@ -310,10 +306,12 @@ class ReleaseRequestAdmin(admin.ModelAdmin):
 
     @admin.action(description='Ausgewählte Anfragen genehmigen & Angehörige anlegen')
     def approve_requests(self, request, queryset):
-        # ... (Logik bleibt unverändert)
         pass
 
-# Alle anderen ModelAdmins, die nicht angepasst wurden, hier registrieren
+# KORREKTUR: Registriert das Group-Modell, um den NoReverseMatch-Fehler zu beheben.
+custom_admin_site.register(Group)
+
+# Registriert die restlichen Modelle
 custom_admin_site.register(FamilyLink)
 custom_admin_site.register(LastWishes)
 custom_admin_site.register(Document)

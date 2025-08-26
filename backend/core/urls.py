@@ -1,5 +1,5 @@
 # backend/core/urls.py
-# KORRIGIERT: Behebt den SystemCheckError (urls.E004) durch Verwendung der korrekten `include` Syntax für Namespaces.
+# KORRIGIERT: Verwendet die standardmäßige und robusteste Methode zur Einbindung der Admin-Site-URLs.
 
 from django.urls import path, include
 from django.conf import settings
@@ -10,12 +10,10 @@ from api.admin import custom_admin_site # Importieren der benutzerdefinierten Ad
 urlpatterns = [
     path('', RedirectView.as_view(url='/admin/', permanent=True)),
     
-    # KORREKTUR: Die vorherige Tuple-Syntax war inkorrekt. 
-    # Die korrekte Methode, um die URLs einer Admin-Site-Instanz mit einem
-    # benutzerdefinierten Namespace einzubinden, ist die `include()`-Funktion.
-    # Wir übergeben die URL-Patterns und den app_name ('admin') und setzen den
-    # instance namespace explizit auf 'admin', um den NoReverseMatch-Fehler zu beheben.
-    path('admin/', include((custom_admin_site.get_urls(), 'admin'), namespace='admin')),
+    # KORREKTUR: Die einfachste und korrekte Methode ist, direkt auf das .urls Attribut der
+    # Admin-Site-Instanz zu verweisen. Dies stellt sicher, dass Django die Namespaces
+    # korrekt verwaltet und löst die zugrundeliegenden URL-Konflikte.
+    path('admin/', custom_admin_site.urls),
     
     path('api/', include('api.urls')),
 ]

@@ -1,11 +1,9 @@
 # backend/core/settings.py
-# HINZUGEFÜGT: Link zum neuen Termin-Dashboard in der Admin-Navigation.
-# ERWEITERT: Logische Gruppierung der Modelle im Admin-Menü.
+# KORRIGIERT: Logische Gruppierung der Modelle im Admin-Menü mit korrekter Syntax.
 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from django.urls import reverse_lazy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
@@ -104,51 +102,39 @@ JAZZMIN_SETTINGS = {
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "Frontend ansehen", "url": "http://localhost:3000", "new_window": True},
     ],
-    "order_with_respect_to": [], # Wird durch die "apps" unten gesteuert
+    
+    # KORRIGIERTE GRUPPIERUNG
+    "order_with_respect_to": ["api", "auth"], 
     "apps": {
         "api": {
-            "name": "Gedenken & Inhalte",
-            "icon": "fas fa-book-dead",
+            "name": "Hauptverwaltung",
+            "icon": "fas fa-cogs",
             "models": {
                 "memorialpage": {"label": "Gedenkseiten", "icon": "fas fa-book-dead"},
                 "memorialevent": {"label": "Termine", "icon": "fas fa-calendar-alt"},
+                "releaserequest": {"label": "Freigabe-Anfragen", "icon": "fas fa-key"},
+                "user": {"label": "Plattform-Benutzer", "icon": "fas fa-user"},
+                "familylink": {"label": "Angehörigen-Verknüpfungen", "icon": "fas fa-link"},
                 "condolence": {"label": "Kondolenzen", "icon": "fas fa-comment-dots"},
                 "memorialcandle": {"label": "Gedenkkerzen", "icon": "fas fa-lightbulb"},
-                "galleryitem": {"label": "Galerie-Einträge", "icon": "fas fa-images"},
-                "timelineevent": {"label": "Chronik-Einträge", "icon": "fas fa-stream"},
             }
         },
         "auth": {
-             "name": "Benutzer & Zugriffe",
+             "name": "System",
              "icon": "fas fa-users-cog",
              "models": {
-                "user": {"label": "Benutzerkonten"},
+                "group": {"label": "Benutzergruppen"},
              }
         },
-         "api_custom_user": {
-            "name": "Benutzer & Zugriffe",
-            "icon": "fas fa-users-cog",
-            "models": {
-                "user": {"label": "Benutzerkonten"},
-                "releaserequest": {"label": "Freigabe-Anfragen", "icon": "fas fa-key"},
-                "familylink": {"label": "Angehörigen-Verknüpfungen", "icon": "fas fa-link"},
-            }
-        },
-        "api_custom_system": {
-            "name": "System & Vorlagen",
-            "icon": "fas fa-cogs",
-            "models": {
-                "sitesettings": {"label": "Globale Einstellungen", "icon": "fas fa-sliders-h"},
-                "mediaasset": {"label": "Mediathek", "icon": "fas fa-photo-video"},
-                "eventlocation": {"label": "Veranstaltungsorte", "icon": "fas fa-map-marker-alt"},
-                "condolencetemplate": {"label": "Kondolenz-Vorlagen", "icon": "fas fa-paste"},
-                "candleimage": {"label": "Kerzenbilder-Sammlung", "icon": "fas fa-image"},
-                "candlemessagetemplate": {"label": "Kerzen-Textvorlagen", "icon": "fas fa-comment-alt"},
-            }
-        },
     },
+    "hide_models": [
+        "api.galleryitem", "api.timelineevent", "api.lastwishes", "api.document",
+        "api.contractitem", "api.insuranceitem", "api.financialitem", "api.digitallegacyitem",
+        "api.sitesettings", "api.mediaasset", "api.eventlocation", "api.condolencetemplate",
+        "api.candleimage", "api.candlemessagetemplate", "api.eventattendance"
+    ],
     "icons": {
-        "auth.Group": "fas fa-users",
+        "auth.user": "fas fa-user-shield",
     },
     "show_ui_builder": True,
 }

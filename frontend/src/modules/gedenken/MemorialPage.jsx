@@ -77,6 +77,9 @@ const MemorialPage = () => {
     const handleTabClick = (view) => {
         setActiveMainView(view);
         setExpandedView(null); // Expand-Bereich schließen beim Tab-Wechsel
+        const targetRef = view === 'abschied' ? farewellSectionRef : lifeSectionRef;
+        // Scrollt zur Mitte des jeweiligen Bereichs
+        targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     const toggleExpandedView = (view) => {

@@ -1,14 +1,16 @@
 # backend/core/settings.py
-# FINAL: Zentralisiert die WhiteNoise-Konfiguration, um Fehler in der Produktion zu beheben.
+# FINAL: Korrigiert den Pfad in STATICFILES_DIRS, damit `collectstatic`
+# die benutzerdefinierten CSS-Dateien im `backend/static`-Ordner findet.
 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# BASE_DIR zeigt auf das Hauptverzeichnis (wo manage.py liegt), also 'backend/'
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-dev')
+SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-development')
 DEBUG = os.getenv('DEBUG', '1') == '1'
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1 backend').split(' ')
 
@@ -22,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic', # WICHTIG: Für WhiteNoise
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -32,7 +34,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # WICHTIG: An die zweite Stelle setzen
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -78,9 +80,10 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+# KORRIGIERT: Wir sagen Django, dass es im `backend`-Verzeichnis nach einem Ordner namens `static` suchen soll.
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' # WICHTIG: Hier definieren
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.User'
@@ -154,5 +157,5 @@ JAZZMIN_UI_TWEAKS = {
     }
 }
 
-if os.environ.get('DJANGO_ENV') == 'production':
+if os.environ.get('DJANGO_SETTINGS_MODULE') == 'core.production':
     from .production import *

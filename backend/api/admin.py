@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Dashboard-Logik angepasst; "Offene Freigaben"-Widget entfernt.
+# ERWEITERT: CondolenceAdmin hinzugefügt, um den 500-Fehler im Dashboard zu beheben.
 # KORRIGIERT: Alle Sonderzeichen wurden korrigiert.
 
 import uuid
@@ -124,6 +124,15 @@ class CandleMessageTemplateAdmin(admin.ModelAdmin):
 class CondolenceTemplateAdmin(admin.ModelAdmin):
     list_display = ('title',)
     search_fields = ('title', 'text')
+
+# NEU: Eigene Admin-Ansicht für Kondolenzen, um den Link im Dashboard zu ermöglichen
+@admin.register(Condolence)
+class CondolenceAdmin(admin.ModelAdmin):
+    list_display = ('guest_name', 'page', 'is_approved', 'created_at')
+    list_filter = ('is_approved',)
+    search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
+    list_editable = ('is_approved',)
+    readonly_fields = ('guest_name', 'message', 'created_at', 'author', 'page')
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):

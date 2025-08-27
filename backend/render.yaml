@@ -1,5 +1,5 @@
 # render.yaml
-# FINAL: Bereinigt, um die Konfiguration zu vereinfachen.
+# KORRIGIERT: Fügt die PGCLIENTENCODING-Variable hinzu, um Probleme mit Sonderzeichen zu beheben.
 
 databases:
   - name: vorsorge-db
@@ -27,6 +27,8 @@ services:
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.production
       - key: DJANGO_SUPERUSER_EMAIL
         value: philipp.pollak855@gmail.com
       - key: DJANGO_SUPERUSER_PASSWORD
@@ -35,5 +37,6 @@ services:
         value: "https://gedenken.netlify.app http://localhost:3000"
       - key: ALLOWED_HOSTS 
         value: "vorsorge-backend.onrender.com"
+      # DIESE ZEILE STELLT DIE KORREKTE ZEICHENKODIERUNG SICHER
       - key: PGCLIENTENCODING
         value: utf8

@@ -41,13 +41,56 @@
             </div>
         </div>
 
-        <div class="dashboard-widget activity-widget">
+        <div class="dashboard-widget activity-widget full-width">
+            <h2>Kommende Termine</h2>
+            <div class="activity-list scrollable">
+                <table>
+                    <tbody>
+                        {% for event in upcoming_events %}
+                        <tr>
+                            <td><span class="event-date">{{ event.date|date:"d. M" }}</span></td>
+                            <td><strong>{{ event.title }}</strong> für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></td>
+                            <td><span class="meta">{{ event.date|date:"H:i" }} Uhr</span></td>
+                            <td><span class="meta">{{ event.attendee_count }} Zusagen</span></td>
+                            <td><a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="button">Details</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5">Keine kommenden Termine gefunden.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="dashboard-widget activity-widget full-width">
+            <h2>Offene Freigaben</h2>
+            <div class="activity-list scrollable">
+                <table>
+                    <tbody>
+                        {% for release in pending_releases %}
+                        <tr>
+                            <td><strong>{{ release.deceased_first_name }} {{ release.deceased_last_name }}</strong></td>
+                            <td>gemeldet von {{ release.reporter_name }}</td>
+                            <td><span class="meta">{{ release.created_at|timesince }} ago</span></td>
+                            <td><a href="{% url 'admin:api_releaserequest_change' release.request_id %}" class="button">Prüfen</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4">Keine offenen Freigaben.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-widget activity-widget" id="condolence-widget">
             <h2>Letzte Kondolenzen</h2>
-            <div class="activity-list">
+            <input type="text" class="filter-input" data-target="condolence-list" placeholder="Kondolenzen filtern...">
+            <div class="activity-list scrollable" id="condolence-list">
                 <ul>
                     {% for condolence in latest_condolences %}
                     <li>
                         <strong>{{ condolence.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
+                        <p class="message">{{ condolence.message }}</p>
                         <div class="meta">{{ condolence.created_at|timesince }} ago</div>
                     </li>
                     {% empty %}
@@ -57,13 +100,15 @@
             </div>
         </div>
 
-        <div class="dashboard-widget activity-widget">
+        <div class="dashboard-widget activity-widget" id="candle-widget">
             <h2>Letzte Gedenkkerzen</h2>
-            <div class="activity-list">
+            <input type="text" class="filter-input" data-target="candle-list" placeholder="Kerzen filtern...">
+            <div class="activity-list scrollable" id="candle-list">
                 <ul>
                     {% for candle in latest_candles %}
                     <li>
                         <strong>{{ candle.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
+                        <p class="message">{{ candle.message }}</p>
                         <div class="meta">{{ candle.created_at|timesince }} ago</div>
                     </li>
                     {% empty %}

@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Fügt ein modernes, benutzerdefiniertes Dashboard als Admin-Startseite hinzu.
+# ERWEITERT: Dashboard-Logik um anstehende Termine und offene Freigaben erweitert.
 
 import uuid
 from django.contrib import admin
@@ -37,15 +37,27 @@ def admin_dashboard_view(request):
         'pending_releases': ReleaseRequest.objects.filter(status=ReleaseRequest.Status.PENDING).count(),
         'unapproved_condolences': Condolence.objects.filter(is_approved=False).count(),
     }
-    latest_condolences = Condolence.objects.order_by('-created_at')[:5]
-    latest_candles = MemorialCandle.objects.order_by('-created_at')[:5]
+    # Lädt alle, damit die Filterung im Frontend funktioniert
+    latest_condolences = Condolence.objects.order_by('-created_at')[:100] 
+    latest_candles = MemorialCandle.objects.order_by('-created_at')[:100]
     
+    # NEU: Daten für neue Widgets abrufen
+    pending_releases = ReleaseRequest.objects.filter(status=ReleaseRequest.Status.PENDING).order_by('-created_at')
+    upcoming_events = MemorialEvent.objects.filter(
+        date__gte=timezone.now()
+    ).annotate(
+        attendee_count=Count('attendees')
+    ).select_related('page').order_by('date')[:10]
+
+
     context = {
         **admin.site.each_context(request),
         "title": "Dashboard",
         "stats": stats,
         "latest_condolences": latest_condolences,
         "latest_candles": latest_candles,
+        "pending_releases": pending_releases, # NEU
+        "upcoming_events": upcoming_events, # NEU
     }
     return render(request, "admin/dashboard.html", context)
 

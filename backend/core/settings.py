@@ -155,3 +155,5 @@ JAZZMIN_UI_TWEAKS = {
 }
 
 # Die fehleranfällige Logik zum Laden der Produktions-Einstellungen wurde entfernt.
+# if os.environ.get('DJANGO_ENV') == 'production':
+#     from .production import *

@@ -4,12 +4,33 @@
 /* DASHBOARD STYLES                   */
 /* ---------------------------------- */
 
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+}
+
+#current-datetime {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #ccc;
+    background-color: #4a535c;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: auto auto 1fr; /* Zeile 1+2: auto Höhe, Zeile 3: füllt den Rest */
     gap: 1.5rem;
-    height: calc(100vh - 200px); /* Höhe anpassen, um Scrollen der Seite zu vermeiden */
+    height: calc(100vh - 220px); /* Höhe angepasst für den neuen Header */
 }
 
 .dashboard-widget {
@@ -42,10 +63,30 @@
 #candle-widget { grid-column: 3 / 5; grid-row: 3 / 4; }
 
 /* Statistik-Karten */
-.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-.stat-item-link { text-decoration: none; } /* Entfernt Unterstreichung vom Link */
-.stat-item { text-align: center; padding: 1rem; border-radius: 6px; background-color: #4a535c; transition: transform 0.2s ease-in-out, background-color 0.2s; }
-.stat-item:hover { transform: translateY(-5px); background-color: #5a636c; }
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+.stat-item-link {
+    text-decoration: none; /* Entfernt Unterstreichung vom Link */
+    display: flex; /* Sorgt dafür, dass der Link den vollen Platz einnimmt und dehnbar ist */
+}
+.stat-item {
+    width: 100%; /* Füllt die Breite des Links */
+    display: flex; /* Aktiviert Flexbox für vertikale Zentrierung des Inhalts */
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: #4a535c;
+    transition: transform 0.2s ease-in-out, background-color 0.2s;
+}
+.stat-item:hover {
+    transform: translateY(-5px);
+    background-color: #5a636c;
+}
 .stat-item.warning { background-color: #c89c31; }
 .stat-item.danger { background-color: #b94a48; }
 .stat-item .value { font-size: 2rem; font-weight: 700; color: #fff; line-height: 1; }
@@ -79,7 +120,7 @@
 .activity-list table { width: 100%; border-collapse: collapse; }
 .activity-list td { padding: 0.75rem 0.5rem; border-bottom: 1px solid #444; font-size: 0.9rem; vertical-align: middle; }
 .activity-list tr:last-child td { border-bottom: none; }
-.event-date { font-weight: bold; font-size: 0.9rem; color: #fff; background-color: #8c8073; border-radius: 4px; padding: 0.3rem 0.5rem; display: inline-block; min-width: 40px; text-align: center; }
+.event-date { font-weight: bold; font-size: 0.9rem; color: #fff; background-color: #8c8073; border-radius: 4px; padding: 0.3rem 0.5rem; display: inline-block; min-width: 65px; text-align: center; }
 .button { padding: 0.4rem 0.8rem; font-size: 0.8rem; text-decoration: none; }
 
 /* Filter-Input */

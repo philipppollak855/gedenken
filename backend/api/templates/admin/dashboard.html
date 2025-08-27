@@ -4,7 +4,10 @@
 
 {% block content %}
 <div id="content-main">
-    <h1>{{ title }}</h1>
+    <div class="dashboard-header">
+        <h1>{{ title }}</h1>
+        <div id="current-datetime"></div>
+    </div>
     <div class="dashboard-grid">
         
         <div class="dashboard-widget stat-widget">
@@ -54,7 +57,7 @@
                     <tbody>
                         {% for event in upcoming_events %}
                         <tr>
-                            <td><span class="event-date">{{ event.date|date:"d. M" }}</span></td>
+                            <td><span class="event-date">{{ event.date|date:"D, d. M" }}</span></td>
                             <td><strong>{{ event.title }}</strong> für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></td>
                             <td><span class="meta">{{ event.date|date:"H:i" }} Uhr</span></td>
                             <td><span class="meta">{{ event.attendee_count }} Zusagen</span></td>
@@ -106,4 +109,21 @@
 
     </div>
 </div>
+
+<script>
+    function updateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        // Format für Österreich, Deutsch
+        const formattedDateTime = now.toLocaleString('de-AT', options);
+        const timeElement = document.getElementById('current-datetime');
+        if (timeElement) {
+            timeElement.textContent = formattedDateTime;
+        }
+    }
+    // Update time every second
+    setInterval(updateTime, 1000);
+    // Initial call to display time immediately
+    updateTime();
+</script>
 {% endblock %}

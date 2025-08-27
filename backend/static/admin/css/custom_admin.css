@@ -1,6 +1,26 @@
 /* backend/static/admin/css/custom_admin.css */
 
 /* ---------------------------------- */
+/* Globale Variablen für Theming      */
+/* ---------------------------------- */
+:root {
+    /* Diese Werte könnten in Zukunft aus den SiteSettings geladen werden */
+    --admin-font-family: 'Roboto', sans-serif;
+    --admin-font-size-base: 14px;
+    --admin-font-size-h1: 28px;
+    --admin-font-size-h2: 22px;
+}
+
+/* body, #content {
+    font-family: var(--admin-font-family);
+    font-size: var(--admin-font-size-base);
+}
+
+h1 { font-size: var(--admin-font-size-h1); }
+h2 { font-size: var(--admin-font-size-h2); } */
+
+
+/* ---------------------------------- */
 /* DASHBOARD STYLES                   */
 /* ---------------------------------- */
 
@@ -133,6 +153,40 @@
     color: #fff;
     border-radius: 4px;
 }
+
+/* ---------------------------------- */
+/* WIDGET STYLES (z.B. Color Picker)  */
+/* ---------------------------------- */
+
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.color-picker-wrapper input[type="text"] {
+    flex-grow: 1;
+}
+.color-picker-wrapper input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: transparent;
+}
+.color-picker-wrapper input[type="color"]::-webkit-color-swatch {
+    border-radius: 4px;
+    border: 1px solid #555;
+}
+.color-picker-wrapper input[type="color"]::-moz-color-swatch {
+    border-radius: 4px;
+    border: 1px solid #555;
+}
+
 
 /* ---------------------------------- */
 /* SIDEBAR STYLES                     */

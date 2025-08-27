@@ -1,12 +1,10 @@
 # backend/core/settings.py
-# FINAL: Korrigiert den Pfad in STATICFILES_DIRS, damit `collectstatic`
-# die benutzerdefinierten CSS-Dateien im `backend/static`-Ordner findet.
+# FINAL: Bereinigt, um nur noch die Basis- und Entwicklungs-Einstellungen zu enthalten.
 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# BASE_DIR zeigt auf das Hauptverzeichnis (wo manage.py liegt), also 'backend/'
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
@@ -61,6 +59,7 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'core.wsgi.application'
 
+# Diese Datenbank-Einstellungen sind nur für die LOKALE Entwicklung.
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DATABASE_ENGINE'),
@@ -80,10 +79,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-# KORRIGIERT: Wir sagen Django, dass es im `backend`-Verzeichnis nach einem Ordner namens `static` suchen soll.
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.User'
@@ -157,5 +154,4 @@ JAZZMIN_UI_TWEAKS = {
     }
 }
 
-if os.environ.get('DJANGO_SETTINGS_MODULE') == 'core.production':
-    from .production import *
+# Die fehleranfällige Logik zum Laden der Produktions-Einstellungen wurde entfernt.

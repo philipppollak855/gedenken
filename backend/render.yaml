@@ -1,5 +1,6 @@
 # render.yaml
-# HINZUGEFÜGT: Ein persistenter Speicher ("Disk") für Media-Uploads.
+# KORRIGIERT: Fügt die Umgebungsvariable DJANGO_SETTINGS_MODULE hinzu,
+# um dem Server explizit die Produktions-Einstellungen zuzuweisen.
 
 databases:
   - name: vorsorge-db
@@ -12,7 +13,6 @@ services:
     env: python
     plan: free
     rootDir: backend
-    # Build-Befehl wieder auf den Normalzustand zurückgesetzt.
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
     startCommand: "gunicorn --chdir . core.wsgi"
     
@@ -28,8 +28,9 @@ services:
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
-      - key: DJANGO_ENV
-        value: production
+      # NEU: Diese Zeile ist entscheidend für die korrekte Konfiguration
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.production
       - key: DJANGO_SUPERUSER_EMAIL
         value: philipp.pollak855@gmail.com
       - key: DJANGO_SUPERUSER_PASSWORD

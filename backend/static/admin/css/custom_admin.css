@@ -26,8 +26,9 @@ body {
 .dashboard-widget h2 { margin-top: 0; font-size: 1.1rem; font-weight: 600; border-bottom: 1px solid #4a535c; padding-bottom: 0.75rem; margin-bottom: 1rem; color: #e1e1e1; flex-shrink: 0; }
 .widget-header { display: flex; justify-content: space-between; align-items: center; }
 .widget-header h2 { border-bottom: none; padding-bottom: 0; }
-.calendar-icon { font-size: 1.5rem; color: #999; cursor: pointer; transition: color 0.2s; }
-.calendar-icon:hover { color: #fff; }
+.calendar-icon, .toggle-widget-icon { font-size: 1.5rem; color: #999; cursor: pointer; transition: color 0.2s, transform 0.3s; }
+.calendar-icon:hover, .toggle-widget-icon:hover { color: #fff; }
+.is-expanded .toggle-widget-icon { transform: rotate(180deg); }
 
 /* Grid Layout */
 .stat-widget { grid-column: 1 / 3; grid-row: 1 / 2; }
@@ -54,15 +55,29 @@ body {
 
 /* Event Grid */
 .event-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
-.event-card { background: #4a535c; padding: 0.8rem; border-radius: 6px; border-left: 4px solid #8c8073; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.8rem; }
+.event-card-link { text-decoration: none; display: flex; }
+.event-card { width: 100%; background: #4a535c; padding: 0.8rem; border-radius: 6px; border-left: 4px solid #8c8073; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.8rem; transition: transform 0.2s, box-shadow 0.2s; }
+.event-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
 .event-card-header { display: flex; justify-content: space-between; align-items: baseline; }
 .event-card-date { font-weight: bold; font-size: 0.85rem; color: #fff; }
 .event-card-time { font-size: 0.8rem; color: #ccc; }
 .event-card-body { margin-top: 0.4rem; }
-.event-card-title { font-size: 1rem; font-weight: 600; margin: 0.2rem 0; }
+.event-card-title { font-size: 1rem; font-weight: 600; margin: 0.2rem 0; color: #fff; }
 .event-card-page { font-size: 0.75rem; color: #ccc; }
 .event-card-page a { color: #e1e1e1; }
 .event-card-location { font-size: 0.75rem; color: #ccc; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
+
+/* Ausklappbare Widgets */
+.widget-collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+    margin-top: 0;
+}
+.is-expanded .widget-collapsible-content {
+    max-height: 500px; /* Großer Wert, um Inhalt zu erlauben */
+    margin-top: 1rem;
+}
 
 /* Aktivitätslisten */
 .activity-list { flex-grow: 1; min-height: 0; }

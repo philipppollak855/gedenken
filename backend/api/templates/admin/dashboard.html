@@ -57,19 +57,21 @@
             </div>
             <div class="event-grid">
                 {% for event in upcoming_events_grid %}
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <div class="event-card-date">{{ event.date|date:"l, d. F Y" }}</div>
-                        <div class="event-card-time">{{ event.date|date:"H:i" }} Uhr</div>
+                <a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="event-card-link">
+                    <div class="event-card">
+                        <div class="event-card-header">
+                            <div class="event-card-date">{{ event.date|date:"l, d. F Y" }}</div>
+                            <div class="event-card-time">{{ event.date|date:"H:i" }} Uhr</div>
+                        </div>
+                        <div class="event-card-body">
+                            <div class="event-card-title">{{ event.title }}</div>
+                            <div class="event-card-page">für {{ event.page }}</div>
+                            {% if event.location %}
+                            <div class="event-card-location"><i class="fas fa-map-marker-alt"></i> {{ event.location.name }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="event-card-body">
-                        <div class="event-card-title">{{ event.title }}</div>
-                        <div class="event-card-page">für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></div>
-                        {% if event.location %}
-                        <div class="event-card-location"><i class="fas fa-map-marker-alt"></i> {{ event.location.name }}</div>
-                        {% endif %}
-                    </div>
-                </div>
+                </a>
                 {% empty %}
                 <p>Keine kommenden Termine gefunden.</p>
                 {% endfor %}
@@ -77,38 +79,48 @@
         </div>
 
         <div class="dashboard-widget activity-widget" id="condolence-widget">
-            <h2>Letzte Kondolenzen</h2>
-            <input type="text" class="filter-input" data-target="condolence-list" placeholder="Kondolenzen filtern...">
-            <div class="activity-list scrollable" id="condolence-list">
-                <ul>
-                    {% for condolence in latest_condolences %}
-                    <li>
-                        <strong>{{ condolence.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
-                        <p class="message">{{ condolence.message }}</p>
-                        <div class="meta">{{ condolence.created_at|timesince }} ago</div>
-                    </li>
-                    {% empty %}
-                    <li>Keine Kondolenzen vorhanden.</li>
-                    {% endfor %}
-                </ul>
+            <div class="widget-header">
+                <h2>Letzte Kondolenzen</h2>
+                <i class="fas fa-expand-alt toggle-widget-icon"></i>
+            </div>
+            <div class="widget-collapsible-content">
+                <input type="text" class="filter-input" data-target="condolence-list" placeholder="Kondolenzen filtern...">
+                <div class="activity-list scrollable" id="condolence-list">
+                    <ul>
+                        {% for condolence in latest_condolences %}
+                        <li>
+                            <strong>{{ condolence.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
+                            <p class="message">{{ condolence.message }}</p>
+                            <div class="meta">{{ condolence.created_at|timesince }} ago</div>
+                        </li>
+                        {% empty %}
+                        <li>Keine Kondolenzen vorhanden.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </div>
 
         <div class="dashboard-widget activity-widget" id="candle-widget">
-            <h2>Letzte Gedenkkerzen</h2>
-            <input type="text" class="filter-input" data-target="candle-list" placeholder="Kerzen filtern...">
-            <div class="activity-list scrollable" id="candle-list">
-                <ul>
-                    {% for candle in latest_candles %}
-                    <li>
-                        <strong>{{ candle.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
-                        <p class="message">{{ candle.message }}</p>
-                        <div class="meta">{{ candle.created_at|timesince }} ago</div>
-                    </li>
-                    {% empty %}
-                    <li>Keine Kerzen angezündet.</li>
-                    {% endfor %}
-                </ul>
+            <div class="widget-header">
+                <h2>Letzte Gedenkkerzen</h2>
+                <i class="fas fa-expand-alt toggle-widget-icon"></i>
+            </div>
+            <div class="widget-collapsible-content">
+                <input type="text" class="filter-input" data-target="candle-list" placeholder="Kerzen filtern...">
+                <div class="activity-list scrollable" id="candle-list">
+                    <ul>
+                        {% for candle in latest_candles %}
+                        <li>
+                            <strong>{{ candle.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
+                            <p class="message">{{ candle.message }}</p>
+                            <div class="meta">{{ candle.created_at|timesince }} ago</div>
+                        </li>
+                        {% empty %}
+                        <li>Keine Kerzen angezündet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -150,8 +162,8 @@
     setInterval(updateTime, 1000);
     updateTime();
 
-    // Kalender-Logik
     document.addEventListener('DOMContentLoaded', function() {
+        // Kalender-Logik
         const events = JSON.parse('{{ calendar_events_json|safe }}');
         const modal = document.getElementById('calendar-modal');
         const openBtn = document.getElementById('open-calendar-modal');
@@ -161,7 +173,6 @@
         const prevMonthBtn = document.getElementById('prev-month');
         const nextMonthBtn = document.getElementById('next-month');
         const eventListPopup = document.getElementById('event-list-popup');
-
         let currentDate = new Date();
 
         function renderCalendar() {
@@ -169,36 +180,27 @@
             eventListPopup.style.display = 'none';
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            
             const monthNames = ["Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
             monthYearEl.textContent = `${monthNames[month]} ${year}`;
-
             const firstDayOfMonth = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-
             const startOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
 
-            for (let i = 0; i < startOffset; i++) {
-                calendarBody.appendChild(document.createElement('div'));
-            }
+            for (let i = 0; i < startOffset; i++) { calendarBody.appendChild(document.createElement('div')); }
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayEl = document.createElement('div');
                 dayEl.classList.add('calendar-day');
                 dayEl.textContent = day;
-                
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                
                 if (events[dateStr]) {
                     dayEl.classList.add('has-events');
                     dayEl.dataset.date = dateStr;
                 }
-
                 const today = new Date();
                 if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
                     dayEl.classList.add('today');
                 }
-
                 calendarBody.appendChild(dayEl);
             }
         }
@@ -206,9 +208,6 @@
         function showEventsForDay(dateStr) {
             const dayEvents = events[dateStr];
             if (!dayEvents) return;
-
-            // DIESER TEIL WURDE GEÄNDERT:
-            // Der Popup wird jetzt immer angezeigt, auch bei nur einem Termin.
             let content = `<h4>Termine am ${new Date(dateStr).toLocaleDateString('de-AT')}</h4><ul>`;
             dayEvents.forEach(event => {
                 content += `<li><a href="${event.url}">${event.time} - ${event.title} (${event.page})</a></li>`;
@@ -220,28 +219,23 @@
 
         openBtn.onclick = () => { modal.style.display = 'block'; renderCalendar(); };
         closeBtn.onclick = () => { modal.style.display = 'none'; };
-        window.onclick = (event) => {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        };
-
-        prevMonthBtn.onclick = () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-        };
-
-        nextMonthBtn.onclick = () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-        };
-
+        window.onclick = (event) => { if (event.target == modal) { modal.style.display = 'none'; } };
+        prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
+        nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
         calendarBody.addEventListener('click', function(e) {
             if (e.target.classList.contains('has-events')) {
                 showEventsForDay(e.target.dataset.date);
             } else {
                 eventListPopup.style.display = 'none';
             }
+        });
+
+        // Widget Toggle Logik
+        document.querySelectorAll('.toggle-widget-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const widget = this.closest('.dashboard-widget');
+                widget.classList.toggle('is-expanded');
+            });
         });
     });
 </script>

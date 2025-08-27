@@ -1,7 +1,7 @@
 # backend/api/admin.py
-# ERWEITERT: CondolenceAdmin hinzugefügt, um den 500-Fehler im Dashboard zu beheben.
-# KORRIGIERT: Alle Sonderzeichen wurden korrigiert.
+# ERWEITERT: SiteSettingsAdmin um Typografie-Feldset ergänzt.
 
+# ... (alle imports bleiben gleich) ...
 import uuid
 from django.contrib import admin
 from django.utils.html import format_html
@@ -23,10 +23,8 @@ from .models import (
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
 
-# --------------------------------------------------------------
-# 1. Benutzerdefiniertes Admin-Dashboard
-# --------------------------------------------------------------
 
+# ... (admin_dashboard_view und alle anderen Klassen bis SiteSettingsAdmin bleiben unverändert) ...
 def admin_dashboard_view(request):
     """
     Die Logik für unser neues Admin-Dashboard.
@@ -59,15 +57,11 @@ def admin_dashboard_view(request):
     }
     return render(request, "admin/dashboard.html", context)
 
-# Wir "patchen" die Admin-Site, um unsere Dashboard-Ansicht als Index zu verwenden.
 admin.site.index = admin_dashboard_view
 
-# Ein benutzerdefinierter Widget für die Farbauswahl
 class ColorPickerWidget(forms.TextInput):
-    input_type = 'color'
     template_name = 'admin/widgets/color_picker.html'
 
-# Ein benutzerdefiniertes Formular, um den Widget auf SiteSettings anzuwenden
 class SiteSettingsForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
@@ -84,7 +78,6 @@ class SiteSettingsForm(forms.ModelForm):
             'expend_text_color': ColorPickerWidget(),
         }
 
-# Ein benutzerdefiniertes Formular, um den Widget auf MemorialPage anzuwenden
 class MemorialPageForm(forms.ModelForm):
     class Meta:
         model = MemorialPage
@@ -125,7 +118,6 @@ class CondolenceTemplateAdmin(admin.ModelAdmin):
     list_display = ('title',)
     search_fields = ('title', 'text')
 
-# NEU: Eigene Admin-Ansicht für Kondolenzen, um den Link im Dashboard zu ermöglichen
 @admin.register(Condolence)
 class CondolenceAdmin(admin.ModelAdmin):
     list_display = ('guest_name', 'page', 'is_approved', 'created_at')
@@ -148,10 +140,16 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ('Expand-Bereich (Kondolenzen etc.)', {
             'fields': ('expend_background_color', 'expend_background_image', 'expend_card_color', 'expend_text_color'),
         }),
+        # NEUES FELDSET HINZUGEFÜGT
+        ('Typografie (Admin-Bereich)', {
+            'classes': ('collapse',),
+            'fields': ('font_family', 'font_size_base'),
+        }),
     )
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()
 
+# ... (Der Rest der Datei von UserResource bis zum Ende bleibt unverändert) ...
 class UserResource(resources.ModelResource):
     class Meta:
         model = User

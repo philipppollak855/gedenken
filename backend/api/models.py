@@ -1,7 +1,5 @@
 # backend/api/models.py
-# KORRIGIERT: Die 'url'-Eigenschaft gibt jetzt eine absolute URL zurück.
-# KORRIGIERT: Die __str__-Methode von MemorialPage wurde für eine bessere Lesbarkeit im Admin-Bereich angepasst.
-# KORRIGIERT: Alle Sonderzeichen wurden korrigiert.
+# ERWEITERT: SiteSettings-Modell um Schriftart- und Schriftgrößen-Optionen ergänzt.
 
 import uuid
 from django.db import models
@@ -11,6 +9,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
+# ... (MediaAsset, EventLocation bleiben unverändert) ...
 class MediaAsset(models.Model):
     class AssetType(models.TextChoices):
         IMAGE = 'image', 'Bild'
@@ -57,11 +56,20 @@ class EventLocation(models.Model):
         verbose_name = "Veranstaltungsort"
         verbose_name_plural = "Veranstaltungsorte (Stammdaten)"
 
+
 class SiteSettings(models.Model):
+    class FontChoices(models.TextChoices):
+        ROBOTO = "'Roboto', sans-serif", "Roboto"
+        OPEN_SANS = "'Open Sans', sans-serif", "Open Sans"
+        LATO = "'Lato', sans-serif", "Lato"
+        MONTSERRAT = "'Montserrat', sans-serif", "Montserrat"
+        SOURCE_SANS = "'Source Sans Pro', sans-serif", "Source Sans Pro"
+
     class Meta:
         verbose_name = "Globale Design-Einstellungen"
         verbose_name_plural = "Globale Design-Einstellungen"
 
+    # Design Gedenkseiten-Startseite
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir trauern um")
     listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     listing_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Startseite")
@@ -69,16 +77,22 @@ class SiteSettings(models.Model):
     listing_text_color = models.CharField("Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
     listing_arrow_color = models.CharField("Pfeilfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #8c8073", default="#8c8073")
     
+    # Design Suche
     search_title = models.CharField("Titel im Suchbereich", max_length=100, blank=True, default="Verstorbenen Suche")
     search_helper_text = models.TextField("Hilfstext im Suchbereich", blank=True, default="Bitte geben Sie einen oder mehrere Suchbegriffe in die obenstehenden Felder ein, um nach einem Verstorbenen zu suchen.")
     search_background_color = models.CharField("Hintergrundfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #e5e0da")
     search_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Suche")
     search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
 
+    # Design Expand-Bereich
     expend_background_color = models.CharField("Hintergrundfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     expend_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Expand-Bereich")
     expend_card_color = models.CharField("Karten-Hintergrundfarbe Expand", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
     expend_text_color = models.CharField("Textfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+
+    # NEU: Typografie-Einstellungen
+    font_family = models.CharField("Schriftart", max_length=100, choices=FontChoices.choices, default=FontChoices.ROBOTO)
+    font_size_base = models.CharField("Grundschriftgröße", max_length=10, blank=True, default="14px", help_text="CSS-Wert, z.B. 14px oder 0.9rem")
 
     def __str__(self):
         return "Globale Design-Einstellungen"
@@ -87,6 +101,7 @@ class SiteSettings(models.Model):
         self.pk = 1
         super(SiteSettings, self).save(*args, **kwargs)
 
+# ... (Der Rest der Datei von UserManager bis zum Ende bleibt unverändert) ...
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:

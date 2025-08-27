@@ -136,11 +136,21 @@ JAZZMIN_SETTINGS = {
             }
         },
     },
+    # HIER WURDE DIE SIDEBAR-STRUKTUR ANGEPASST
     "custom_links": {
         "api": [
             {
-                "name": "System & Vorlagen", "icon": "fas fa-cogs",
-                "models": ("api.sitesettings", "api.mediaasset", "api.eventlocation", "api.condolencetemplate", "api.candleimage", "api.candlemessagetemplate")
+                "name": "Stammdaten", "icon": "fas fa-database",
+                "models": (
+                    "api.eventlocation", 
+                    "api.condolencetemplate", 
+                    "api.candleimage", 
+                    "api.candlemessagetemplate"
+                )
+            },
+            {
+                "name": "System-Einstellungen", "icon": "fas fa-cogs",
+                "models": ("api.sitesettings", "api.mediaasset")
             },
             {
                 "name": "Nutzerinhalte", "icon": "fas fa-stream",
@@ -166,7 +176,6 @@ JAZZMIN_SETTINGS = {
         "api.digitallegacyitem": "fas fa-cloud", "auth.group": "fas fa-users",
     },
     "show_ui_builder": True,
-    # Diese Zeile sorgt dafür, dass deine CSS-Datei geladen wird.
     "custom_css": "admin/css/custom_admin.css",
 }
 JAZZMIN_UI_TWEAKS = {

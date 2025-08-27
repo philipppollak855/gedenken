@@ -1,5 +1,7 @@
 # backend/core/production.py
 # FINAL: Eine vollständige und in sich geschlossene Konfigurationsdatei für die Produktion.
+# KORRIGIERT: Die Datenbank-Konfiguration wird robuster gemacht, indem das importierte
+# Settings-Wörterbuch direkt aktualisiert wird.
 
 import os
 import dj_database_url
@@ -15,12 +17,13 @@ ALLOWED_HOSTS_STRING = os.environ.get('ALLOWED_HOSTS', '')
 ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(' ') if ALLOWED_HOSTS_STRING else []
 
 # Datenbank-Konfiguration von Render (überschreibt die lokale Einstellung)
-DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+# KORREKTUR: Anstatt die Variable komplett neu zu definieren, aktualisieren wir
+# den 'default'-Schlüssel des importierten DATABASES-Wörterbuchs.
+# Das ist robuster gegen unvorhersehbare Import-Reihenfolgen.
+DATABASES['default'] = dj_database_url.config(
+    conn_max_age=600,
+    ssl_require=True
+)
 
 # Statische Dateien (CSS, JavaScript, Images) mit WhiteNoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

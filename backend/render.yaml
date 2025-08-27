@@ -1,6 +1,5 @@
 # render.yaml
-# KORRIGIERT: Fügt die Umgebungsvariable DJANGO_SETTINGS_MODULE hinzu,
-# um dem Server explizit die Produktions-Einstellungen zuzuweisen.
+# FINAL: Bereinigt, um die Konfiguration zu vereinfachen.
 
 databases:
   - name: vorsorge-db
@@ -28,9 +27,6 @@ services:
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
-      # NEU: Diese Zeile ist entscheidend für die korrekte Konfiguration
-      - key: DJANGO_SETTINGS_MODULE
-        value: core.production
       - key: DJANGO_SUPERUSER_EMAIL
         value: philipp.pollak855@gmail.com
       - key: DJANGO_SUPERUSER_PASSWORD

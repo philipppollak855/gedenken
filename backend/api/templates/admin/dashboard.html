@@ -51,23 +51,24 @@
         </div>
 
         <div class="dashboard-widget activity-widget full-width">
-            <h2>Kommende Termine</h2>
-            <div class="activity-list scrollable">
-                <table>
-                    <tbody>
-                        {% for event in upcoming_events %}
-                        <tr>
-                            <td><span class="event-date">{{ event.date|date:"D, d. M" }}</span></td>
-                            <td><strong>{{ event.title }}</strong> für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></td>
-                            <td><span class="meta">{{ event.date|date:"H:i" }} Uhr</span></td>
-                            <td><span class="meta">{{ event.attendee_count }} Zusagen</span></td>
-                            <td><a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="button">Details</a></td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="5">Keine kommenden Termine gefunden.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="widget-header">
+                <h2>Kommende Termine</h2>
+                <i class="fas fa-calendar-alt calendar-icon" id="open-calendar-modal"></i>
+            </div>
+            <div class="event-grid">
+                {% for event in upcoming_events_grid %}
+                <div class="event-card">
+                    <div class="event-card-date">{{ event.date|date:"D, d. M" }}</div>
+                    <div class="event-card-title">{{ event.title }}</div>
+                    <div class="event-card-page">für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></div>
+                    <div class="event-card-footer">
+                        <span><i class="fas fa-clock"></i> {{ event.date|date:"H:i" }} Uhr</span>
+                        <span><i class="fas fa-users"></i> {{ event.attendee_count }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p>Keine kommenden Termine gefunden.</p>
+                {% endfor %}
             </div>
         </div>
 
@@ -106,24 +107,150 @@
                 </ul>
             </div>
         </div>
-
     </div>
 </div>
 
+<!-- Kalender Modal -->
+<div id="calendar-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="calendar-month-year"></h2>
+            <div>
+                <button id="prev-month">&lt;</button>
+                <button id="next-month">&gt;</button>
+                <span class="close-modal">&times;</span>
+            </div>
+        </div>
+        <div class="calendar-grid-container">
+            <div class="calendar-header">
+                <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+            </div>
+            <div id="calendar-body" class="calendar-body"></div>
+        </div>
+        <div id="event-list-popup"></div>
+    </div>
+</div>
+
+
 <script>
+    // Live-Uhr
     function updateTime() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-        // Format für Österreich, Deutsch
         const formattedDateTime = now.toLocaleString('de-AT', options);
         const timeElement = document.getElementById('current-datetime');
         if (timeElement) {
             timeElement.textContent = formattedDateTime;
         }
     }
-    // Update time every second
     setInterval(updateTime, 1000);
-    // Initial call to display time immediately
     updateTime();
+
+    // Kalender-Logik
+    document.addEventListener('DOMContentLoaded', function() {
+        const events = JSON.parse('{{ calendar_events_json|safe }}');
+        const modal = document.getElementById('calendar-modal');
+        const openBtn = document.getElementById('open-calendar-modal');
+        const closeBtn = document.querySelector('.close-modal');
+        const calendarBody = document.getElementById('calendar-body');
+        const monthYearEl = document.getElementById('calendar-month-year');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        const eventListPopup = document.getElementById('event-list-popup');
+
+        let currentDate = new Date();
+
+        function renderCalendar() {
+            calendarBody.innerHTML = '';
+            eventListPopup.style.display = 'none';
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const monthNames = ["Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+            monthYearEl.textContent = `${monthNames[month]} ${year}`;
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Korrektur für Montag als Wochenstart (getDay: 0=So, 1=Mo, ...)
+            const startOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+
+            // Leere Tage am Anfang des Monats
+            for (let i = 0; i < startOffset; i++) {
+                calendarBody.appendChild(document.createElement('div'));
+            }
+
+            // Tage des Monats
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('calendar-day');
+                dayEl.textContent = day;
+                
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                if (events[dateStr]) {
+                    dayEl.classList.add('has-events');
+                    dayEl.dataset.date = dateStr;
+                }
+
+                const today = new Date();
+                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                    dayEl.classList.add('today');
+                }
+
+                calendarBody.appendChild(dayEl);
+            }
+        }
+
+        function showEventsForDay(dateStr, targetElement) {
+            const dayEvents = events[dateStr];
+            if (!dayEvents) return;
+
+            if (dayEvents.length === 1) {
+                window.location.href = dayEvents[0].url;
+                return;
+            }
+
+            let content = `<h4>Termine am ${new Date(dateStr).toLocaleDateString('de-AT')}</h4><ul>`;
+            dayEvents.forEach(event => {
+                content += `<li><a href="${event.url}">${event.time} - ${event.title} (${event.page})</a></li>`;
+            });
+            content += '</ul>';
+            eventListPopup.innerHTML = content;
+            
+            // Positioniere das Popup neben dem geklickten Tag
+            const targetRect = targetElement.getBoundingClientRect();
+            const modalRect = modal.getBoundingClientRect();
+            eventListPopup.style.left = `${targetRect.left - modalRect.left + targetRect.width + 10}px`;
+            eventListPopup.style.top = `${targetRect.top - modalRect.top}px`;
+            eventListPopup.style.display = 'block';
+        }
+
+        openBtn.onclick = () => { modal.style.display = 'block'; renderCalendar(); };
+        closeBtn.onclick = () => { modal.style.display = 'none'; };
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        prevMonthBtn.onclick = () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        };
+
+        nextMonthBtn.onclick = () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        };
+
+        calendarBody.addEventListener('click', function(e) {
+            if (e.target.classList.contains('has-events')) {
+                showEventsForDay(e.target.dataset.date, e.target);
+            } else {
+                eventListPopup.style.display = 'none';
+            }
+        });
+    });
 </script>
 {% endblock %}

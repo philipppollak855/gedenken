@@ -1,8 +1,8 @@
 # backend/api/admin.py
-# ERWEITERT: SiteSettingsAdmin um Typografie-Feldset ergänzt.
+# ERWEITERT: Dashboard-Logik, um alle zukünftigen Events für den Kalender bereitzustellen.
 
-# ... (alle imports bleiben gleich) ...
 import uuid
+import json
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.text import slugify
@@ -23,8 +23,10 @@ from .models import (
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
 
+# --------------------------------------------------------------
+# 1. Benutzerdefiniertes Admin-Dashboard
+# --------------------------------------------------------------
 
-# ... (admin_dashboard_view und alle anderen Klassen bis SiteSettingsAdmin bleiben unverändert) ...
 def admin_dashboard_view(request):
     """
     Die Logik für unser neues Admin-Dashboard.
@@ -36,16 +38,28 @@ def admin_dashboard_view(request):
         'pending_releases': ReleaseRequest.objects.filter(status=ReleaseRequest.Status.PENDING).count(),
         'unapproved_condolences': Condolence.objects.filter(is_approved=False).count(),
     }
-    # Lädt alle, damit die Filterung im Frontend funktioniert
     latest_condolences = Condolence.objects.order_by('-created_at')[:100] 
     latest_candles = MemorialCandle.objects.order_by('-created_at')[:100]
     
-    # Daten für kommende Termine abrufen
-    upcoming_events = MemorialEvent.objects.filter(
+    # Alle zukünftigen Events für den Kalender laden
+    all_upcoming_events = MemorialEvent.objects.filter(
         date__gte=timezone.now()
     ).annotate(
         attendee_count=Count('attendees')
-    ).select_related('page').order_by('date')[:10]
+    ).select_related('page').order_by('date')
+
+    # Events für den Kalender-Popup als JSON vorbereiten
+    calendar_events = {}
+    for event in all_upcoming_events:
+        date_str = event.date.strftime('%Y-%m-%d')
+        if date_str not in calendar_events:
+            calendar_events[date_str] = []
+        calendar_events[date_str].append({
+            'title': event.title,
+            'time': event.date.strftime('%H:%M'),
+            'page': str(event.page),
+            'url': reverse('admin:api_memorialevent_change', args=[event.pk])
+        })
 
     context = {
         **admin.site.each_context(request),
@@ -53,12 +67,14 @@ def admin_dashboard_view(request):
         "stats": stats,
         "latest_condolences": latest_condolences,
         "latest_candles": latest_candles,
-        "upcoming_events": upcoming_events,
+        "upcoming_events_grid": all_upcoming_events[:6], # Die ersten 6 für das Grid
+        "calendar_events_json": json.dumps(calendar_events), # Alle Events als JSON
     }
     return render(request, "admin/dashboard.html", context)
 
 admin.site.index = admin_dashboard_view
 
+# ... (Rest der Datei bleibt unverändert)
 class ColorPickerWidget(forms.TextInput):
     template_name = 'admin/widgets/color_picker.html'
 
@@ -140,7 +156,6 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ('Expand-Bereich (Kondolenzen etc.)', {
             'fields': ('expend_background_color', 'expend_background_image', 'expend_card_color', 'expend_text_color'),
         }),
-        # NEUES FELDSET HINZUGEFÜGT
         ('Typografie (Admin-Bereich)', {
             'classes': ('collapse',),
             'fields': ('font_family', 'font_size_base'),
@@ -149,7 +164,6 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()
 
-# ... (Der Rest der Datei von UserResource bis zum Ende bleibt unverändert) ...
 class UserResource(resources.ModelResource):
     class Meta:
         model = User

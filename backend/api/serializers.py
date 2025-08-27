@@ -1,5 +1,6 @@
 # backend/api/serializers.py
 # KORRIGIERT: Fehlender EventAttendanceSerializer hinzugefügt.
+# KORRIGIERT: Alle Sonderzeichen wurden korrigiert.
 
 from rest_framework import serializers
 from django.utils import timezone

@@ -1,5 +1,6 @@
 # backend/api/admin.py
 # ERWEITERT: Dashboard-Logik um anstehende Termine und offene Freigaben erweitert.
+# KORRIGIERT: Alle Sonderzeichen wurden korrigiert.
 
 import uuid
 from django.contrib import admin
@@ -64,11 +65,7 @@ def admin_dashboard_view(request):
 # Wir "patchen" die Admin-Site, um unsere Dashboard-Ansicht als Index zu verwenden.
 admin.site.index = admin_dashboard_view
 
-
-# (Der restliche Code der Datei bleibt unverändert)
-# ...
-
-# Ein benutzerdefinierter Widget fÃ¼r die Farbauswahl
+# Ein benutzerdefinierter Widget für die Farbauswahl
 class ColorPickerWidget(forms.TextInput):
     input_type = 'color'
     template_name = 'admin/widgets/color_picker.html'
@@ -182,8 +179,8 @@ class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
     fk_name = 'deceased_user'
     extra = 1
-    verbose_name = "AngehÃ¶riger"
-    verbose_name_plural = "AngehÃ¶rige"
+    verbose_name = "Angehöriger"
+    verbose_name_plural = "Angehörige"
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin):
@@ -193,7 +190,7 @@ class UserAdmin(ImportExportModelAdmin):
     list_filter = ('role', 'is_staff')
     search_fields = ('email', 'first_name', 'last_name')
     fieldsets = (
-        ('PersÃ¶nliche Daten', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Persönliche Daten', {'fields': ('first_name', 'last_name', 'email')}),
         ('Berechtigungen & Status', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'consent_admin_access')}),
         ('Wichtige Daten', {'fields': ('id', 'created_at', 'updated_at')}),
     )
@@ -235,7 +232,7 @@ class UserAdmin(ImportExportModelAdmin):
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
 
-    @admin.action(description='AusgewÃ¤hlte Benutzer fÃ¼r Tests klonen')
+    @admin.action(description='Ausgewählte Benutzer für Tests klonen')
     def clone_user(self, request, queryset):
         for user in queryset:
             old_pk = user.pk
@@ -342,7 +339,7 @@ class MemorialPageAdmin(admin.ModelAdmin):
     def get_user_id(self, obj):
         return obj.user.id
 
-    @admin.action(description='AusgewÃ¤hlte Gedenkseiten klonen')
+    @admin.action(description='Ausgewählte Gedenkseiten klonen')
     def clone_memorial_page(self, request, queryset):
         cloned_count = 0
         for page in queryset:
@@ -400,7 +397,7 @@ class ReleaseRequestAdmin(admin.ModelAdmin):
         return f"{obj.deceased_first_name} {obj.deceased_last_name}"
     deceased_full_name.short_description = "Verstorbener"
 
-    @admin.action(description='AusgewÃ¤hlte Anfragen genehmigen & AngehÃ¶rige anlegen')
+    @admin.action(description='Ausgewählte Anfragen genehmigen & Angehörige anlegen')
     def approve_requests(self, request, queryset):
         approved_count = 0
         for req in queryset.filter(status=ReleaseRequest.Status.PENDING):

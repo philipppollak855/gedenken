@@ -10,22 +10,30 @@
         <div class="dashboard-widget stat-widget">
             <h2>Auf einen Blick</h2>
             <div class="stat-grid">
-                <div class="stat-item">
-                    <div class="value">{{ stats.total_users }}</div>
-                    <div class="label">Benutzer</div>
-                </div>
-                <div class="stat-item">
-                    <div class="value">{{ stats.total_pages }}</div>
-                    <div class="label">Gedenkseiten</div>
-                </div>
-                <div class="stat-item warning">
-                    <div class="value">{{ stats.pending_releases }}</div>
-                    <div class="label">Offene Freigaben</div>
-                </div>
-                <div class="stat-item danger">
-                    <div class="value">{{ stats.unapproved_condolences }}</div>
-                    <div class="label">Ungelesene Kondolenzen</div>
-                </div>
+                <a href="{% url 'admin:api_user_changelist' %}" class="stat-item-link">
+                    <div class="stat-item">
+                        <div class="value">{{ stats.total_users }}</div>
+                        <div class="label">Benutzer</div>
+                    </div>
+                </a>
+                <a href="{% url 'admin:api_memorialpage_changelist' %}" class="stat-item-link">
+                    <div class="stat-item">
+                        <div class="value">{{ stats.total_pages }}</div>
+                        <div class="label">Gedenkseiten</div>
+                    </div>
+                </a>
+                <a href="{% url 'admin:api_releaserequest_changelist' %}?status__exact=pending" class="stat-item-link">
+                    <div class="stat-item warning">
+                        <div class="value">{{ stats.pending_releases }}</div>
+                        <div class="label">Offene Freigaben</div>
+                    </div>
+                </a>
+                <a href="{% url 'admin:api_condolence_changelist' %}?is_approved__exact=0" class="stat-item-link">
+                    <div class="stat-item danger">
+                        <div class="value">{{ stats.unapproved_condolences }}</div>
+                        <div class="label">Ungelesene Kondolenzen</div>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -54,26 +62,6 @@
                         </tr>
                         {% empty %}
                         <tr><td colspan="5">Keine kommenden Termine gefunden.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="dashboard-widget activity-widget full-width">
-            <h2>Offene Freigaben</h2>
-            <div class="activity-list scrollable">
-                <table>
-                    <tbody>
-                        {% for release in pending_releases %}
-                        <tr>
-                            <td><strong>{{ release.deceased_first_name }} {{ release.deceased_last_name }}</strong></td>
-                            <td>gemeldet von {{ release.reporter_name }}</td>
-                            <td><span class="meta">{{ release.created_at|timesince }} ago</span></td>
-                            <td><a href="{% url 'admin:api_releaserequest_change' release.request_id %}" class="button">Prüfen</a></td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4">Keine offenen Freigaben.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

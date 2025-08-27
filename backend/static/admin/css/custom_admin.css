@@ -3,21 +3,21 @@
 /* ---------------------------------- */
 /* Globale Variablen für Theming      */
 /* ---------------------------------- */
+
+/* Die Werte hier sind nur Fallbacks, sie werden durch die Einstellungen überschrieben */
 :root {
-    /* Diese Werte könnten in Zukunft aus den SiteSettings geladen werden */
     --admin-font-family: 'Roboto', sans-serif;
     --admin-font-size-base: 14px;
-    --admin-font-size-h1: 28px;
-    --admin-font-size-h2: 22px;
 }
 
-/* body, #content {
-    font-family: var(--admin-font-family);
-    font-size: var(--admin-font-size-base);
+/* Wenden die dynamischen Schriftarten auf den Admin-Bereich an */
+body, #content, .main-sidebar, .main-header {
+    font-family: var(--admin-font-family) !important;
 }
 
-h1 { font-size: var(--admin-font-size-h1); }
-h2 { font-size: var(--admin-font-size-h2); } */
+body {
+    font-size: var(--admin-font-size-base) !important;
+}
 
 
 /* ---------------------------------- */

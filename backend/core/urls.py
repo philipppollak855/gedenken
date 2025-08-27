@@ -1,5 +1,5 @@
 # backend/core/urls.py
-# HINZUGEFÃœGT: Automatische Weiterleitung von der Startseite zum Admin-Bereich.
+# KORRIGIERT: Die Weiterleitung zeigt jetzt auf die korrekte Admin-Startseite.
 
 from django.contrib import admin
 from django.urls import path, include
@@ -9,7 +9,7 @@ from django.views.generic.base import RedirectView
 
 urlpatterns = [
     # Leitet die Haupt-URL ("/") direkt zum Admin-Interface weiter.
-    path('', RedirectView.as_view(url='/admin/api/', permanent=True)),
+    path('', RedirectView.as_view(url='/admin/', permanent=True)),
     
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),

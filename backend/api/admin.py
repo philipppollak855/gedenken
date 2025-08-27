@@ -397,7 +397,7 @@ class ReleaseRequestAdmin(admin.ModelAdmin):
     actions = ['approve_requests']
 
     def deceased_full_name(self, obj):
-        return f"{obj.first_name} {obj.last_name}"
+        return f"{obj.deceased_first_name} {obj.deceased_last_name}"
     deceased_full_name.short_description = "Verstorbener"
 
     @admin.action(description='AusgewÃ¤hlte Anfragen genehmigen & AngehÃ¶rige anlegen')

@@ -166,6 +166,8 @@ JAZZMIN_SETTINGS = {
         "api.digitallegacyitem": "fas fa-cloud", "auth.group": "fas fa-users",
     },
     "show_ui_builder": True,
+    # Diese Zeile sorgt dafür, dass deine CSS-Datei geladen wird.
+    "custom_css": "admin/css/custom_admin.css",
 }
 JAZZMIN_UI_TWEAKS = {
     "theme": "darkly",

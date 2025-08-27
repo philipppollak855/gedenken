@@ -1,5 +1,6 @@
 # backend/api/admin.py
 # ERWEITERT: Dashboard-Logik, um alle zukünftigen Events für den Kalender bereitzustellen.
+# OPTIMIERT: Datenbankabfrage für Events, um den Ort miteinzubeziehen.
 
 import uuid
 import json
@@ -41,12 +42,12 @@ def admin_dashboard_view(request):
     latest_condolences = Condolence.objects.order_by('-created_at')[:100] 
     latest_candles = MemorialCandle.objects.order_by('-created_at')[:100]
     
-    # Alle zukünftigen Events für den Kalender laden
+    # Alle zukünftigen Events für den Kalender laden (inkl. Ort)
     all_upcoming_events = MemorialEvent.objects.filter(
         date__gte=timezone.now()
     ).annotate(
         attendee_count=Count('attendees')
-    ).select_related('page').order_by('date')
+    ).select_related('page', 'location').order_by('date')
 
     # Events für den Kalender-Popup als JSON vorbereiten
     calendar_events = {}

@@ -58,12 +58,16 @@
             <div class="event-grid">
                 {% for event in upcoming_events_grid %}
                 <div class="event-card">
-                    <div class="event-card-date">{{ event.date|date:"D, d. M" }}</div>
-                    <div class="event-card-title">{{ event.title }}</div>
-                    <div class="event-card-page">für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></div>
-                    <div class="event-card-footer">
-                        <span><i class="fas fa-clock"></i> {{ event.date|date:"H:i" }} Uhr</span>
-                        <span><i class="fas fa-users"></i> {{ event.attendee_count }}</span>
+                    <div class="event-card-header">
+                        <div class="event-card-date">{{ event.date|date:"l, d. F Y" }}</div>
+                        <div class="event-card-time">{{ event.date|date:"H:i" }} Uhr</div>
+                    </div>
+                    <div class="event-card-body">
+                        <div class="event-card-title">{{ event.title }}</div>
+                        <div class="event-card-page">für <a href="{% url 'admin:api_memorialpage_change' event.page.pk %}">{{ event.page }}</a></div>
+                        {% if event.location %}
+                        <div class="event-card-location"><i class="fas fa-map-marker-alt"></i> {{ event.location.name }}</div>
+                        {% endif %}
                     </div>
                 </div>
                 {% empty %}

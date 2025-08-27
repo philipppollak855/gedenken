@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Dashboard-Logik, um alle zukünftigen Events für den Kalender bereitzustellen.
-# OPTIMIERT: Datenbankabfrage für Events, um den Ort miteinzubeziehen.
+# ERWEITERT: Dashboard-Logik, um 5 Termine für das Grid zu laden.
 
 import uuid
 import json
@@ -68,7 +67,7 @@ def admin_dashboard_view(request):
         "stats": stats,
         "latest_condolences": latest_condolences,
         "latest_candles": latest_candles,
-        "upcoming_events_grid": all_upcoming_events[:6], # Die ersten 6 für das Grid
+        "upcoming_events_grid": all_upcoming_events[:5], # Die ersten 5 für das Grid
         "calendar_events_json": json.dumps(calendar_events), # Alle Events als JSON
     }
     return render(request, "admin/dashboard.html", context)

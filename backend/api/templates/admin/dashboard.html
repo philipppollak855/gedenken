@@ -176,15 +176,12 @@
             const firstDayOfMonth = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            // Korrektur für Montag als Wochenstart (getDay: 0=So, 1=Mo, ...)
             const startOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
 
-            // Leere Tage am Anfang des Monats
             for (let i = 0; i < startOffset; i++) {
                 calendarBody.appendChild(document.createElement('div'));
             }
 
-            // Tage des Monats
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayEl = document.createElement('div');
                 dayEl.classList.add('calendar-day');
@@ -206,27 +203,18 @@
             }
         }
 
-        function showEventsForDay(dateStr, targetElement) {
+        function showEventsForDay(dateStr) {
             const dayEvents = events[dateStr];
             if (!dayEvents) return;
 
-            if (dayEvents.length === 1) {
-                window.location.href = dayEvents[0].url;
-                return;
-            }
-
+            // DIESER TEIL WURDE GEÄNDERT:
+            // Der Popup wird jetzt immer angezeigt, auch bei nur einem Termin.
             let content = `<h4>Termine am ${new Date(dateStr).toLocaleDateString('de-AT')}</h4><ul>`;
             dayEvents.forEach(event => {
                 content += `<li><a href="${event.url}">${event.time} - ${event.title} (${event.page})</a></li>`;
             });
             content += '</ul>';
             eventListPopup.innerHTML = content;
-            
-            // Positioniere das Popup neben dem geklickten Tag
-            const targetRect = targetElement.getBoundingClientRect();
-            const modalRect = modal.getBoundingClientRect();
-            eventListPopup.style.left = `${targetRect.left - modalRect.left + targetRect.width + 10}px`;
-            eventListPopup.style.top = `${targetRect.top - modalRect.top}px`;
             eventListPopup.style.display = 'block';
         }
 
@@ -250,7 +238,7 @@
 
         calendarBody.addEventListener('click', function(e) {
             if (e.target.classList.contains('has-events')) {
-                showEventsForDay(e.target.dataset.date, e.target);
+                showEventsForDay(e.target.dataset.date);
             } else {
                 eventListPopup.style.display = 'none';
             }

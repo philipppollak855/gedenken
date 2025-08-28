@@ -1,18 +1,16 @@
 # backend/core/settings.py
-# KORRIGIERT: Die Prüfung für die Produktionsumgebung wurde an die Render-Konfiguration angepasst.
+# KORRIGIERT: Alle reverse_lazy-Aufrufe in der UNFOLD-Konfiguration wurden durch statische Pfade ersetzt, um Ladefehler zu vermeiden.
 
 import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
-from django.urls import reverse_lazy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-development')
 
-# KORRIGIERT: Diese Zeile prüft jetzt die korrekte Umgebungsvariable von Render.
 IS_PRODUCTION = os.environ.get('DJANGO_ENV') == 'production'
 
 if IS_PRODUCTION:
@@ -132,45 +130,45 @@ UNFOLD = {
                 "icon": "fas fa-tachometer-alt",
                 "items": [
                     {"title": "Dashboard", "link": "/admin/"},
-                    {"title": "Benutzer", "link": reverse_lazy("admin:api_user_changelist")},
-                    {"title": "Gedenkseiten", "link": reverse_lazy("admin:api_memorialpage_changelist")},
-                    {"title": "Freigabe-Anfragen", "link": reverse_lazy("admin:api_releaserequest_changelist")},
+                    {"title": "Benutzer", "link": "/admin/api/user/"},
+                    {"title": "Gedenkseiten", "link": "/admin/api/memorialpage/"},
+                    {"title": "Freigabe-Anfragen", "link": "/admin/api/releaserequest/"},
                 ],
             },
             {
                 "title": "Inhaltsverwaltung",
                 "icon": "fas fa-photo-video",
                 "items": [
-                     {"title": "Mediathek", "link": reverse_lazy("admin:api_mediaasset_changelist")},
-                     {"title": "Termine", "link": reverse_lazy("admin:api_memorialevent_changelist")},
-                     {"title": "Kondolenzen", "link": reverse_lazy("admin:api_condolence_changelist")},
-                     {"title": "Gedenkkerzen", "link": reverse_lazy("admin:api_memorialcandle_changelist")},
-                     {"title": "Galerie-Einträge", "link": reverse_lazy("admin:api_galleryitem_changelist")},
-                     {"title": "Chronik-Ereignisse", "link": reverse_lazy("admin:api_timelineevent_changelist")},
-                     {"title": "Teilnahmen", "link": reverse_lazy("admin:api_eventattendance_changelist")},
+                     {"title": "Mediathek", "link": "/admin/api/mediaasset/"},
+                     {"title": "Termine", "link": "/admin/api/memorialevent/"},
+                     {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
+                     {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
+                     {"title": "Galerie-Einträge", "link": "/admin/api/galleryitem/"},
+                     {"title": "Chronik-Ereignisse", "link": "/admin/api/timelineevent/"},
+                     {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
                 ],
             },
             {
                 "title": "Vorsorge-Daten",
                 "icon": "fas fa-file-invoice",
                 "items": [
-                    {"title": "Letzte Wünsche", "link": reverse_lazy("admin:api_lastwishes_changelist")},
-                    {"title": "Dokumente", "link": reverse_lazy("admin:api_document_changelist")},
-                    {"title": "Vertrags-Einträge", "link": reverse_lazy("admin:api_contractitem_changelist")},
-                    {"title": "Versicherungs-Einträge", "link": reverse_lazy("admin:api_insuranceitem_changelist")},
-                    {"title": "Finanz-Einträge", "link": reverse_lazy("admin:api_financialitem_changelist")},
-                    {"title": "Digitaler Nachlass", "link": reverse_lazy("admin:api_digitallegacyitem_changelist")},
+                    {"title": "Letzte Wünsche", "link": "/admin/api/lastwishes/"},
+                    {"title": "Dokumente", "link": "/admin/api/document/"},
+                    {"title": "Vertrags-Einträge", "link": "/admin/api/contractitem/"},
+                    {"title": "Versicherungs-Einträge", "link": "/admin/api/insuranceitem/"},
+                    {"title": "Finanz-Einträge", "link": "/admin/api/financialitem/"},
+                    {"title": "Digitaler Nachlass", "link": "/admin/api/digitallegacyitem/"},
                 ],
             },
             {
                 "title": "System & Stammdaten",
                 "icon": "fas fa-cogs",
                 "items": [
-                    {"title": "Globale Einstellungen", "link": reverse_lazy("admin:api_sitesettings_changelist")},
-                    {"title": "Veranstaltungsorte", "link": reverse_lazy("admin:api_eventlocation_changelist")},
-                    {"title": "Kondolenz-Vorlagen", "link": reverse_lazy("admin:api_condolencetemplate_changelist")},
-                    {"title": "Kerzenbilder", "link": reverse_lazy("admin:api_candleimage_changelist")},
-                    {"title": "Kerzen-Vorlagen", "link": reverse_lazy("admin:api_candlemessagetemplate_changelist")},
+                    {"title": "Globale Einstellungen", "link": "/admin/api/sitesettings/"},
+                    {"title": "Veranstaltungsorte", "link": "/admin/api/eventlocation/"},
+                    {"title": "Kondolenz-Vorlagen", "link": "/admin/api/condolencetemplate/"},
+                    {"title": "Kerzenbilder", "link": "/admin/api/candleimage/"},
+                    {"title": "Kerzen-Vorlagen", "link": "/admin/api/candlemessagetemplate/"},
                 ],
             },
         ]

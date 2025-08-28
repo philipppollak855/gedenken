@@ -1,12 +1,12 @@
 # backend/api/admin.py
-# ANGEPASST: Bereinigt für die Verwendung mit Django Unfold.
-# KORRIGIERT: Import für ImportExportModelAdmin auf die Unfold-Version umgestellt.
+# KORRIGIERT: Stellt sicher, dass die Imports für das korrekte django-unfold Paket verwendet werden.
 
 import uuid
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.text import slugify
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin # Korrekt für django-unfold
+from unfold.contrib.import_export.admin import ImportExportModelAdmin # Korrekt für django-unfold
 from import_export import resources
 from django.urls import path, reverse
 from django.shortcuts import render

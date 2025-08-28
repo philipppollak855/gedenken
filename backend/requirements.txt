@@ -6,7 +6,7 @@ djangorestframework-simplejwt
 django-cors-headers
 drf-nested-routers
 django-import-export
-unfold
+django-unfold
 Faker
 gunicorn
 dj-database-url

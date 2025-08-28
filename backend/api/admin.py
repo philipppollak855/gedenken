@@ -1,10 +1,14 @@
 # backend/api/admin.py
 # KORRIGIERT: Die Imports und die Vererbung für ImportExportModelAdmin wurden an die neueste Unfold-Version angepasst.
+# HINZUGEFÜGT: Logik zur Wiederherstellung des benutzerdefinierten Dashboards.
 
 import uuid
+import json
+from datetime import timedelta
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.text import slugify
+from django.utils.timezone import now
 from unfold.admin import ModelAdmin 
 from import_export.admin import ImportExportModelAdmin # KORREKTER IMPORT
 from import_export import resources
@@ -128,7 +132,6 @@ class FamilyLinkInline(admin.TabularInline):
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
 
-# KORRIGIERT: UserAdmin erbt jetzt von beiden Klassen, um die Funktionalität zu kombinieren.
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [UserResource]
@@ -344,3 +347,44 @@ class ReleaseRequestAdmin(ModelAdmin):
             approved_count += 1
         
         self.message_user(request, f"{approved_count} Anfragen erfolgreich genehmigt.")
+
+# HINZUGEFÜGT: Diese Funktion stellt das benutzerdefinierte Dashboard wieder her.
+def dashboard_view(request):
+    """
+    Diese Ansicht rendert die benutzerdefinierte Dashboard-Vorlage mit allen
+    notwendigen Statistiken und Aktivitätsdaten.
+    """
+    stats = {
+        'total_users': User.objects.count(),
+        'total_pages': MemorialPage.objects.count(),
+        'pending_releases': ReleaseRequest.objects.filter(status=ReleaseRequest.Status.PENDING).count(),
+        'unapproved_condolences': Condolence.objects.filter(is_approved=False).count(),
+    }
+    
+    today = now()
+    upcoming_events_grid = MemorialEvent.objects.filter(date__gte=today).order_by('date')[:5]
+    latest_condolences = Condolence.objects.order_by('-created_at')[:10]
+    latest_candles = MemorialCandle.objects.order_by('-created_at')[:10]
+    
+    all_events = MemorialEvent.objects.all()
+    calendar_events = [
+        {
+            "title": f"{event.title} für {event.page.first_name} {event.page.last_name}",
+            "start": event.date.isoformat(),
+            "url": reverse('admin:api_memorialevent_change', args=[event.pk])
+        } for event in all_events
+    ]
+
+    context = {
+        "title": "Dashboard",
+        "stats": stats,
+        "upcoming_events_grid": upcoming_events_grid,
+        "latest_condolences": latest_condolences,
+        "latest_candles": latest_candles,
+        "calendar_events_json": json.dumps(calendar_events),
+        **admin.site.each_context(request), # Wichtig für Unfold-Kontext
+    }
+    return render(request, "admin/dashboard.html", context)
+
+# Wir überschreiben die Standard-Index-Ansicht der Admin-Seite mit unserer Dashboard-Ansicht.
+admin.site.index = dashboard_view

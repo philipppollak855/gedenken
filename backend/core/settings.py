@@ -1,3 +1,10 @@
+import os
+from pathlib import Path
+import dj_database_url
+
+# TEST-ZEILE: Diese Nachricht MUSS im Render Build-Log erscheinen.
+print("---> WIRD DIE NEUESTE SETTINGS.PY AUSGEFÜHRT? JA!")
+
 """
 Django settings for the 'core' project.
 
@@ -8,10 +15,6 @@ https://docs.djangoproject.com/en/stable/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/stable/ref/settings/
 """
-
-import os
-from pathlib import Path
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # Dies sollte korrekt sein, wenn deine settings.py in backend/core/ liegt.

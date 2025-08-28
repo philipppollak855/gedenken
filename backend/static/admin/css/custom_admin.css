@@ -67,11 +67,14 @@ body {
 .event-card-page a { color: #e1e1e1; }
 .event-card-location { font-size: 0.75rem; color: #ccc; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
 
-/* Ausklappbare Widgets */
+/* Ausklappbare Widgets - NEUE LOGIK */
 #condolence-widget, #candle-widget {
-    align-self: end; /* Start at the bottom of the grid row */
-    height: 95px; /* Default collapsed height */
-    min-height: 95px; /* Verhindert das Schrumpfen bei der Animation */
+    align-self: end;
+    height: 95px;
+    min-height: 95px;
+    transition: height 0.4s ease-in-out, transform 0.4s ease-in-out;
+    position: relative;
+    z-index: 10;
 }
 .widget-collapsible-content {
     max-height: 0;
@@ -80,23 +83,15 @@ body {
     margin-top: 0;
     opacity: 0;
 }
-.is-expanded {
-    position: absolute;
+#condolence-widget.is-expanded,
+#candle-widget.is-expanded {
+    height: 50vh; /* Wächst auf 50% der Bildschirmhöhe */
+    transform: translateY(calc(-100% + 95px)); /* Bewegt sich nach oben */
     z-index: 100;
-    height: 50%; /* Grow to 50% of the grid height */
-    bottom: 1.5rem; /* Align with grid gap */
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-#condolence-widget.is-expanded {
-    left: 1.5rem;
-    width: calc(50% - 2.25rem); /* Half grid width minus gaps */
-}
-#candle-widget.is-expanded {
-    right: 1.5rem;
-    width: calc(50% - 2.25rem); /* Half grid width minus gaps */
-}
 .is-expanded .widget-collapsible-content {
-    max-height: 100%; /* Allow content to fill the new height */
+    max-height: 100%;
     margin-top: 1rem;
     opacity: 1;
 }

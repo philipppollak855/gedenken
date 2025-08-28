@@ -28,14 +28,12 @@ body {
 .widget-header h2 { border-bottom: none; padding-bottom: 0; }
 .calendar-icon, .toggle-widget-icon { font-size: 1.5rem; color: #999; cursor: pointer; transition: color 0.2s, transform 0.3s; }
 .calendar-icon:hover, .toggle-widget-icon:hover { color: #fff; }
-.is-expanded .toggle-widget-icon { transform: rotate(135deg); }
 
 /* Grid Layout */
 .stat-widget { grid-column: 1 / 3; grid-row: 1 / 2; }
 .quick-links-widget { grid-column: 3 / 5; grid-row: 1 / 2; }
 .activity-widget.full-width { grid-column: 1 / 5; grid-row: 2 / 3; }
-#condolence-widget { grid-column: 1 / 3; grid-row: 3 / 4; }
-#candle-widget { grid-column: 3 / 5; grid-row: 3 / 4; }
+#condolence-widget, #candle-widget { grid-column: span 2; grid-row: 3 / 4; }
 
 /* Statistik-Karten */
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
@@ -67,30 +65,6 @@ body {
 .event-card-page a { color: #e1e1e1; }
 .event-card-location { font-size: 0.75rem; color: #ccc; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
 
-/* Ausklappbare Widgets - FINAL KORRIGIERTE LOGIK */
-#condolence-widget, #candle-widget {
-    height: 95px;
-    min-height: 95px;
-    transition: height 0.4s ease-in-out;
-    overflow: hidden;
-}
-.widget-collapsible-content {
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    min-height: 0;
-}
-#condolence-widget.is-expanded,
-#candle-widget.is-expanded {
-    height: 100%;
-}
-.is-expanded .widget-collapsible-content {
-    opacity: 1;
-    transition-delay: 0.2s;
-}
-
 /* Aktivitätslisten */
 .activity-list { flex-grow: 1; min-height: 0; }
 .activity-list.scrollable { overflow-y: auto; }
@@ -107,14 +81,21 @@ body {
 .filter-input { width: 100%; padding: 0.5rem; margin-bottom: 1rem; background-color: #212529; border: 1px solid #4a535c; color: #fff; border-radius: 4px; }
 
 /* ---------------------------------- */
-/* KALENDER MODAL STYLES              */
+/* MODAL STYLES (Kalender & Widgets)  */
 /* ---------------------------------- */
 .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
-.modal-content { background-color: #2c343c; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; position: relative; }
+.modal-content { background-color: #2c343c; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; border-radius: 8px; position: relative; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4a535c; padding-bottom: 10px; margin-bottom: 15px; }
 .modal-header h2 { margin: 0; }
 .close-modal { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
 .close-modal:hover, .close-modal:focus { color: #fff; text-decoration: none; }
+
+/* Spezifische Modal-Styles */
+#calendar-modal .modal-content { max-width: 600px; }
+.widget-modal-content { max-width: 900px; height: 70vh; display: flex; flex-direction: column; }
+#widget-modal-body { flex-grow: 1; min-height: 0; display: flex; flex-direction: column; }
+#widget-modal-body .widget-content-source { display: flex !important; flex-direction: column; flex-grow: 1; min-height: 0; }
+
 .calendar-grid-container { position: relative; }
 .calendar-header, .calendar-body { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
 .calendar-header div { font-weight: bold; padding: 10px 0; }

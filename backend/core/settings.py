@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# UMGESETLLT: Komplette Umstellung von Jazzmin auf Django Unfold mit Umschalter.
+# KORRIGIERT: INSTALLED_APPS-Reihenfolge für Unfold und Import/Export korrigiert, um den Build-Fehler zu beheben.
 
 import os
 import dj_database_url
@@ -10,8 +10,6 @@ from django.urls import reverse_lazy
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
-# --- NEUER REGLER FÜR ADMIN THEME ---
-# Liest aus der .env-Datei, welches Theme geladen werden soll. Standard ist 'unfold'.
 ADMIN_THEME = os.getenv('ADMIN_THEME', 'unfold')
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-development')
@@ -50,17 +48,10 @@ else:
 
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
-# --- ANGEPASSTE INSTALLED_APPS ---
-INSTALLED_APPS = []
-
-# Lädt das ausgewählte Admin-Theme an erster Stelle
-if ADMIN_THEME == 'unfold':
-    INSTALLED_APPS += [
-        'unfold',
-    ]
-
-# Standard-Apps, die immer geladen werden
-INSTALLED_APPS += [
+# --- KORRIGIERTE INSTALLED_APPS ---
+INSTALLED_APPS = [
+    'unfold', # Muss an erster Stelle stehen
+    'unfold.contrib.import_export', # Ersetzt 'import_export'
     'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -72,7 +63,7 @@ INSTALLED_APPS += [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'import_export',
+    # 'import_export', # Wird durch die Unfold-Version ersetzt
 ]
 
 
@@ -127,7 +118,6 @@ REST_FRAMEWORK = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join('/var/media', 'media'))
 
-# --- NEU: UNFOLD EINSTELLUNGEN ---
 UNFOLD = {
     "SITE_TITLE": "Vorsorge-Plattform Admin",
     "SITE_HEADER": "Vorsorge-Plattform",

@@ -1,10 +1,11 @@
 # backend/core/settings.py
-# KORRIGIERT: INSTALLED_APPS-Reihenfolge fÃ¼r Unfold und Import/Export korrigiert, um den Build-Fehler zu beheben.
+# KORRIGIERT: Expliziter Pfad für benutzerdefinierte CSS-Dateien zum UNFOLD-Dictionary hinzugefügt.
 
 import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
+from django.urls import reverse_lazy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
@@ -45,10 +46,8 @@ else:
 
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
-# --- KORRIGIERTE INSTALLED_APPS ---
 INSTALLED_APPS = [
-    'unfold', # Muss an erster Stelle stehen
-    # 'unfold.contrib.import_export', # DIESE ZEILE VERURSACHT DEN FEHLER UND WURDE ENTFERNT
+    'unfold',
     'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -60,7 +59,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'import_export', # Die Standard-App wird trotzdem benÃ¶tigt
+    'import_export',
 ]
 
 
@@ -114,3 +113,66 @@ REST_FRAMEWORK = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join('/var/media', 'media'))
+
+UNFOLD = {
+    "SITE_TITLE": "Vorsorge-Plattform Admin",
+    "SITE_HEADER": "Vorsorge-Plattform",
+    "SITE_BRAND": "Verwaltung",
+    "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
+    "COPYRIGHT": "Ihre Bestattung GmbH",
+    "THEME": "dark",
+    # HINZUGEFÜGT: Dieser Block lädt Ihre benutzerdefinierte CSS-Datei.
+    "STYLES": [
+        "admin/css/custom_admin.css",
+    ],
+    "SIDEBAR": {
+        "navigation": [
+            {
+                "title": "Hauptverwaltung",
+                "icon": "fas fa-tachometer-alt",
+                "items": [
+                    {"title": "Dashboard", "link": reverse_lazy("admin:index")},
+                    {"title": "Benutzer", "link": reverse_lazy("admin:api_user_changelist")},
+                    {"title": "Gedenkseiten", "link": reverse_lazy("admin:api_memorialpage_changelist")},
+                    {"title": "Freigabe-Anfragen", "link": reverse_lazy("admin:api_releaserequest_changelist")},
+                ],
+            },
+            {
+                "title": "Inhaltsverwaltung",
+                "icon": "fas fa-photo-video",
+                "items": [
+                     {"title": "Mediathek", "link": reverse_lazy("admin:api_mediaasset_changelist")},
+                     {"title": "Termine", "link": reverse_lazy("admin:api_memorialevent_changelist")},
+                     {"title": "Kondolenzen", "link": reverse_lazy("admin:api_condolence_changelist")},
+                     {"title": "Gedenkkerzen", "link": reverse_lazy("admin:api_memorialcandle_changelist")},
+                     {"title": "Galerie-Einträge", "link": reverse_lazy("admin:api_galleryitem_changelist")},
+                     {"title": "Chronik-Ereignisse", "link": reverse_lazy("admin:api_timelineevent_changelist")},
+                     {"title": "Teilnahmen", "link": reverse_lazy("admin:api_eventattendance_changelist")},
+                ],
+            },
+            {
+                "title": "Vorsorge-Daten",
+                "icon": "fas fa-file-invoice",
+                "items": [
+                    {"title": "Letzte Wünsche", "link": reverse_lazy("admin:api_lastwishes_changelist")},
+                    {"title": "Dokumente", "link": reverse_lazy("admin:api_document_changelist")},
+                    {"title": "Vertrags-Einträge", "link": reverse_lazy("admin:api_contractitem_changelist")},
+                    {"title": "Versicherungs-Einträge", "link": reverse_lazy("admin:api_insuranceitem_changelist")},
+                    {"title": "Finanz-Einträge", "link": reverse_lazy("admin:api_financialitem_changelist")},
+                    {"title": "Digitaler Nachlass", "link": reverse_lazy("admin:api_digitallegacyitem_changelist")},
+                ],
+            },
+            {
+                "title": "System & Stammdaten",
+                "icon": "fas fa-cogs",
+                "items": [
+                    {"title": "Globale Einstellungen", "link": reverse_lazy("admin:api_sitesettings_changelist")},
+                    {"title": "Veranstaltungsorte", "link": reverse_lazy("admin:api_eventlocation_changelist")},
+                    {"title": "Kondolenz-Vorlagen", "link": reverse_lazy("admin:api_condolencetemplate_changelist")},
+                    {"title": "Kerzenbilder", "link": reverse_lazy("admin:api_candleimage_changelist")},
+                    {"title": "Kerzen-Vorlagen", "link": reverse_lazy("admin:api_candlemessagetemplate_changelist")},
+                ],
+            },
+        ]
+    },
+}

@@ -121,7 +121,6 @@ UNFOLD = {
     "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
-    # HINZUGEFÜGT: Dieser Block lädt Ihre benutzerdefinierte CSS-Datei.
     "STYLES": [
         "admin/css/custom_admin.css",
     ],
@@ -131,7 +130,8 @@ UNFOLD = {
                 "title": "Hauptverwaltung",
                 "icon": "fas fa-tachometer-alt",
                 "items": [
-                    {"title": "Dashboard", "link": reverse_lazy("admin:index")},
+                    # KORRIGIERT: reverse_lazy durch statischen Pfad ersetzt, um Ladefehler zu vermeiden.
+                    {"title": "Dashboard", "link": "/admin/"},
                     {"title": "Benutzer", "link": reverse_lazy("admin:api_user_changelist")},
                     {"title": "Gedenkseiten", "link": reverse_lazy("admin:api_memorialpage_changelist")},
                     {"title": "Freigabe-Anfragen", "link": reverse_lazy("admin:api_releaserequest_changelist")},

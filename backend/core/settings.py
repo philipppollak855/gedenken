@@ -57,7 +57,6 @@ INSTALLED_APPS = []
 if ADMIN_THEME == 'unfold':
     INSTALLED_APPS += [
         'unfold',
-        'unfold.contrib.import_export',
     ]
 
 # Standard-Apps, die immer geladen werden

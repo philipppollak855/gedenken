@@ -1,10 +1,12 @@
 # backend/api/admin.py
 # ANGEPASST: Bereinigt für die Verwendung mit Django Unfold.
+# KORRIGIERT: Alle ModelAdmin-Klassen erben nun von unfold.admin.ModelAdmin, um Kompatibilitätsprobleme zu beheben.
 
 import uuid
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.text import slugify
+from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse
@@ -20,12 +22,12 @@ from .models import (
 )
 
 @admin.register(EventLocation)
-class EventLocationAdmin(admin.ModelAdmin):
+class EventLocationAdmin(ModelAdmin):
     list_display = ('name', 'address')
     search_fields = ('name', 'address')
 
 @admin.register(MediaAsset)
-class MediaAssetAdmin(admin.ModelAdmin):
+class MediaAssetAdmin(ModelAdmin):
     list_display = ('title', 'asset_type', 'thumbnail', 'uploaded_at')
     list_filter = ('asset_type',)
     search_fields = ('title',)
@@ -37,22 +39,22 @@ class MediaAssetAdmin(admin.ModelAdmin):
         return "Keine Vorschau"
 
 @admin.register(CandleImage)
-class CandleImageAdmin(admin.ModelAdmin):
+class CandleImageAdmin(ModelAdmin):
     list_display = ('name', 'type')
     list_filter = ('type',)
     raw_id_fields = ('image',)
 
 @admin.register(CandleMessageTemplate)
-class CandleMessageTemplateAdmin(admin.ModelAdmin):
+class CandleMessageTemplateAdmin(ModelAdmin):
     list_display = ('title', 'text')
 
 @admin.register(CondolenceTemplate)
-class CondolenceTemplateAdmin(admin.ModelAdmin):
+class CondolenceTemplateAdmin(ModelAdmin):
     list_display = ('title',)
     search_fields = ('title', 'text')
 
 @admin.register(Condolence)
-class CondolenceAdmin(admin.ModelAdmin):
+class CondolenceAdmin(ModelAdmin):
     list_display = ('guest_name', 'page', 'is_approved', 'created_at')
     list_filter = ('is_approved',)
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
@@ -61,7 +63,7 @@ class CondolenceAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'author', 'page')
 
 @admin.register(MemorialCandle)
-class MemorialCandleAdmin(admin.ModelAdmin):
+class MemorialCandleAdmin(ModelAdmin):
     list_display = ('guest_name', 'page', 'is_private', 'created_at')
     list_filter = ('is_private',)
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
@@ -71,7 +73,7 @@ class MemorialCandleAdmin(admin.ModelAdmin):
     raw_id_fields = ('candle_image',)
 
 @admin.register(SiteSettings)
-class SiteSettingsAdmin(admin.ModelAdmin):
+class SiteSettingsAdmin(ModelAdmin):
     raw_id_fields = ('listing_background_image', 'search_background_image', 'expend_background_image')
     fieldsets = (
         ('Gedenkseiten-Startseite', {
@@ -192,7 +194,7 @@ class EventAttendanceInline(admin.TabularInline):
     can_delete = True
 
 @admin.register(MemorialEvent)
-class MemorialEventAdmin(admin.ModelAdmin):
+class MemorialEventAdmin(ModelAdmin):
     list_display = ('title', 'page', 'date')
     inlines = [EventAttendanceInline]
     list_filter = ('page',)
@@ -204,7 +206,7 @@ class MemorialEventInline(admin.TabularInline):
     raw_id_fields = ('location',)
     
 @admin.register(MemorialPage)
-class MemorialPageAdmin(admin.ModelAdmin):
+class MemorialPageAdmin(ModelAdmin):
     search_fields = ('first_name', 'last_name', 'user__email', 'slug')
     list_display = ('__str__', 'get_user_id', 'status', 'condolence_moderation')
     readonly_fields = ('user',)
@@ -292,7 +294,7 @@ class MemorialPageAdmin(admin.ModelAdmin):
         self.message_user(request, f"{cloned_count} Gedenkseite(n) erfolgreich geklont.")
 
 @admin.register(ReleaseRequest)
-class ReleaseRequestAdmin(admin.ModelAdmin):
+class ReleaseRequestAdmin(ModelAdmin):
     list_display = ('deceased_full_name', 'reporter_name', 'status', 'created_at')
     list_filter = ('status',)
     fields = ('status', 'resolved_user', 'deceased_first_name', 'deceased_last_name', 'deceased_date_of_birth', 'deceased_date_of_death', 'reporter_name', 'reporter_email', 'reporter_relationship', 'death_certificate')

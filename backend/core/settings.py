@@ -1,13 +1,18 @@
 # backend/core/settings.py
-# KORRIGIERT: JAZZMIN_SETTINGS komplett neu strukturiert für eine saubere Sidebar-Navigation.
+# UMGESETLLT: Komplette Umstellung von Jazzmin auf Django Unfold mit Umschalter.
 
 import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
+from django.urls import reverse_lazy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
+
+# --- NEUER REGLER FÜR ADMIN THEME ---
+# Liest aus der .env-Datei, welches Theme geladen werden soll. Standard ist 'unfold'.
+ADMIN_THEME = os.getenv('ADMIN_THEME', 'unfold')
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-development')
 
@@ -45,8 +50,18 @@ else:
 
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
-INSTALLED_APPS = [
-    'jazzmin',
+# --- ANGEPASSTE INSTALLED_APPS ---
+INSTALLED_APPS = []
+
+# Lädt das ausgewählte Admin-Theme an erster Stelle
+if ADMIN_THEME == 'unfold':
+    INSTALLED_APPS += [
+        'unfold',
+        'unfold.contrib.import_export',
+    ]
+
+# Standard-Apps, die immer geladen werden
+INSTALLED_APPS += [
     'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -60,6 +75,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'import_export',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -112,110 +128,62 @@ REST_FRAMEWORK = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join('/var/media', 'media'))
 
-JAZZMIN_SETTINGS = {
-    "site_title": "Vorsorge-Plattform Admin",
-    "site_header": "Vorsorge-Plattform",
-    "site_brand": "Verwaltung",
-    "welcome_sign": "Willkommen in der Verwaltung der Vorsorge-Plattform",
-    "copyright": "Ihre Bestattung GmbH",
-    "topmenu_links": [
-        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Frontend ansehen", "url": "http://localhost:3000", "new_window": True},
-    ],
-    
-    # Deaktiviert die Standard-App-Liste, damit wir volle Kontrolle haben
-    "hide_apps": ["auth"],
-    "hide_models": ["api.FamilyLink"], # Versteckt das Modell, da es nur als Inline verwendet wird
-
-    # Definiert die Reihenfolge der Hauptkategorien in der Sidebar
-    "order_with_respect_to": [
-        "api.User", "api.MemorialPage", "api.ReleaseRequest", # Hauptverwaltung
-        "api.MediaAsset", "api.MemorialEvent", "api.Condolence", "api.MemorialCandle", "api.GalleryItem", "api.TimelineEvent", # Inhaltsverwaltung
-        "api.LastWishes", "api.Document", "api.ContractItem", "api.InsuranceItem", "api.FinancialItem", "api.DigitalLegacyItem", # Vorsorge-Daten
-        "api.SiteSettings", "api.EventLocation", "api.CondolenceTemplate", "api.CandleImage", "api.CandleMessageTemplate", # System & Stammdaten
-    ],
-
-    # Definiert die benutzerdefinierte, verschachtelte Navigation
-    "custom_links": {
-        "api": [
+# --- NEU: UNFOLD EINSTELLUNGEN ---
+UNFOLD = {
+    "SITE_TITLE": "Vorsorge-Plattform Admin",
+    "SITE_HEADER": "Vorsorge-Plattform",
+    "SITE_BRAND": "Verwaltung",
+    "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
+    "COPYRIGHT": "Ihre Bestattung GmbH",
+    "THEME": "dark",
+    "SIDEBAR": {
+        "navigation": [
             {
-                "name": "Hauptverwaltung",
+                "title": "Hauptverwaltung",
                 "icon": "fas fa-tachometer-alt",
-                "models": (
-                    "api.user",
-                    "api.memorialpage",
-                    "api.releaserequest",
-                )
+                "items": [
+                    {"title": "Dashboard", "link": reverse_lazy("admin:index")},
+                    {"title": "Benutzer", "link": reverse_lazy("admin:api_user_changelist")},
+                    {"title": "Gedenkseiten", "link": reverse_lazy("admin:api_memorialpage_changelist")},
+                    {"title": "Freigabe-Anfragen", "link": reverse_lazy("admin:api_releaserequest_changelist")},
+                ],
             },
             {
-                "name": "Inhaltsverwaltung",
+                "title": "Inhaltsverwaltung",
                 "icon": "fas fa-photo-video",
-                "models": (
-                    "api.mediaasset",
-                    "api.memorialevent",
-                    "api.condolence",
-                    "api.memorialcandle",
-                    "api.galleryitem",
-                    "api.timelineevent",
-                    "api.eventattendance",
-                )
+                "items": [
+                     {"title": "Mediathek", "link": reverse_lazy("admin:api_mediaasset_changelist")},
+                     {"title": "Termine", "link": reverse_lazy("admin:api_memorialevent_changelist")},
+                     {"title": "Kondolenzen", "link": reverse_lazy("admin:api_condolence_changelist")},
+                     {"title": "Gedenkkerzen", "link": reverse_lazy("admin:api_memorialcandle_changelist")},
+                     {"title": "Galerie-Einträge", "link": reverse_lazy("admin:api_galleryitem_changelist")},
+                     {"title": "Chronik-Ereignisse", "link": reverse_lazy("admin:api_timelineevent_changelist")},
+                     {"title": "Teilnahmen", "link": reverse_lazy("admin:api_eventattendance_changelist")},
+                ],
             },
             {
-                "name": "Vorsorge-Daten",
+                "title": "Vorsorge-Daten",
                 "icon": "fas fa-file-invoice",
-                "models": (
-                    "api.lastwishes",
-                    "api.document",
-                    "api.contractitem",
-                    "api.insuranceitem",
-                    "api.financialitem",
-                    "api.digitallegacyitem",
-                )
+                "items": [
+                    {"title": "Letzte Wünsche", "link": reverse_lazy("admin:api_lastwishes_changelist")},
+                    {"title": "Dokumente", "link": reverse_lazy("admin:api_document_changelist")},
+                    {"title": "Vertrags-Einträge", "link": reverse_lazy("admin:api_contractitem_changelist")},
+                    {"title": "Versicherungs-Einträge", "link": reverse_lazy("admin:api_insuranceitem_changelist")},
+                    {"title": "Finanz-Einträge", "link": reverse_lazy("admin:api_financialitem_changelist")},
+                    {"title": "Digitaler Nachlass", "link": reverse_lazy("admin:api_digitallegacyitem_changelist")},
+                ],
             },
             {
-                "name": "System & Stammdaten",
+                "title": "System & Stammdaten",
                 "icon": "fas fa-cogs",
-                "models": (
-                    "api.sitesettings",
-                    "api.eventlocation",
-                    "api.condolencetemplate",
-                    "api.candleimage",
-                    "api.candlemessagetemplate",
-                )
-            }
+                "items": [
+                    {"title": "Globale Einstellungen", "link": reverse_lazy("admin:api_sitesettings_changelist")},
+                    {"title": "Veranstaltungsorte", "link": reverse_lazy("admin:api_eventlocation_changelist")},
+                    {"title": "Kondolenz-Vorlagen", "link": reverse_lazy("admin:api_condolencetemplate_changelist")},
+                    {"title": "Kerzenbilder", "link": reverse_lazy("admin:api_candleimage_changelist")},
+                    {"title": "Kerzen-Vorlagen", "link": reverse_lazy("admin:api_candlemessagetemplate_changelist")},
+                ],
+            },
         ]
     },
-
-    "icons": {
-        "api.user": "fas fa-user",
-        "api.memorialpage": "fas fa-book-dead",
-        "api.releaserequest": "fas fa-key",
-        "api.mediaasset": "fas fa-photo-video",
-        "api.memorialevent": "fas fa-calendar-alt",
-        "api.condolence": "fas fa-comment-dots",
-        "api.memorialcandle": "fas fa-candle-holder",
-        "api.galleryitem": "fas fa-images",
-        "api.timelineevent": "fas fa-stream",
-        "api.eventattendance": "fas fa-user-check",
-        "api.lastwishes": "fas fa-hand-holding-heart",
-        "api.document": "fas fa-file-alt",
-        "api.contractitem": "fas fa-file-signature",
-        "api.insuranceitem": "fas fa-shield-alt",
-        "api.financialitem": "fas fa-euro-sign",
-        "api.digitallegacyitem": "fas fa-cloud",
-        "api.sitesettings": "fas fa-sliders-h",
-        "api.eventlocation": "fas fa-map-marker-alt",
-        "api.condolencetemplate": "fas fa-paste",
-        "api.candleimage": "fas fa-image",
-        "api.candlemessagetemplate": "fas fa-comment-alt",
-    },
-    "show_ui_builder": True,
-    "custom_css": "admin/css/custom_admin.css",
-}
-JAZZMIN_UI_TWEAKS = {
-    "theme": "darkly",
-    "button_classes": {
-        "primary": "btn-primary", "secondary": "btn-secondary", "info": "btn-info",
-        "warning": "btn-warning", "danger": "btn-danger", "success": "btn-success"
-    }
 }

@@ -71,6 +71,7 @@ body {
 #condolence-widget, #candle-widget {
     align-self: end; /* Start at the bottom of the grid row */
     height: 95px; /* Default collapsed height */
+    min-height: 95px; /* Verhindert das Schrumpfen bei der Animation */
 }
 .widget-collapsible-content {
     max-height: 0;

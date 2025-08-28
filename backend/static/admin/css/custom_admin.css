@@ -82,7 +82,7 @@ body {
 .is-expanded {
     position: absolute;
     z-index: 100;
-    height: 70%; /* Grow to 70% of the grid height */
+    height: 50%; /* Grow to 50% of the grid height */
     bottom: 1.5rem; /* Align with grid gap */
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }

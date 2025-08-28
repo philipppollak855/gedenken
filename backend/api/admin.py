@@ -1,12 +1,12 @@
 # backend/api/admin.py
-# KORRIGIERT: Stellt sicher, dass die Imports für das korrekte django-unfold Paket verwendet werden.
+# KORRIGIERT: Die Imports und die Vererbung für ImportExportModelAdmin wurden an die neueste Unfold-Version angepasst.
 
 import uuid
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.text import slugify
-from unfold.admin import ModelAdmin # Korrekt für django-unfold
-from unfold.contrib.import_export.admin import ImportExportModelAdmin # Korrekt für django-unfold
+from unfold.admin import ModelAdmin 
+from import_export.admin import ImportExportModelAdmin # KORREKTER IMPORT
 from import_export import resources
 from django.urls import path, reverse
 from django.shortcuts import render
@@ -128,8 +128,9 @@ class FamilyLinkInline(admin.TabularInline):
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
 
+# KORRIGIERT: UserAdmin erbt jetzt von beiden Klassen, um die Funktionalität zu kombinieren.
 @admin.register(User)
-class UserAdmin(ImportExportModelAdmin):
+class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [UserResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     readonly_fields = ('id', 'created_at', 'updated_at')

@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: MemorialCandleAdmin hinzugefügt, um Links im Dashboard zu ermöglichen.
+# ERWEITERT: Kondolenzen und Gedenkkerzen sind nun vollständig im Admin-Bereich bearbeitbar.
 
 import uuid
 import json
@@ -137,14 +137,21 @@ class CondolenceAdmin(admin.ModelAdmin):
     list_filter = ('is_approved',)
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
     list_editable = ('is_approved',)
-    readonly_fields = ('guest_name', 'message', 'created_at', 'author', 'page')
+    # Felder zur Bearbeitung freigegeben
+    fields = ('page', 'guest_name', 'message', 'is_approved', 'author', 'created_at')
+    readonly_fields = ('created_at', 'author', 'page')
 
 @admin.register(MemorialCandle)
 class MemorialCandleAdmin(admin.ModelAdmin):
     list_display = ('guest_name', 'page', 'is_private', 'created_at')
     list_filter = ('is_private',)
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
-    readonly_fields = ('guest_name', 'message', 'created_at', 'author', 'page', 'candle_image')
+    list_editable = ('is_private',)
+    # Felder zur Bearbeitung freigegeben
+    fields = ('page', 'guest_name', 'message', 'is_private', 'candle_image', 'author', 'created_at')
+    readonly_fields = ('created_at', 'author', 'page')
+    raw_id_fields = ('candle_image',)
+
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):

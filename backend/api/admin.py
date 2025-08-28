@@ -7,7 +7,6 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.text import slugify
 from unfold.admin import ModelAdmin
-from unfold.contrib.import_export.admin import ImportExportModelAdmin # KORRIGIERTER IMPORT
 from import_export import resources
 from django.urls import path, reverse
 from django.shortcuts import render

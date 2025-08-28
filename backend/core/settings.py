@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Expliziter Pfad für benutzerdefinierte CSS-Dateien zum UNFOLD-Dictionary hinzugefügt.
+# KORRIGIERT: Die Prüfung für die Produktionsumgebung wurde an die Render-Konfiguration angepasst.
 
 import os
 import dj_database_url
@@ -12,7 +12,8 @@ load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-development')
 
-IS_PRODUCTION = os.environ.get('RENDER') == 'true'
+# KORRIGIERT: Diese Zeile prüft jetzt die korrekte Umgebungsvariable von Render.
+IS_PRODUCTION = os.environ.get('DJANGO_ENV') == 'production'
 
 if IS_PRODUCTION:
     DEBUG = False
@@ -130,7 +131,6 @@ UNFOLD = {
                 "title": "Hauptverwaltung",
                 "icon": "fas fa-tachometer-alt",
                 "items": [
-                    # KORRIGIERT: reverse_lazy durch statischen Pfad ersetzt, um Ladefehler zu vermeiden.
                     {"title": "Dashboard", "link": "/admin/"},
                     {"title": "Benutzer", "link": reverse_lazy("admin:api_user_changelist")},
                     {"title": "Gedenkseiten", "link": reverse_lazy("admin:api_memorialpage_changelist")},

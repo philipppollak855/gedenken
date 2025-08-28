@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# FINAL: Zentralisiert die gesamte Konfiguration, um Fehler in der Produktion zu beheben.
+# KORRIGIERT: JAZZMIN_SETTINGS komplett neu strukturiert für eine saubere Sidebar-Navigation.
 
 import os
 import dj_database_url
@@ -11,7 +11,6 @@ load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-development')
 
-# Erkennt automatisch, ob die Anwendung auf Render läuft
 IS_PRODUCTION = os.environ.get('RENDER') == 'true'
 
 if IS_PRODUCTION:
@@ -28,7 +27,6 @@ if IS_PRODUCTION:
     
     CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host]
 else:
-    # Lokale Entwicklungs-Einstellungen
     DEBUG = True
     ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1 backend').split(' ')
     
@@ -124,56 +122,92 @@ JAZZMIN_SETTINGS = {
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "Frontend ansehen", "url": "http://localhost:3000", "new_window": True},
     ],
-    "order_with_respect_to": ["api", "auth"],
-    "apps": {
-        "api": {
-            "name": "Hauptverwaltung",
-            "icon": "fas fa-cogs",
-            "models": {
-                "user": {"label": "Plattform-Benutzer", "icon": "fas fa-user"},
-                "memorialpage": {"label": "Gedenkseiten", "icon": "fas fa-book-dead"},
-                "releaserequest": {"label": "Freigabe-Anfragen", "icon": "fas fa-key"},
-            }
-        },
-    },
-    # HIER WURDE DIE SIDEBAR-STRUKTUR ANGEPASST
+    
+    # Deaktiviert die Standard-App-Liste, damit wir volle Kontrolle haben
+    "hide_apps": ["auth"],
+    "hide_models": ["api.FamilyLink"], # Versteckt das Modell, da es nur als Inline verwendet wird
+
+    # Definiert die Reihenfolge der Hauptkategorien in der Sidebar
+    "order_with_respect_to": [
+        "api.User", "api.MemorialPage", "api.ReleaseRequest", # Hauptverwaltung
+        "api.MediaAsset", "api.MemorialEvent", "api.Condolence", "api.MemorialCandle", "api.GalleryItem", "api.TimelineEvent", # Inhaltsverwaltung
+        "api.LastWishes", "api.Document", "api.ContractItem", "api.InsuranceItem", "api.FinancialItem", "api.DigitalLegacyItem", # Vorsorge-Daten
+        "api.SiteSettings", "api.EventLocation", "api.CondolenceTemplate", "api.CandleImage", "api.CandleMessageTemplate", # System & Stammdaten
+    ],
+
+    # Definiert die benutzerdefinierte, verschachtelte Navigation
     "custom_links": {
         "api": [
             {
-                "name": "Stammdaten", "icon": "fas fa-database",
+                "name": "Hauptverwaltung",
+                "icon": "fas fa-tachometer-alt",
                 "models": (
-                    "api.eventlocation", 
-                    "api.condolencetemplate", 
-                    "api.candleimage", 
-                    "api.candlemessagetemplate"
+                    "api.user",
+                    "api.memorialpage",
+                    "api.releaserequest",
                 )
             },
             {
-                "name": "System-Einstellungen", "icon": "fas fa-cogs",
-                "models": ("api.sitesettings", "api.mediaasset")
+                "name": "Inhaltsverwaltung",
+                "icon": "fas fa-photo-video",
+                "models": (
+                    "api.mediaasset",
+                    "api.memorialevent",
+                    "api.condolence",
+                    "api.memorialcandle",
+                    "api.galleryitem",
+                    "api.timelineevent",
+                    "api.eventattendance",
+                )
             },
             {
-                "name": "Nutzerinhalte", "icon": "fas fa-stream",
-                "models": ("api.memorialevent", "api.condolence", "api.memorialcandle", "api.galleryitem", "api.timelineevent", "api.eventattendance")
+                "name": "Vorsorge-Daten",
+                "icon": "fas fa-file-invoice",
+                "models": (
+                    "api.lastwishes",
+                    "api.document",
+                    "api.contractitem",
+                    "api.insuranceitem",
+                    "api.financialitem",
+                    "api.digitallegacyitem",
+                )
             },
             {
-                "name": "Vorsorge-Daten", "icon": "fas fa-file-invoice",
-                "models": ("api.lastwishes", "api.document", "api.contractitem", "api.insuranceitem", "api.financialitem", "api.digitallegacyitem")
-            },
-             {
-                "name": "System-Verknüpfungen", "icon": "fas fa-link",
-                "models": ("api.familylink", "auth.group")
+                "name": "System & Stammdaten",
+                "icon": "fas fa-cogs",
+                "models": (
+                    "api.sitesettings",
+                    "api.eventlocation",
+                    "api.condolencetemplate",
+                    "api.candleimage",
+                    "api.candlemessagetemplate",
+                )
             }
         ]
     },
-    "hide_apps": ["auth"],
+
     "icons": {
-        "api.sitesettings": "fas fa-sliders-h", "api.mediaasset": "fas fa-photo-video", "api.eventlocation": "fas fa-map-marker-alt",
-        "api.condolencetemplate": "fas fa-paste", "api.candleimage": "fas fa-image", "api.candlemessagetemplate": "fas fa-comment-alt",
-        "api.memorialevent": "fas fa-calendar-alt", "api.galleryitem": "fas fa-images", "api.timelineevent": "fas fa-stream",
-        "api.eventattendance": "fas fa-user-check", "api.lastwishes": "fas fa-hand-holding-heart", "api.document": "fas fa-file-alt",
-        "api.contractitem": "fas fa-file-signature", "api.insuranceitem": "fas fa-shield-alt", "api.financialitem": "fas fa-euro-sign",
-        "api.digitallegacyitem": "fas fa-cloud", "auth.group": "fas fa-users",
+        "api.user": "fas fa-user",
+        "api.memorialpage": "fas fa-book-dead",
+        "api.releaserequest": "fas fa-key",
+        "api.mediaasset": "fas fa-photo-video",
+        "api.memorialevent": "fas fa-calendar-alt",
+        "api.condolence": "fas fa-comment-dots",
+        "api.memorialcandle": "fas fa-candle-holder",
+        "api.galleryitem": "fas fa-images",
+        "api.timelineevent": "fas fa-stream",
+        "api.eventattendance": "fas fa-user-check",
+        "api.lastwishes": "fas fa-hand-holding-heart",
+        "api.document": "fas fa-file-alt",
+        "api.contractitem": "fas fa-file-signature",
+        "api.insuranceitem": "fas fa-shield-alt",
+        "api.financialitem": "fas fa-euro-sign",
+        "api.digitallegacyitem": "fas fa-cloud",
+        "api.sitesettings": "fas fa-sliders-h",
+        "api.eventlocation": "fas fa-map-marker-alt",
+        "api.condolencetemplate": "fas fa-paste",
+        "api.candleimage": "fas fa-image",
+        "api.candlemessagetemplate": "fas fa-comment-alt",
     },
     "show_ui_builder": True,
     "custom_css": "admin/css/custom_admin.css",

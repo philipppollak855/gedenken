@@ -21,14 +21,14 @@ body {
 .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .dashboard-header h1 { margin: 0; }
 #current-datetime { font-size: 1rem; font-weight: 500; color: #ccc; background-color: #4a535c; padding: 0.5rem 1rem; border-radius: 6px; white-space: nowrap; }
-.dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: auto min-content 1fr; gap: 1.5rem; height: calc(100vh - 220px); }
-.dashboard-widget { background: #2c343c; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 1px solid #444; display: flex; flex-direction: column; min-height: 0; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: auto min-content 1fr; gap: 1.5rem; height: calc(100vh - 220px); position: relative; }
+.dashboard-widget { background: #2c343c; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 1px solid #444; display: flex; flex-direction: column; min-height: 0; transition: all 0.4s ease-in-out; }
 .dashboard-widget h2 { margin-top: 0; font-size: 1.1rem; font-weight: 600; border-bottom: 1px solid #4a535c; padding-bottom: 0.75rem; margin-bottom: 1rem; color: #e1e1e1; flex-shrink: 0; }
 .widget-header { display: flex; justify-content: space-between; align-items: center; }
 .widget-header h2 { border-bottom: none; padding-bottom: 0; }
 .calendar-icon, .toggle-widget-icon { font-size: 1.5rem; color: #999; cursor: pointer; transition: color 0.2s, transform 0.3s; }
 .calendar-icon:hover, .toggle-widget-icon:hover { color: #fff; }
-.is-expanded .toggle-widget-icon { transform: rotate(180deg); }
+.is-expanded .toggle-widget-icon { transform: rotate(135deg); }
 
 /* Grid Layout */
 .stat-widget { grid-column: 1 / 3; grid-row: 1 / 2; }
@@ -68,15 +68,36 @@ body {
 .event-card-location { font-size: 0.75rem; color: #ccc; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
 
 /* Ausklappbare Widgets */
+#condolence-widget, #candle-widget {
+    align-self: end; /* Start at the bottom of the grid row */
+    height: 95px; /* Default collapsed height */
+}
 .widget-collapsible-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+    transition: max-height 0.4s ease-in-out, margin-top 0.4s ease-in-out, opacity 0.4s;
     margin-top: 0;
+    opacity: 0;
+}
+.is-expanded {
+    position: absolute;
+    z-index: 100;
+    height: 70%; /* Grow to 70% of the grid height */
+    bottom: 1.5rem; /* Align with grid gap */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+#condolence-widget.is-expanded {
+    left: 1.5rem;
+    width: calc(50% - 2.25rem); /* Half grid width minus gaps */
+}
+#candle-widget.is-expanded {
+    right: 1.5rem;
+    width: calc(50% - 2.25rem); /* Half grid width minus gaps */
 }
 .is-expanded .widget-collapsible-content {
-    max-height: 500px; /* Großer Wert, um Inhalt zu erlauben */
+    max-height: 100%; /* Allow content to fill the new height */
     margin-top: 1rem;
+    opacity: 1;
 }
 
 /* Aktivitätslisten */

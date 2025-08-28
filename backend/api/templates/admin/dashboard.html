@@ -88,11 +88,13 @@
                 <div class="activity-list scrollable" id="condolence-list">
                     <ul>
                         {% for condolence in latest_condolences %}
-                        <li>
-                            <strong>{{ condolence.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
-                            <p class="message">{{ condolence.message }}</p>
-                            <div class="meta">{{ condolence.created_at|timesince }} ago</div>
-                        </li>
+                        <a href="{% url 'admin:api_condolence_change' condolence.condolence_id %}" class="list-item-link">
+                            <li>
+                                <strong>{{ condolence.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
+                                <p class="message">{{ condolence.message }}</p>
+                                <div class="meta">{{ condolence.created_at|timesince }} ago</div>
+                            </li>
+                        </a>
                         {% empty %}
                         <li>Keine Kondolenzen vorhanden.</li>
                         {% endfor %}
@@ -111,11 +113,13 @@
                 <div class="activity-list scrollable" id="candle-list">
                     <ul>
                         {% for candle in latest_candles %}
-                        <li>
-                            <strong>{{ candle.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
-                            <p class="message">{{ candle.message }}</p>
-                            <div class="meta">{{ candle.created_at|timesince }} ago</div>
-                        </li>
+                        <a href="{% url 'admin:api_memorialcandle_change' candle.candle_id %}" class="list-item-link">
+                            <li>
+                                <strong>{{ candle.guest_name }}</strong> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
+                                <p class="message">{{ candle.message }}</p>
+                                <div class="meta">{{ candle.created_at|timesince }} ago</div>
+                            </li>
+                        </a>
                         {% empty %}
                         <li>Keine Kerzen angezündet.</li>
                         {% endfor %}

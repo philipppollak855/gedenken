@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Dashboard-Logik, um 5 Termine für das Grid zu laden.
+# ERWEITERT: MemorialCandleAdmin hinzugefügt, um Links im Dashboard zu ermöglichen.
 
 import uuid
 import json
@@ -41,14 +41,12 @@ def admin_dashboard_view(request):
     latest_condolences = Condolence.objects.order_by('-created_at')[:100] 
     latest_candles = MemorialCandle.objects.order_by('-created_at')[:100]
     
-    # Alle zukünftigen Events für den Kalender laden (inkl. Ort)
     all_upcoming_events = MemorialEvent.objects.filter(
         date__gte=timezone.now()
     ).annotate(
         attendee_count=Count('attendees')
     ).select_related('page', 'location').order_by('date')
 
-    # Events für den Kalender-Popup als JSON vorbereiten
     calendar_events = {}
     for event in all_upcoming_events:
         date_str = event.date.strftime('%Y-%m-%d')
@@ -67,14 +65,13 @@ def admin_dashboard_view(request):
         "stats": stats,
         "latest_condolences": latest_condolences,
         "latest_candles": latest_candles,
-        "upcoming_events_grid": all_upcoming_events[:5], # Die ersten 5 für das Grid
-        "calendar_events_json": json.dumps(calendar_events), # Alle Events als JSON
+        "upcoming_events_grid": all_upcoming_events[:5],
+        "calendar_events_json": json.dumps(calendar_events),
     }
     return render(request, "admin/dashboard.html", context)
 
 admin.site.index = admin_dashboard_view
 
-# ... (Rest der Datei bleibt unverändert)
 class ColorPickerWidget(forms.TextInput):
     template_name = 'admin/widgets/color_picker.html'
 
@@ -141,6 +138,13 @@ class CondolenceAdmin(admin.ModelAdmin):
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
     list_editable = ('is_approved',)
     readonly_fields = ('guest_name', 'message', 'created_at', 'author', 'page')
+
+@admin.register(MemorialCandle)
+class MemorialCandleAdmin(admin.ModelAdmin):
+    list_display = ('guest_name', 'page', 'is_private', 'created_at')
+    list_filter = ('is_private',)
+    search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
+    readonly_fields = ('guest_name', 'message', 'created_at', 'author', 'page', 'candle_image')
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):

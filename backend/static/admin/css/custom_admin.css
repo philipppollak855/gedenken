@@ -67,41 +67,36 @@ body {
 .event-card-page a { color: #e1e1e1; }
 .event-card-location { font-size: 0.75rem; color: #ccc; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
 
-/* Ausklappbare Widgets - NEUE LOGIK */
+/* Ausklappbare Widgets - KORRIGIERTE LOGIK */
 #condolence-widget, #candle-widget {
     align-self: end;
     height: 95px;
     min-height: 95px;
-    transition: height 0.4s ease-in-out, transform 0.4s ease-in-out;
-    position: relative;
-    z-index: 10;
+    transition: height 0.4s ease-in-out;
+    overflow: hidden;
 }
 .widget-collapsible-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-in-out, margin-top 0.4s ease-in-out, opacity 0.4s;
-    margin-top: 0;
     opacity: 0;
+    transition: opacity 0.2s ease-in-out;
 }
 #condolence-widget.is-expanded,
 #candle-widget.is-expanded {
-    height: 50vh; /* Wächst auf 50% der Bildschirmhöhe */
-    transform: translateY(calc(-100% + 95px)); /* Bewegt sich nach oben */
-    z-index: 100;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    align-self: stretch;
+    height: auto;
 }
 .is-expanded .widget-collapsible-content {
-    max-height: 100%;
-    margin-top: 1rem;
     opacity: 1;
+    transition-delay: 0.2s;
 }
 
 /* Aktivitätslisten */
 .activity-list { flex-grow: 1; min-height: 0; }
 .activity-list.scrollable { overflow-y: auto; }
 .activity-list ul { list-style: none; padding: 0; margin: 0; }
+.activity-list a.list-item-link { display: block; text-decoration: none; color: inherit; transition: background-color 0.2s; }
+.activity-list a.list-item-link:hover { background-color: rgba(255, 255, 255, 0.05); }
 .activity-list li { padding: 0.75rem 0.25rem; border-bottom: 1px solid #444; font-size: 0.9rem; }
-.activity-list li:last-child { border-bottom: none; }
+.activity-list a.list-item-link:last-child li { border-bottom: none; }
 .activity-list .meta { color: #999; font-size: 0.8rem; }
 .activity-list a { color: #8c8073; font-weight: bold; text-decoration: none; }
 .activity-list a:hover { text-decoration: underline; }

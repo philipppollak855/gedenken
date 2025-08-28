@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Kondolenzen und Gedenkkerzen sind nun vollständig im Admin-Bereich bearbeitbar.
+# ERWEITERT: Sidebar-Navigation mit Jazzmin für bessere Übersichtlichkeit komplett neu strukturiert.
 
 import uuid
 import json
@@ -137,7 +137,6 @@ class CondolenceAdmin(admin.ModelAdmin):
     list_filter = ('is_approved',)
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
     list_editable = ('is_approved',)
-    # Felder zur Bearbeitung freigegeben
     fields = ('page', 'guest_name', 'message', 'is_approved', 'author', 'created_at')
     readonly_fields = ('created_at', 'author', 'page')
 
@@ -147,7 +146,6 @@ class MemorialCandleAdmin(admin.ModelAdmin):
     list_filter = ('is_private',)
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
     list_editable = ('is_private',)
-    # Felder zur Bearbeitung freigegeben
     fields = ('page', 'guest_name', 'message', 'is_private', 'candle_image', 'author', 'created_at')
     readonly_fields = ('created_at', 'author', 'page')
     raw_id_fields = ('candle_image',)

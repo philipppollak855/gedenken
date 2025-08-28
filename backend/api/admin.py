@@ -1,13 +1,13 @@
 # backend/api/admin.py
 # ANGEPASST: Bereinigt für die Verwendung mit Django Unfold.
-# KORRIGIERT: Alle ModelAdmin-Klassen erben nun von unfold.admin.ModelAdmin, um Kompatibilitätsprobleme zu beheben.
+# KORRIGIERT: Import für ImportExportModelAdmin auf die Unfold-Version umgestellt.
 
 import uuid
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.text import slugify
 from unfold.admin import ModelAdmin
-from unfold.contrib.import_export.admin import ImportExportModelAdmin
+from unfold.contrib.import_export.admin import ImportExportModelAdmin # KORRIGIERTER IMPORT
 from import_export import resources
 from django.urls import path, reverse
 from django.shortcuts import render

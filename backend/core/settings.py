@@ -51,7 +51,7 @@ BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 # --- KORRIGIERTE INSTALLED_APPS ---
 INSTALLED_APPS = [
     'unfold', # Muss an erster Stelle stehen
-    # 'unfold.contrib.import_export', # DIESE ZEILE VERURSACHT DEN FEHLER
+    'unfold.contrib.import_export', # Diese Zeile ist notwendig
     'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'import_export', # Die Standard-App wird wieder verwendet
+    'import_export', # Die Standard-App wird trotzdem benötigt
 ]
 
 

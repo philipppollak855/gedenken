@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Pfade für STYLES und SCRIPTS angepasst, um das Path-Building von Unfold zu korrigieren.
+# KORRIGIERT: Pfade für STYLES und SCRIPTS auf den Standard zurückgesetzt, um den 500-Fehler zu beheben.
 
 import os
 import dj_database_url
@@ -53,13 +53,16 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'import_export',
 ]
+
+# Fügt whitenoise nur für die Entwicklung hinzu, um das Verhalten der Produktion zu imitieren
+if not IS_PRODUCTION:
+    INSTALLED_APPS.insert(INSTALLED_APPS.index('django.contrib.staticfiles'), 'whitenoise.runserver_nostatic')
 
 
 MIDDLEWARE = [
@@ -121,10 +124,10 @@ UNFOLD = {
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
     "STYLES": [
-        "../static/admin/css/custom_admin.css",
+        "admin/css/custom_admin.css", # Zurück zum sauberen Pfad
     ],
     "SCRIPTS": [
-        "../static/admin/js/custom_admin.js",
+        "admin/js/custom_admin.js", # Zurück zum sauberen Pfad
     ],
     "SIDEBAR": {
         "navigation": [

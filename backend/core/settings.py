@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: STATIC_URL korrigiert, um den 404-Fehler bei statischen Dateien zu beheben.
+# KORRIGIERT: Syntaxfehler entfernt und korrekte Sidebar-Verschachtelung beibehalten.
 
 import os
 import dj_database_url
@@ -101,7 +101,7 @@ TIME_ZONE = 'Europe/Vienna'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/' 
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -147,16 +147,11 @@ UNFOLD = {
                 "items": [
                      {"title": "Mediathek", "link": "/admin/api/mediaasset/"},
                      {"title": "Termine", "link": "/admin/api/memorialevent/"},
-                     {
-                         "title": "Gedenkseiten-Inhalte",
-                         "items": [
-                            {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
-                            {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
-                            {"title": "Galerie-Einträge", "link": "/admin/api/galleryitem/"},
-                            {"title": "Chronik-Ereignisse", "link": "/admin/api/timelineevent/"},
-                            {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
-                         ]
-                     }
+                     {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
+                     {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
+                     {"title": "Galerie-Einträge", "link": "/admin/api/galleryitem/"},
+                     {"title": "Chronik-Ereignisse", "link": "/admin/api/timelineevent/"},
+                     {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
                 ],
             },
             {
@@ -165,15 +160,10 @@ UNFOLD = {
                 "items": [
                     {"title": "Letzte Wünsche", "link": "/admin/api/lastwishes/"},
                     {"title": "Dokumente", "link": "/admin/api/document/"},
+                    {"title": "Vertrags-Einträge", "link": "/admin/api/contractitem/"},
+                    {"title": "Versicherungs-Einträge", "link": "/admin/api/insuranceitem/"},
+                    {"title": "Finanz-Einträge", "link": "/admin/api/financialitem/"},
                     {"title": "Digitaler Nachlass", "link": "/admin/api/digitallegacyitem/"},
-                    {
-                        "title": "Finanzielles & Verträge",
-                        "items": [
-                             {"title": "Vertrags-Einträge", "link": "/admin/api/contractitem/"},
-                             {"title": "Versicherungs-Einträge", "link": "/admin/api/insuranceitem/"},
-                             {"title": "Finanz-Einträge", "link": "/admin/api/financialitem/"},
-                        ]
-                    }
                 ],
             },
             {
@@ -189,7 +179,7 @@ UNFOLD = {
                             {"title": "Kerzenbilder", "link": "/admin/api/candleimage/"},
                             {"title": "Kerzen-Vorlagen", "link": "/admin/api/candlemessagetemplate/"},
                         ]
-                    }
+                    },
                 ],
             },
         ]

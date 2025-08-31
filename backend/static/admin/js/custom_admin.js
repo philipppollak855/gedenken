@@ -1,14 +1,15 @@
 // backend/static/admin/js/custom_admin.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    // HINZUGEFÜGT: Verschiebt die Modals an das Ende des Body.
-    // Dies ist der robusteste Weg, um zu verhindern, dass sie von anderen Elementen
-    // mit "overflow: hidden" abgeschnitten werden.
-    document.querySelectorAll('.modal').forEach(modal => {
-        document.body.appendChild(modal);
-    });
-
-    // Live-Uhr
+    // Verschiebt die Modals an das Ende des body-Tags, um abgeschnittene Popups zu verhindern
+    function moveModalsToBody() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            document.body.appendChild(modal);
+        });
+    }
+    moveModalsToBody();
+    
+    // --- Live-Uhr ---
     function updateTime() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
@@ -21,10 +22,142 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateTime, 1000);
     updateTime();
 
-    // Globale Variable für Kalender-Events, die vom Template gefüllt wird
-    const events = window.calendarEvents || [];
+    // --- BENUTZERDEFINIERTE SIDEBAR ---
+    
+    // 1. Definiere die Menüstruktur
+    const menuConfig = [
+        { title: "Dashboard", link: "/admin/", icon: "fa-tachometer-alt" },
+        { 
+            title: "Hauptverwaltung", 
+            icon: "fa-users-cog",
+            submenu: [
+                { title: "Benutzer", link: "/admin/api/user/" },
+                { title: "Gedenkseiten", link: "/admin/api/memorialpage/" },
+                { title: "Freigabe-Anfragen", link: "/admin/api/releaserequest/" },
+            ]
+        },
+        {
+            title: "Inhalte & Vorsorge",
+            icon: "fa-layer-group",
+            submenu: [
+                 { title: "Mediathek", link: "/admin/api/mediaasset/" },
+                 { title: "Letzte Wünsche", link: "/admin/api/lastwishes/" },
+                 { title: "Dokumente", link: "/admin/api/document/" },
+                 { title: "Digitaler Nachlass", link: "/admin/api/digitallegacyitem/" },
+            ]
+        },
+        {
+            title: "Ereignisse & Interaktion",
+            icon: "fa-calendar-check",
+            submenu: [
+                 { title: "Termine", link: "/admin/api/memorialevent/" },
+                 { title: "Teilnahmen", link: "/admin/api/eventattendance/" },
+                 { title: "Kondolenzen", link: "/admin/api/condolence/" },
+                 { title: "Gedenkkerzen", link: "/admin/api/memorialcandle/" },
+                 { title: "Galerie", link: "/admin/api/galleryitem/" },
+                 { title: "Chronik", link: "/admin/api/timelineevent/" },
+            ]
+        },
+        {
+            title: "Finanzen & Verträge",
+            icon: "fa-file-invoice-dollar",
+            submenu: [
+                { title: "Verträge", link: "/admin/api/contractitem/" },
+                { title: "Versicherungen", link: "/admin/api/insuranceitem/" },
+                { title: "Finanzen", link: "/admin/api/financialitem/" },
+            ]
+        },
+        {
+            title: "System & Stammdaten",
+            icon: "fa-cogs",
+            submenu: [
+                { title: "Globale Einstellungen", link: "/admin/api/sitesettings/" },
+                { title: "Veranstaltungsorte", link: "/admin/api/eventlocation/" },
+                { title: "Kondolenz-Vorlagen", link: "/admin/api/condolencetemplate/" },
+                { title: "Kerzenbilder", link: "/admin/api/candleimage/" },
+                { title: "Kerzen-Vorlagen", link: "/admin/api/candlemessagetemplate/" },
+                { title: "System-Verknüpfungen", link: "/admin/api/familylink/" },
+                { title: "Benutzergruppen", link: "/admin/auth/group/" },
+            ]
+        },
+    ];
 
+    // 2. Funktion zum Erstellen des HTML-Menüs
+    function createMenuHTML(items) {
+        let html = '<ul>';
+        items.forEach(item => {
+            if (item.submenu) {
+                html += `<li class="has-submenu">
+                            <a href="#">
+                                <i class="fas ${item.icon}"></i>
+                                <span>${item.title}</span>
+                                <i class="fas fa-chevron-right submenu-arrow"></i>
+                            </a>
+                            <div class="submenu">${createMenuHTML(item.submenu)}</div>
+                         </li>`;
+            } else {
+                html += `<li>
+                            <a href="${item.link}">
+                                <i class="fas ${item.icon}"></i>
+                                <span>${item.title}</span>
+                            </a>
+                         </li>`;
+            }
+        });
+        html += '</ul>';
+        return html;
+    }
+
+    // 3. Erstelle und injiziere die Sidebar und den Toggle-Button
+    const sidebar = document.createElement('aside');
+    sidebar.id = 'custom-sidebar';
+    sidebar.innerHTML = `
+        <div class="sidebar-header">
+            <h3>Verwaltung</h3>
+        </div>
+        <nav class="sidebar-nav">${createMenuHTML(menuConfig)}</nav>
+    `;
+    document.body.appendChild(sidebar);
+
+    const toggleButton = document.createElement('button');
+    toggleButton.id = 'custom-sidebar-toggle';
+    toggleButton.innerHTML = '<i class="fas fa-bars"></i>';
+    
+    const headerNav = document.querySelector('.main-header .navbar-nav');
+    if (headerNav) {
+        const wrapper = document.createElement('li');
+        wrapper.classList.add('nav-item');
+        wrapper.appendChild(toggleButton);
+        headerNav.prepend(wrapper);
+    }
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'custom-sidebar-overlay';
+    document.body.appendChild(overlay);
+
+    // 4. Füge Event Listeners hinzu
+    toggleButton.addEventListener('click', () => {
+        sidebar.classList.toggle('is-visible');
+        overlay.classList.toggle('is-visible');
+    });
+    
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('is-visible');
+        overlay.classList.remove('is-visible');
+    });
+
+    sidebar.querySelectorAll('.has-submenu > a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            link.parentElement.classList.toggle('submenu-open');
+        });
+    });
+
+
+    // --- KALENDER & MODAL LOGIK ---
+    const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');
+    // ... (Rest der Kalender- und Modal-Logik bleibt unverändert)
     const openCalendarBtn = document.getElementById('open-calendar-modal');
     const calendarBody = document.getElementById('calendar-body');
     const monthYearEl = document.getElementById('calendar-month-year');
@@ -34,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentDate = new Date();
 
     function renderCalendar() {
-        if (!monthYearEl || !calendarBody) return; // Sicherstellen, dass die Elemente existieren
+        if (!calendarBody || !monthYearEl) return;
         calendarBody.innerHTML = '';
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -60,8 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            // KORRIGIERT: Fügt eine Prüfung hinzu, um den "startsWith of undefined" Fehler zu verhindern.
-            const dayEvents = events.filter(e => e && e.date && e.date.startsWith(dateStr));
+            const dayEvents = events.filter(e => e.date && e.date.startsWith(dateStr));
 
             if (dayEvents.length > 0) {
                 dayEl.classList.add('has-events');
@@ -78,30 +210,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const item = document.createElement('li');
             const link = document.createElement('a');
             link.href = event.url;
-            // KORRIGIERT: Verwendet jetzt event.time, das vom Backend korrekt bereitgestellt wird.
             link.textContent = `${event.time} - ${event.title}`;
             item.appendChild(link);
             list.appendChild(item);
         });
         eventListPopup.appendChild(list);
         
-        // Positionieren und anzeigen
         dayEl.appendChild(eventListPopup);
         eventListPopup.style.display = 'block';
-
-        // Event Listener, um das Popup zu schließen, wenn man woanders hinklickt
-        setTimeout(() => {
-            document.addEventListener('click', function hidePopup(e) {
-                if (!dayEl.contains(e.target)) {
-                    eventListPopup.style.display = 'none';
-                    document.removeEventListener('click', hidePopup);
-                }
-            });
-        }, 0);
     }
 
     if (openCalendarBtn) {
-        openCalendarBtn.onclick = () => { if(calendarModal) { calendarModal.style.display = 'block'; renderCalendar(); }};
+        openCalendarBtn.onclick = () => { if(calendarModal) calendarModal.style.display = 'block'; renderCalendar(); };
     }
     if (prevMonthBtn) {
         prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
@@ -124,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 widgetModalTitle.textContent = title;
                 widgetModalBody.innerHTML = '';
                 widgetModalBody.appendChild(contentSource.cloneNode(true));
-                widgetModalBody.firstChild.style.display = 'flex';
+                widgetModalBody.firstChild.style.display = 'block';
                 widgetModal.style.display = 'block';
             }
         });
@@ -149,13 +269,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const list = document.getElementById(targetListId) || (widgetModalBody ? widgetModalBody.querySelector(`#${targetListId}`) : null);
 
             if (list) {
-                list.querySelectorAll('li, .list-item-link').forEach(item => { // Sucht nach li oder dem a-tag
+                list.querySelectorAll('li').forEach(item => {
                     const text = item.textContent.toLowerCase();
-                    const parentLink = item.closest('.list-item-link') || item;
                     if (text.includes(filterValue)) {
-                        parentLink.style.display = '';
+                        item.style.display = '';
                     } else {
-                        parentLink.style.display = 'none';
+                        item.style.display = 'none';
                     }
                 });
             }

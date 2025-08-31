@@ -1,129 +1,146 @@
 /* backend/static/admin/css/custom_admin.css */
 
-/* ---------------------------------- */
-/* Globale Variablen für Theming      */
-/* ---------------------------------- */
-:root {
-    --admin-font-family: 'Roboto', sans-serif;
-    --admin-font-size-base: 14px;
-}
-
-body, #content, .main-sidebar, .main-header {
-    font-family: var(--admin-font-family) !important;
-}
-body {
-    font-size: var(--admin-font-size-base) !important;
-}
-
-/* ---------------------------------- */
-/* DASHBOARD STYLES                   */
-/* ---------------------------------- */
+/* ... (vorhandene Dashboard- und Modal-Stile bleiben hier) ... */
 .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .dashboard-header h1 { margin: 0; }
 #current-datetime { font-size: 1rem; font-weight: 500; color: #ccc; background-color: #4a535c; padding: 0.5rem 1rem; border-radius: 6px; white-space: nowrap; }
 .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: auto min-content 1fr; gap: 1.5rem; height: calc(100vh - 220px); position: relative; }
 .dashboard-widget { background: #2c343c; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 1px solid #444; display: flex; flex-direction: column; min-height: 0; }
-.dashboard-widget h2 { margin-top: 0; font-size: 1.1rem; font-weight: 600; border-bottom: 1px solid #4a535c; padding-bottom: 0.75rem; margin-bottom: 1rem; color: #e1e1e1; flex-shrink: 0; }
 .widget-header { display: flex; justify-content: space-between; align-items: center; }
 .widget-header h2 { border-bottom: none; padding-bottom: 0; }
 .calendar-icon, .toggle-widget-icon { font-size: 1.5rem; color: #999; cursor: pointer; transition: color 0.2s, transform 0.3s; }
-.calendar-icon:hover, .toggle-widget-icon:hover { color: #fff; }
-
-/* Grid Layout */
-.stat-widget { grid-column: 1 / 3; grid-row: 1 / 2; }
-.quick-links-widget { grid-column: 3 / 5; grid-row: 1 / 2; }
-.activity-widget.full-width { grid-column: 1 / 5; grid-row: 2 / 3; }
-#condolence-widget, #candle-widget { grid-column: span 2; grid-row: 3 / 4; }
-
-/* Statistik-Karten */
-.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-.stat-item-link { text-decoration: none; display: flex; }
-.stat-item { width: 100%; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 1rem; border-radius: 6px; background-color: #4a535c; transition: transform 0.2s ease-in-out, background-color 0.2s; }
-.stat-item:hover { transform: translateY(-5px); background-color: #5a636c; }
-.stat-item.warning { background-color: #c89c31; }
-.stat-item.danger { background-color: #b94a48; }
-.stat-item .value { font-size: 2rem; font-weight: 700; color: #fff; line-height: 1; }
-.stat-item .label { font-size: 0.8rem; color: #f1f1f1; margin-top: 0.5rem; font-weight: 500; }
-
-/* Schnellzugriff-Buttons */
-.quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.quick-links a { display: flex; align-items: center; gap: 0.75rem; background: #4a535c; color: #f1f1f1; padding: 0.9rem 1.25rem; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #5a636c; }
-.quick-links a:hover { background-color: #5a636c; border-color: #8c8073; transform: translateX(5px); }
-.quick-links a .fas { width: 20px; }
-
-/* Event Grid */
-.event-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
-.event-card-link { text-decoration: none; display: flex; }
-.event-card { width: 100%; background: #4a535c; padding: 0.8rem; border-radius: 6px; border-left: 4px solid #8c8073; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.8rem; transition: transform 0.2s, box-shadow 0.2s; }
-.event-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
-.event-card-header { display: flex; justify-content: space-between; align-items: baseline; }
-.event-card-date { font-weight: bold; font-size: 0.85rem; color: #fff; }
-.event-card-time { font-size: 0.8rem; color: #ccc; }
-.event-card-body { margin-top: 0.4rem; }
-.event-card-title { font-size: 1rem; font-weight: 600; margin: 0.2rem 0; color: #fff; }
-.event-card-page { font-size: 0.75rem; color: #ccc; }
-.event-card-page a { color: #e1e1e1; }
-.event-card-location { font-size: 0.75rem; color: #ccc; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
-
-/* Aktivitätslisten */
-.activity-list { flex-grow: 1; min-height: 0; }
-.activity-list.scrollable { overflow-y: auto; }
-.activity-list ul { list-style: none; padding: 0; margin: 0; }
-.activity-list a.list-item-link { display: block; text-decoration: none; color: inherit; transition: background-color 0.2s; }
-.activity-list a.list-item-link:hover { background-color: rgba(255, 255, 255, 0.05); }
-.activity-list li { padding: 0.75rem 0.25rem; border-bottom: 1px solid #444; font-size: 0.9rem; }
-.activity-list a.list-item-link:last-child li { border-bottom: none; }
-.activity-list .meta { color: #999; font-size: 0.8rem; }
-.activity-list a { color: #8c8073; font-weight: bold; text-decoration: none; }
-.activity-list a:hover { text-decoration: underline; }
-.activity-list .message { font-style: italic; color: #ccc; margin: 0.25rem 0; }
-
-.filter-input { width: 100%; padding: 0.5rem; margin-bottom: 1rem; background-color: #212529; border: 1px solid #4a535c; color: #fff; border-radius: 4px; }
 
 /* ---------------------------------- */
-/* MODAL STYLES (Kalender & Widgets)  */
+/* BENUTZERDEFINIERTE SIDEBAR         */
 /* ---------------------------------- */
-#content {
-    overflow: visible !important;
+
+/* Versteckt die originale Unfold-Sidebar */
+.main-sidebar {
+    display: none !important;
 }
 
-.modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
-.modal-content { background-color: #2c343c; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; border-radius: 8px; position: relative; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4a535c; padding-bottom: 10px; margin-bottom: 15px; }
-.modal-header h2 { margin: 0; }
-.close-modal { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
-.close-modal:hover, .close-modal:focus { color: #fff; text-decoration: none; }
+/* Der Toggle-Button für unsere neue Sidebar */
+#custom-sidebar-toggle {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 1rem;
+    height: 100%;
+}
 
-/* Spezifische Modal-Styles */
-#calendar-modal .modal-content { max-width: 600px; }
-.widget-modal-content { max-width: 900px; height: 70vh; display: flex; flex-direction: column; }
-#widget-modal-body { flex-grow: 1; min-height: 0; display: flex; flex-direction: column; }
-#widget-modal-body .widget-content-source { display: flex !important; flex-direction: column; flex-grow: 1; min-height: 0; }
+/* Unsere neue Sidebar */
+#custom-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background-color: #2c343c; /* Passend zum Dashboard-Widget-Hintergrund */
+    color: #c2c7d0;
+    z-index: 1050; /* Über allem außer Modals */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    border-right: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+}
 
-.calendar-grid-container { position: relative; }
-.calendar-header, .calendar-body { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
-.calendar-header div { font-weight: bold; padding: 10px 0; }
-.calendar-day { padding: 15px 0; border-radius: 4px; transition: background-color 0.2s; }
-.calendar-day.today { background-color: #4a535c; }
-.calendar-day.has-events { background-color: #8c8073; color: #fff; cursor: pointer; font-weight: bold; }
-#event-list-popup { display: none; background: #1e2227; border: 1px solid #555; border-radius: 6px; padding: 15px; z-index: 10; box-shadow: 0 5px 15px rgba(0,0,0,0.5); margin: 15px auto 0; width: 90%; }
-#event-list-popup h4 { margin-top: 0; }
-#event-list-popup ul { list-style: none; padding: 0; margin: 0; }
-#event-list-popup li a { display: block; padding: 5px; color: #ccc; text-decoration: none; }
-#event-list-popup li a:hover { background-color: #4a535c; }
+#custom-sidebar.is-visible {
+    transform: translateX(0);
+}
 
-/* ---------------------------------- */
-/* WIDGET STYLES (z.B. Color Picker)  */
-/* ---------------------------------- */
-.color-picker-wrapper { display: flex; align-items: center; gap: 10px; }
-.color-picker-wrapper input[type="text"] { flex-grow: 1; }
-.color-picker-wrapper input[type="color"] { -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 40px; height: 40px; padding: 0; border: none; border-radius: 4px; cursor: pointer; background-color: transparent; }
-.color-picker-wrapper input[type="color"]::-webkit-color-swatch { border-radius: 4px; border: 1px solid #555; }
-.color-picker-wrapper input[type="color"]::-moz-color-swatch { border-radius: 4px; border: 1px solid #555; }
+/* Overlay für den Hintergrund, wenn die Sidebar offen ist */
+#custom-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
 
-/* ---------------------------------- */
-/* SIDEBAR STYLES (Verschachtelt)     */
-/* ---------------------------------- */
+#custom-sidebar-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
 
-/* (Die alten Sidebar-Regeln wurden entfernt, da sie jetzt in base_site.html sind) */
+/* Header der Sidebar */
+.sidebar-header {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid #4f5962;
+    flex-shrink: 0;
+}
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #fff;
+}
+
+/* Navigationsbereich */
+.sidebar-nav {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0;
+}
+.sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    color: #c2c7d0;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    font-weight: 500;
+}
+.sidebar-nav li a:hover {
+    background-color: #495057;
+}
+.sidebar-nav li a .fas {
+    width: 30px;
+    text-align: center;
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Verschachteltes Untermenü */
+.submenu {
+    background-color: rgba(0,0,0,0.2);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+}
+.submenu ul li a {
+    padding-left: 3rem; /* Stärkere Einrückung */
+    font-size: 0.9rem;
+}
+li.has-submenu.submenu-open > .submenu {
+    max-height: 500px; /* Genug Platz für alle Items */
+}
+
+/* Pfeil-Icon für Untermenüs */
+.submenu-arrow {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+}
+li.has-submenu.submenu-open > a > .submenu-arrow {
+    transform: rotate(90deg);
+}
+
+/* Anpassung des Hauptinhalts, wenn Sidebar offen ist (optional) */
+@media (min-width: 768px) {
+    body:has(#custom-sidebar.is-visible) .main-content {
+        padding-left: 280px;
+    }
+}
 

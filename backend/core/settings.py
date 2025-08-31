@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Umstellung auf die "models"-basierte Sidebar-Konfiguration für korrekte Verschachtelung und zur Behebung des 500-Fehlers.
+# KORRIGIERT: Die SIDEBAR-Konfiguration wurde entfernt, da wir sie durch eine benutzerdefinierte Lösung ersetzen.
 
 import os
 import dj_database_url
@@ -129,67 +129,6 @@ UNFOLD = {
     "SCRIPTS": [
         "/static/admin/js/custom_admin.js",
     ],
-    "SIDEBAR": {
-        "navigation": [
-            {
-                "title": "Dashboard",
-                "link": "admin:index",
-                "icon": "fas fa-tachometer-alt",
-            },
-            {
-                "title": "Hauptverwaltung",
-                "icon": "fas fa-users-cog",
-                "models": [
-                    {"model": "api.user", "title": "Benutzer"},
-                    {"model": "api.memorialpage", "title": "Gedenkseiten"},
-                    {"model": "api.releaserequest", "title": "Freigabe-Anfragen"},
-                ]
-            },
-            {
-                "title": "Inhalte & Vorsorge",
-                "icon": "fas fa-layer-group",
-                "models": [
-                     {"model": "api.mediaasset", "title": "Mediathek"},
-                     {"model": "api.lastwishes", "title": "Letzte Wünsche"},
-                     {"model": "api.document", "title": "Dokumente"},
-                     {"model": "api.digitallegacyitem", "title": "Digitaler Nachlass"},
-                ]
-            },
-             {
-                "title": "Ereignisse & Interaktion",
-                "icon": "fas fa-calendar-check",
-                "models": [
-                     {"model": "api.memorialevent", "title": "Termine"},
-                     {"model": "api.eventattendance", "title": "Teilnahmen"},
-                     {"model": "api.condolence", "title": "Kondolenzen"},
-                     {"model": "api.memorialcandle", "title": "Gedenkkerzen"},
-                     {"model": "api.galleryitem", "title": "Galerie"},
-                     {"model": "api.timelineevent", "title": "Chronik"},
-                ]
-            },
-            {
-                "title": "Finanzen & Verträge",
-                "icon": "fas fa-file-invoice-dollar",
-                "models": [
-                    {"model": "api.contractitem", "title": "Verträge"},
-                    {"model": "api.insuranceitem", "title": "Versicherungen"},
-                    {"model": "api.financialitem", "title": "Finanzen"},
-                ]
-            },
-             {
-                "title": "System & Stammdaten",
-                "icon": "fas fa-cogs",
-                "models": [
-                    {"model": "api.sitesettings", "title": "Globale Einstellungen"},
-                    {"model": "api.eventlocation", "title": "Veranstaltungsorte"},
-                    {"model": "api.condolencetemplate", "title": "Kondolenz-Vorlagen"},
-                    {"model": "api.candleimage", "title": "Kerzenbilder"},
-                    {"model": "api.candlemessagetemplate", "title": "Kerzen-Vorlagen"},
-                    {"model": "api.familylink", "title": "System-Verknüpfungen"},
-                    {"model": "auth.group", "title": "Benutzergruppen"},
-                ]
-            },
-        ]
-    },
+    # Die SIDEBAR Konfiguration wird entfernt, um die benutzerdefinierte Sidebar zu ermöglichen
 }
 

@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Der Pfad in UNFOLD["STYLES"] wurde auf den korrekten, vollständigen Pfad gesetzt, um den MIME-Typ-Fehler zu beheben.
+# KORRIGIERT: Fügt die neue custom_admin.js zu den SCRIPTS hinzu.
 
 import os
 import dj_database_url
@@ -121,7 +121,10 @@ UNFOLD = {
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
     "STYLES": [
-        "/static/admin/css/custom_admin.css", # KORRIGIERT: Der Pfad beginnt jetzt mit /static/.
+        "admin/css/custom_admin.css",
+    ],
+    "SCRIPTS": [
+        "admin/js/custom_admin.js", # NEU HINZUGEFÜGT
     ],
     "SIDEBAR": {
         "navigation": [

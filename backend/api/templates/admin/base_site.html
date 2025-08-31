@@ -3,6 +3,9 @@
 
 {# Dieser Block fügt zusätzlichen Inhalt in den <head> der Admin-Seite ein #}
 {% block extrahead %}
+    {# HINZUGEFÜGT: Font Awesome für Dashboard-Icons #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
     {# Lädt die globalen Einstellungen aus der Datenbank #}
     {% get_site_settings as site_settings %}
     {% if site_settings %}

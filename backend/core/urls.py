@@ -1,5 +1,5 @@
 # backend/core/urls.py
-# KORRIGIERT: Die Weiterleitung zeigt jetzt auf die korrekte Admin-Startseite.
+# KORRIGIERT: static() helper hinzugefügt, um die URL-Auflösung für statische Dateien zu unterstützen.
 
 from django.contrib import admin
 from django.urls import path, include
@@ -15,5 +15,10 @@ urlpatterns = [
     path('api/', include('api.urls')),
 ]
 
-# Liefert Mediendateien in der Entwicklung und Produktion korrekt aus.
+# Liefert Mediendateien aus MEDIA_ROOT
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Hinzufügen der static()-Funktion für statische Dateien.
+# Obwohl WhiteNoise in der Produktion die Auslieferung übernimmt,
+# stellt dies sicher, dass die URL-Muster für andere Teile des Frameworks korrekt sind.
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

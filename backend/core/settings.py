@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Link zur "auth" App entfernt, um den 500 Server Error zu beheben.
+# KORRIGIERT: Umstellung auf Django URL-Namen in der Sidebar, um den 500 Server Error endgültig zu beheben.
 
 import os
 import dj_database_url
@@ -133,60 +133,60 @@ UNFOLD = {
         "navigation": [
             {
                 "title": "Dashboard",
-                "link": "/admin/",
+                "link": "admin:index", # Verwendet den URL-Namen für das Dashboard
                 "icon": "fas fa-tachometer-alt",
             },
             {
                 "title": "Hauptverwaltung",
                 "icon": "fas fa-users-cog",
                 "items": [
-                    {"title": "Benutzer", "link": "/admin/api/user/"},
-                    {"title": "Gedenkseiten", "link": "/admin/api/memorialpage/"},
-                    {"title": "Freigabe-Anfragen", "link": "/admin/api/releaserequest/"},
+                    {"title": "Benutzer", "link": "admin:api_user_changelist"},
+                    {"title": "Gedenkseiten", "link": "admin:api_memorialpage_changelist"},
+                    {"title": "Freigabe-Anfragen", "link": "admin:api_releaserequest_changelist"},
                 ]
             },
             {
                 "title": "Inhalte & Vorsorge",
                 "icon": "fas fa-layer-group",
                 "items": [
-                     {"title": "Mediathek", "link": "/admin/api/mediaasset/"},
-                     {"title": "Letzte Wünsche", "link": "/admin/api/lastwishes/"},
-                     {"title": "Dokumente", "link": "/admin/api/document/"},
-                     {"title": "Digitaler Nachlass", "link": "/admin/api/digitallegacyitem/"},
+                     {"title": "Mediathek", "link": "admin:api_mediaasset_changelist"},
+                     {"title": "Letzte Wünsche", "link": "admin:api_lastwishes_changelist"},
+                     {"title": "Dokumente", "link": "admin:api_document_changelist"},
+                     {"title": "Digitaler Nachlass", "link": "admin:api_digitallegacyitem_changelist"},
                 ]
             },
              {
                 "title": "Ereignisse & Interaktion",
                 "icon": "fas fa-calendar-check",
                 "items": [
-                     {"title": "Termine", "link": "/admin/api/memorialevent/"},
-                     {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
-                     {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
-                     {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
-                     {"title": "Galerie", "link": "/admin/api/galleryitem/"},
-                     {"title": "Chronik", "link": "/admin/api/timelineevent/"},
+                     {"title": "Termine", "link": "admin:api_memorialevent_changelist"},
+                     {"title": "Teilnahmen", "link": "admin:api_eventattendance_changelist"},
+                     {"title": "Kondolenzen", "link": "admin:api_condolence_changelist"},
+                     {"title": "Gedenkkerzen", "link": "admin:api_memorialcandle_changelist"},
+                     {"title": "Galerie", "link": "admin:api_galleryitem_changelist"},
+                     {"title": "Chronik", "link": "admin:api_timelineevent_changelist"},
                 ]
             },
             {
                 "title": "Finanzen & Verträge",
                 "icon": "fas fa-file-invoice-dollar",
                 "items": [
-                    {"title": "Verträge", "link": "/admin/api/contractitem/"},
-                    {"title": "Versicherungen", "link": "/admin/api/insuranceitem/"},
-                    {"title": "Finanzen", "link": "/admin/api/financialitem/"},
+                    {"title": "Verträge", "link": "admin:api_contractitem_changelist"},
+                    {"title": "Versicherungen", "link": "admin:api_insuranceitem_changelist"},
+                    {"title": "Finanzen", "link": "admin:api_financialitem_changelist"},
                 ]
             },
              {
                 "title": "System & Stammdaten",
                 "icon": "fas fa-cogs",
                 "items": [
-                    {"title": "Globale Einstellungen", "link": "/admin/api/sitesettings/"},
-                    {"title": "Veranstaltungsorte", "link": "/admin/api/eventlocation/"},
-                    {"title": "Kondolenz-Vorlagen", "link": "/admin/api/condolencetemplate/"},
-                    {"title": "Kerzenbilder", "link": "/admin/api/candleimage/"},
-                    {"title": "Kerzen-Vorlagen", "link": "/admin/api/candlemessagetemplate/"},
-                    {"title": "System-Verknüpfungen", "link": "/admin/api/familylink/"},
-                    # {"title": "Benutzergruppen", "link": "/admin/auth/group/"}, # Temporär entfernt, um 500-Fehler zu beheben
+                    {"title": "Globale Einstellungen", "link": "admin:api_sitesettings_changelist"},
+                    {"title": "Veranstaltungsorte", "link": "admin:api_eventlocation_changelist"},
+                    {"title": "Kondolenz-Vorlagen", "link": "admin:api_condolencetemplate_changelist"},
+                    {"title": "Kerzenbilder", "link": "admin:api_candleimage_changelist"},
+                    {"title": "Kerzen-Vorlagen", "link": "admin:api_candlemessagetemplate_changelist"},
+                    {"title": "System-Verknüpfungen", "link": "admin:api_familylink_changelist"},
+                    {"title": "Benutzergruppen", "link": "admin:auth_group_changelist"},
                 ]
             },
         ]

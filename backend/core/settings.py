@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: STATIC_URL korrigiert, um den 404-Fehler bei statischen Dateien zu beheben.
+# KORRIGIERT: STATIC_URL korrigiert, um den 44-Fehler bei statischen Dateien zu beheben.
 
 import os
 import dj_database_url
@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'import_export',
 ]
 
-# FÃ¼gt whitenoise nur fÃ¼r die Entwicklung hinzu, um das Verhalten der Produktion zu imitieren
+# Fügt whitenoise nur für die Entwicklung hinzu, um das Verhalten der Produktion zu imitieren
 if not IS_PRODUCTION:
     INSTALLED_APPS.insert(INSTALLED_APPS.index('django.contrib.staticfiles'), 'whitenoise.runserver_nostatic')
 
@@ -103,8 +103,8 @@ USE_TZ = True
 
 # --- KORREKTUR HIER ---
 # Die STATIC_URL muss mit einem Slash beginnen und enden.
-# Das sorgt dafÃ¼r, dass Django und Unfold die Pfade korrekt zusammensetzen.
-# Falsch: 'static' oder '/static' -> kann zu /admin/admin/... fÃ¼hren
+# Das sorgt dafür, dass Django und Unfold die Pfade korrekt zusammensetzen.
+# Falsch: 'static' oder '/static' -> kann zu /admin/admin/... führen
 # Richtig: '/static/'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
@@ -128,11 +128,14 @@ UNFOLD = {
     "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
+    # --- KORREKTUR HIER ---
+    # Wir verwenden jetzt absolute Pfade, die mit /static/ beginnen.
+    # Das verhindert, dass "unfold" fälschlicherweise /admin/ voranstellt.
     "STYLES": [
-        "admin/css/custom_admin.css",
+        "/static/admin/css/custom_admin.css",
     ],
     "SCRIPTS": [
-        "admin/js/custom_admin.js",
+        "/static/admin/js/custom_admin.js",
     ],
     "SIDEBAR": {
         "navigation": [
@@ -154,7 +157,7 @@ UNFOLD = {
                      {"title": "Termine", "link": "/admin/api/memorialevent/"},
                      {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
                      {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
-                     {"title": "Galerie-EintrÃ¤ge", "link": "/admin/api/galleryitem/"},
+                     {"title": "Galerie-Einträge", "link": "/admin/api/galleryitem/"},
                      {"title": "Chronik-Einträge", "link": "/admin/api/timelineevent/"},
                      {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
                 ],
@@ -185,3 +188,4 @@ UNFOLD = {
         ]
     },
 }
+

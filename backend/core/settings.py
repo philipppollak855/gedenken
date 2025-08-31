@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: STATIC_URL korrigiert, um den 44-Fehler bei statischen Dateien zu beheben.
+# KORRIGIERT: STATIC_URL korrigiert, um den 404-Fehler bei statischen Dateien zu beheben.
 
 import os
 import dj_database_url
@@ -101,12 +101,7 @@ TIME_ZONE = 'Europe/Vienna'
 USE_I18N = True
 USE_TZ = True
 
-# --- KORREKTUR HIER ---
-# Die STATIC_URL muss mit einem Slash beginnen und enden.
-# Das sorgt dafür, dass Django und Unfold die Pfade korrekt zusammensetzen.
-# Falsch: 'static' oder '/static' -> kann zu /admin/admin/... führen
-# Richtig: '/static/'
-STATIC_URL = '/static/'
+STATIC_URL = '/static/' 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -128,9 +123,6 @@ UNFOLD = {
     "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
-    # --- KORREKTUR HIER ---
-    # Wir verwenden jetzt absolute Pfade, die mit /static/ beginnen.
-    # Das verhindert, dass "unfold" fälschlicherweise /admin/ voranstellt.
     "STYLES": [
         "/static/admin/css/custom_admin.css",
     ],
@@ -155,11 +147,16 @@ UNFOLD = {
                 "items": [
                      {"title": "Mediathek", "link": "/admin/api/mediaasset/"},
                      {"title": "Termine", "link": "/admin/api/memorialevent/"},
-                     {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
-                     {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
-                     {"title": "Galerie-Einträge", "link": "/admin/api/galleryitem/"},
-                     {"title": "Chronik-Einträge", "link": "/admin/api/timelineevent/"},
-                     {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
+                     {
+                         "title": "Gedenkseiten-Inhalte",
+                         "items": [
+                            {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
+                            {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
+                            {"title": "Galerie-Einträge", "link": "/admin/api/galleryitem/"},
+                            {"title": "Chronik-Ereignisse", "link": "/admin/api/timelineevent/"},
+                            {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
+                         ]
+                     }
                 ],
             },
             {
@@ -168,10 +165,15 @@ UNFOLD = {
                 "items": [
                     {"title": "Letzte Wünsche", "link": "/admin/api/lastwishes/"},
                     {"title": "Dokumente", "link": "/admin/api/document/"},
-                    {"title": "Vertrags-Einträge", "link": "/admin/api/contractitem/"},
-                    {"title": "Versicherungs-Einträge", "link": "/admin/api/insuranceitem/"},
-                    {"title": "Finanz-Einträge", "link": "/admin/api/financialitem/"},
                     {"title": "Digitaler Nachlass", "link": "/admin/api/digitallegacyitem/"},
+                    {
+                        "title": "Finanzielles & Verträge",
+                        "items": [
+                             {"title": "Vertrags-Einträge", "link": "/admin/api/contractitem/"},
+                             {"title": "Versicherungs-Einträge", "link": "/admin/api/insuranceitem/"},
+                             {"title": "Finanz-Einträge", "link": "/admin/api/financialitem/"},
+                        ]
+                    }
                 ],
             },
             {
@@ -180,9 +182,14 @@ UNFOLD = {
                 "items": [
                     {"title": "Globale Einstellungen", "link": "/admin/api/sitesettings/"},
                     {"title": "Veranstaltungsorte", "link": "/admin/api/eventlocation/"},
-                    {"title": "Kondolenz-Vorlagen", "link": "/admin/api/condolencetemplate/"},
-                    {"title": "Kerzenbilder", "link": "/admin/api/candleimage/"},
-                    {"title": "Kerzen-Vorlagen", "link": "/admin/api/candlemessagetemplate/"},
+                    {
+                        "title": "Vorlagen",
+                        "items": [
+                            {"title": "Kondolenz-Vorlagen", "link": "/admin/api/condolencetemplate/"},
+                            {"title": "Kerzenbilder", "link": "/admin/api/candleimage/"},
+                            {"title": "Kerzen-Vorlagen", "link": "/admin/api/candlemessagetemplate/"},
+                        ]
+                    }
                 ],
             },
         ]

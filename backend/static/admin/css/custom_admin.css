@@ -1,144 +1,44 @@
 /* backend/static/admin/css/custom_admin.css */
-
-/* ... (vorhandene Dashboard- und Modal-Stile bleiben hier) ... */
-.dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.dashboard-header h1 { margin: 0; }
-#current-datetime { font-size: 1rem; font-weight: 500; color: #ccc; background-color: #4a535c; padding: 0.5rem 1rem; border-radius: 6px; white-space: nowrap; }
-.dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: auto min-content 1fr; gap: 1.5rem; height: calc(100vh - 220px); position: relative; }
-.dashboard-widget { background: #2c343c; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 1px solid #444; display: flex; flex-direction: column; min-height: 0; }
-.widget-header { display: flex; justify-content: space-between; align-items: center; }
-.widget-header h2 { border-bottom: none; padding-bottom: 0; }
-.calendar-icon, .toggle-widget-icon { font-size: 1.5rem; color: #999; cursor: pointer; transition: color 0.2s, transform 0.3s; }
+/* BEREINIGT: Alle alten Sidebar-Hacks wurden entfernt. Nur noch Dashboard/Modal-Stile. */
 
 /* ---------------------------------- */
-/* BENUTZERDEFINIERTE SIDEBAR         */
+/* DASHBOARD STYLES                   */
 /* ---------------------------------- */
+#content-main .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+#content-main .dashboard-header h1 { margin: 0; }
+#content-main #current-datetime { font-size: 1rem; font-weight: 500; color: #ccc; background-color: #4a535c; padding: 0.5rem 1rem; border-radius: 6px; white-space: nowrap; }
+#content-main .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: auto min-content 1fr; gap: 1.5rem; height: calc(100vh - 220px); position: relative; }
+#content-main .dashboard-widget { background: #2c343c; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 1px solid #444; display: flex; flex-direction: column; min-height: 0; }
+#content-main .widget-header { display: flex; justify-content: space-between; align-items: center; }
+#content-main .widget-header h2 { border-bottom: none; padding-bottom: 0; margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #e1e1e1; }
+#content-main .calendar-icon, #content-main .toggle-widget-icon { font-size: 1.5rem; color: #999; cursor: pointer; transition: color 0.2s, transform 0.3s; }
+#content-main .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+#content-main .stat-item-link { text-decoration: none; display: flex; }
+#content-main .stat-item { width: 100%; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 1rem; border-radius: 6px; background-color: #4a535c; transition: transform 0.2s ease-in-out, background-color 0.2s; }
+#content-main .quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+#content-main .quick-links a { display: flex; align-items: center; gap: 0.75rem; background: #4a535c; color: #f1f1f1; padding: 0.9rem 1.25rem; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #5a636c; }
+#content-main .event-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+#content-main .event-card { width: 100%; background: #4a535c; padding: 0.8rem; border-radius: 6px; border-left: 4px solid #8c8073; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.8rem; transition: transform 0.2s, box-shadow 0.2s; }
 
-/* Lässt die originale Sidebar im Layout, macht sie aber unsichtbar */
-.main-sidebar {
-    visibility: hidden !important;
-}
-
-/* Entfernt die fehlerhafte margin-Regel, da die originale Sidebar den Platz hält */
-.main-content {
-    margin-left: 0 !important; /* WICHTIG: Auf 0 zurücksetzen */
-}
-
-/* Der Toggle-Button für unsere neue Sidebar */
-#custom-sidebar-toggle {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0 1rem;
-    height: 100%;
-}
-
-/* Unsere neue Sidebar (liegt jetzt über der unsichtbaren originalen) */
-#custom-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 250px; /* Breite an die originale Sidebar anpassen */
-    height: 100vh;
-    background-color: #2c343c;
-    color: #c2c7d0;
-    z-index: 1050;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    border-right: 1px solid #444;
-    display: flex;
-    flex-direction: column;
+/* ---------------------------------- */
+/* MODAL STYLES (Kalender & Widgets)  */
+/* ---------------------------------- */
+#content {
+    overflow: visible !important;
 }
 
-#custom-sidebar.is-visible {
-    transform: translateX(0);
-}
-
-/* Overlay für den Hintergrund, wenn die Sidebar offen ist */
-#custom-sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 1040;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
-}
-
-#custom-sidebar-overlay.is-visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Header der Sidebar */
-.sidebar-header {
-    padding: 1rem;
-    text-align: center;
-    border-bottom: 1px solid #4f5962;
-    flex-shrink: 0;
-}
-.sidebar-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: #fff;
-}
-
-/* Navigationsbereich */
-.sidebar-nav {
-    overflow-y: auto;
-    flex-grow: 1;
-}
-.sidebar-nav ul {
-    list-style: none;
-    padding: 0.5rem 0;
-    margin: 0;
-}
-.sidebar-nav li a {
-    display: flex;
-    align-items: center;
-    padding: 0.9rem 1rem;
-    color: #c2c7d0;
-    text-decoration: none;
-    transition: background-color 0.2s;
-    font-weight: 500;
-}
-.sidebar-nav li a:hover {
-    background-color: #495057;
-}
-.sidebar-nav li a .fas {
-    width: 30px;
-    text-align: center;
-    margin-right: 0.5rem;
-    font-size: 1rem;
-}
-
-/* Verschachteltes Untermenü */
-.submenu {
-    background-color: rgba(0,0,0,0.2);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-in-out;
-}
-.submenu ul li a {
-    padding-left: 3rem; /* Stärkere Einrückung */
-    font-size: 0.9rem;
-}
-li.has-submenu.submenu-open > .submenu {
-    max-height: 500px; /* Genug Platz für alle Items */
-}
-
-/* Pfeil-Icon für Untermenüs */
-.submenu-arrow {
-    margin-left: auto;
-    transition: transform 0.3s ease;
-    font-size: 0.8rem;
-}
-li.has-submenu.submenu-open > a > .submenu-arrow {
-    transform: rotate(90deg);
-}
+.modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+.modal-content { background-color: #2c343c; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; border-radius: 8px; position: relative; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4a535c; padding-bottom: 10px; margin-bottom: 15px; }
+.modal-header h2 { margin: 0; }
+.close-modal { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+#calendar-modal .modal-content { max-width: 600px; }
+.widget-modal-content { max-width: 900px; height: 70vh; display: flex; flex-direction: column; }
+.calendar-grid-container { position: relative; }
+.calendar-header, .calendar-body { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+.calendar-header div { font-weight: bold; padding: 10px 0; }
+.calendar-day { padding: 15px 0; border-radius: 4px; transition: background-color 0.2s; }
+.calendar-day.today { background-color: #4a535c; }
+.calendar-day.has-events { background-color: #8c8073; color: #fff; cursor: pointer; font-weight: bold; }
+#event-list-popup { display: none; position: absolute; background: #1e2227; border: 1px solid #555; border-radius: 6px; padding: 15px; z-index: 10; box-shadow: 0 5px 15px rgba(0,0,0,0.5); width: 250px; }
 

@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Der Pfad in UNFOLD["STYLES"] wurde auf den korrekten relativen Pfad gesetzt.
+# KORRIGIERT: Der Pfad in UNFOLD["STYLES"] wurde auf den korrekten, vollständigen Pfad gesetzt, um den MIME-Typ-Fehler zu beheben.
 
 import os
 import dj_database_url
@@ -121,7 +121,7 @@ UNFOLD = {
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
     "STYLES": [
-        "admin/css/custom_admin.css", # KORRIGIERT: Der Pfad ist jetzt relativ.
+        "/static/admin/css/custom_admin.css", # KORRIGIERT: Der Pfad beginnt jetzt mit /static/.
     ],
     "SIDEBAR": {
         "navigation": [

@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'import_export',
 ]
 
-# Fügt whitenoise nur für die Entwicklung hinzu, um das Verhalten der Produktion zu imitieren
+# FÃ¼gt whitenoise nur fÃ¼r die Entwicklung hinzu, um das Verhalten der Produktion zu imitieren
 if not IS_PRODUCTION:
     INSTALLED_APPS.insert(INSTALLED_APPS.index('django.contrib.staticfiles'), 'whitenoise.runserver_nostatic')
 
@@ -101,7 +101,12 @@ TIME_ZONE = 'Europe/Vienna'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/' # KORRIGIERT
+# --- KORREKTUR HIER ---
+# Die STATIC_URL muss mit einem Slash beginnen und enden.
+# Das sorgt dafÃ¼r, dass Django und Unfold die Pfade korrekt zusammensetzen.
+# Falsch: 'static' oder '/static' -> kann zu /admin/admin/... fÃ¼hren
+# Richtig: '/static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -149,8 +154,8 @@ UNFOLD = {
                      {"title": "Termine", "link": "/admin/api/memorialevent/"},
                      {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
                      {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
-                     {"title": "Galerie-Einträge", "link": "/admin/api/galleryitem/"},
-                     {"title": "Chronik-Ereignisse", "link": "/admin/api/timelineevent/"},
+                     {"title": "Galerie-EintrÃ¤ge", "link": "/admin/api/galleryitem/"},
+                     {"title": "Chronik-Einträge", "link": "/admin/api/timelineevent/"},
                      {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
                 ],
             },
@@ -180,4 +185,3 @@ UNFOLD = {
         ]
     },
 }
-

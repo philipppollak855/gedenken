@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Syntaxfehler entfernt und korrekte Sidebar-Verschachtelung beibehalten.
+# KORRIGIERT: Umstellung auf die "models"-basierte Sidebar-Konfiguration für korrekte Verschachtelung.
 
 import os
 import dj_database_url
@@ -132,55 +132,62 @@ UNFOLD = {
     "SIDEBAR": {
         "navigation": [
             {
-                "title": "Hauptverwaltung",
+                "title": "Dashboard",
+                "link": "/admin/",
                 "icon": "fas fa-tachometer-alt",
+            },
+            {
+                "title": "Hauptverwaltung",
+                "icon": "fas fa-users-cog",
                 "items": [
-                    {"title": "Dashboard", "link": "/admin/"},
                     {"title": "Benutzer", "link": "/admin/api/user/"},
                     {"title": "Gedenkseiten", "link": "/admin/api/memorialpage/"},
                     {"title": "Freigabe-Anfragen", "link": "/admin/api/releaserequest/"},
-                ],
+                ]
             },
             {
-                "title": "Inhaltsverwaltung",
-                "icon": "fas fa-photo-video",
+                "title": "Inhalte & Vorsorge",
+                "icon": "fas fa-layer-group",
                 "items": [
                      {"title": "Mediathek", "link": "/admin/api/mediaasset/"},
+                     {"title": "Letzte Wünsche", "link": "/admin/api/lastwishes/"},
+                     {"title": "Dokumente", "link": "/admin/api/document/"},
+                     {"title": "Digitaler Nachlass", "link": "/admin/api/digitallegacyitem/"},
+                ]
+            },
+             {
+                "title": "Ereignisse & Interaktion",
+                "icon": "fas fa-calendar-check",
+                "items": [
                      {"title": "Termine", "link": "/admin/api/memorialevent/"},
+                     {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
                      {"title": "Kondolenzen", "link": "/admin/api/condolence/"},
                      {"title": "Gedenkkerzen", "link": "/admin/api/memorialcandle/"},
-                     {"title": "Galerie-Einträge", "link": "/admin/api/galleryitem/"},
-                     {"title": "Chronik-Ereignisse", "link": "/admin/api/timelineevent/"},
-                     {"title": "Teilnahmen", "link": "/admin/api/eventattendance/"},
-                ],
+                     {"title": "Galerie", "link": "/admin/api/galleryitem/"},
+                     {"title": "Chronik", "link": "/admin/api/timelineevent/"},
+                ]
             },
             {
-                "title": "Vorsorge-Daten",
-                "icon": "fas fa-file-invoice",
+                "title": "Finanzen & Verträge",
+                "icon": "fas fa-file-invoice-dollar",
                 "items": [
-                    {"title": "Letzte Wünsche", "link": "/admin/api/lastwishes/"},
-                    {"title": "Dokumente", "link": "/admin/api/document/"},
-                    {"title": "Vertrags-Einträge", "link": "/admin/api/contractitem/"},
-                    {"title": "Versicherungs-Einträge", "link": "/admin/api/insuranceitem/"},
-                    {"title": "Finanz-Einträge", "link": "/admin/api/financialitem/"},
-                    {"title": "Digitaler Nachlass", "link": "/admin/api/digitallegacyitem/"},
-                ],
+                    {"title": "Verträge", "link": "/admin/api/contractitem/"},
+                    {"title": "Versicherungen", "link": "/admin/api/insuranceitem/"},
+                    {"title": "Finanzen", "link": "/admin/api/financialitem/"},
+                ]
             },
-            {
+             {
                 "title": "System & Stammdaten",
                 "icon": "fas fa-cogs",
                 "items": [
                     {"title": "Globale Einstellungen", "link": "/admin/api/sitesettings/"},
                     {"title": "Veranstaltungsorte", "link": "/admin/api/eventlocation/"},
-                    {
-                        "title": "Vorlagen",
-                        "items": [
-                            {"title": "Kondolenz-Vorlagen", "link": "/admin/api/condolencetemplate/"},
-                            {"title": "Kerzenbilder", "link": "/admin/api/candleimage/"},
-                            {"title": "Kerzen-Vorlagen", "link": "/admin/api/candlemessagetemplate/"},
-                        ]
-                    },
-                ],
+                    {"title": "Kondolenz-Vorlagen", "link": "/admin/api/condolencetemplate/"},
+                    {"title": "Kerzenbilder", "link": "/admin/api/candleimage/"},
+                    {"title": "Kerzen-Vorlagen", "link": "/admin/api/candlemessagetemplate/"},
+                    {"title": "System-Verknüpfungen", "link": "/admin/api/familylink/"},
+                    {"title": "Benutzergruppen", "link": "/admin/auth/group/"},
+                ]
             },
         ]
     },

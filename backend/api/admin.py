@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Die Imports und die Vererbung für ImportExportModelAdmin wurden an die neueste Unfold-Version angepasst.
-# HINZUGEFÜGT: Logik zur Wiederherstellung des benutzerdefinierten Dashboards.
+# WIEDERHERGESTELLT: Das benutzerdefinierte Dashboard wird reaktiviert.
 
 import uuid
 import json
@@ -10,7 +9,7 @@ from django.utils.html import format_html
 from django.utils.text import slugify
 from django.utils.timezone import now
 from unfold.admin import ModelAdmin 
-from import_export.admin import ImportExportModelAdmin # KORREKTER IMPORT
+from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse
 from django.shortcuts import render
@@ -23,6 +22,8 @@ from .models import (
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
+
+# ... (Alle ModelAdmin-Klassen bleiben hier unverändert) ...
 
 @admin.register(EventLocation)
 class EventLocationAdmin(ModelAdmin):
@@ -348,11 +349,9 @@ class ReleaseRequestAdmin(ModelAdmin):
         
         self.message_user(request, f"{approved_count} Anfragen erfolgreich genehmigt.")
 
+
+# WIEDERHERGESTELLT: Diese Funktion rendert das benutzerdefinierte Dashboard.
 def dashboard_view(request):
-    """
-    Diese Ansicht rendert die benutzerdefinierte Dashboard-Vorlage mit allen
-    notwendigen Statistiken und Aktivitätsdaten.
-    """
     stats = {
         'total_users': User.objects.count(),
         'total_pages': MemorialPage.objects.count(),
@@ -369,8 +368,9 @@ def dashboard_view(request):
     calendar_events = [
         {
             "title": f"{event.title} für {event.page.first_name} {event.page.last_name}",
-            "date": event.date.isoformat(),
-            "time": event.date.strftime("%H:%M"),
+            "start": event.date.isoformat(),
+            "date": event.date.strftime('%Y-%m-%d'),
+            "time": event.date.strftime('%H:%M'),
             "url": reverse('admin:api_memorialevent_change', args=[event.pk])
         } for event in all_events
     ]
@@ -386,5 +386,6 @@ def dashboard_view(request):
     }
     return render(request, "admin/dashboard.html", context)
 
+# WIEDERHERGESTELLT: Diese Zeile aktiviert das benutzerdefinierte Dashboard.
 admin.site.index = dashboard_view
 

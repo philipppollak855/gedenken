@@ -101,14 +101,12 @@ document.addEventListener('DOMContentLoaded', function() {
         nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
     }
     
-    // Schließt das Event-Popup, wenn man irgendwo anders hinklickt
     document.body.addEventListener('click', () => {
         if(eventListPopup && eventListPopup.style.display === 'block') {
              eventListPopup.style.display = 'none';
         }
-    }, true); // Use capturing to catch click before it bubbles up
+    }, true);
 
-    // Generische Modal-Logik für Widgets
     const widgetModal = document.getElementById('widget-modal');
     const widgetModalTitle = document.getElementById('widget-modal-title');
     const widgetModalBody = document.getElementById('widget-modal-body');
@@ -141,7 +139,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Filter-Logik
     document.body.addEventListener('input', function(event) {
         if (event.target.matches('.filter-input')) {
             const filterValue = event.target.value.toLowerCase();

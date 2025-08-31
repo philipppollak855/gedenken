@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Fügt die neue custom_admin.js zu den SCRIPTS hinzu.
+# KORRIGIERT: Pfade für STYLES und SCRIPTS angepasst, um das Path-Building von Unfold zu korrigieren.
 
 import os
 import dj_database_url
@@ -121,10 +121,10 @@ UNFOLD = {
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
     "STYLES": [
-        "admin/css/custom_admin.css",
+        "../static/admin/css/custom_admin.css",
     ],
     "SCRIPTS": [
-        "admin/js/custom_admin.js", # NEU HINZUGEFÜGT
+        "../static/admin/js/custom_admin.js",
     ],
     "SIDEBAR": {
         "navigation": [

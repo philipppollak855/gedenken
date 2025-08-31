@@ -3,7 +3,7 @@
 
 {# Dieser Block fügt zusätzlichen Inhalt in den <head> der Admin-Seite ein #}
 {% block extrahead %}
-    {# HINZUGEFÜGT: Font Awesome für Dashboard-Icons #}
+    {# Font Awesome für Dashboard-Icons #}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
     {# Lädt die globalen Einstellungen aus der Datenbank #}
@@ -23,7 +23,43 @@
         }
     </style>
     {% endif %}
+
+    {# HINZUGEFÜGT: Direkte CSS-Regeln für das verschachtelte Sidebar-Menü #}
+    <style>
+        /* Stil für das Untermenü-Panel */
+        .main-sidebar .nav-sidebar .nav-treeview {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin: 0.5rem 0.5rem 0.5rem 1rem; /* Leichte Einrückung links */
+            padding: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            /* Animations-Setup */
+            max-height: 0;
+            opacity: 0;
+            visibility: hidden;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Wenn das Menü geöffnet ist (Klasse .menu-open am .nav-item) */
+        .main-sidebar .nav-sidebar .nav-item.menu-open > .nav-treeview {
+            max-height: 500px; /* Genug Platz für die Items */
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Pfeil-Animation */
+        .main-sidebar .nav-sidebar .nav-link > .right {
+            transition: transform 0.3s ease;
+        }
+        
+        .main-sidebar .nav-item.menu-open > .nav-link > .right {
+            transform: rotate(-90deg);
+        }
+    </style>
     
     {# Lädt den ursprünglichen Inhalt dieses Blocks #}
     {{ block.super }}
 {% endblock %}
+

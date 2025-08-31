@@ -348,7 +348,6 @@ class ReleaseRequestAdmin(ModelAdmin):
         
         self.message_user(request, f"{approved_count} Anfragen erfolgreich genehmigt.")
 
-# HINZUGEFÜGT: Diese Funktion stellt das benutzerdefinierte Dashboard wieder her.
 def dashboard_view(request):
     """
     Diese Ansicht rendert die benutzerdefinierte Dashboard-Vorlage mit allen
@@ -370,7 +369,8 @@ def dashboard_view(request):
     calendar_events = [
         {
             "title": f"{event.title} für {event.page.first_name} {event.page.last_name}",
-            "start": event.date.isoformat(),
+            "date": event.date.isoformat(),
+            "time": event.date.strftime("%H:%M"),
             "url": reverse('admin:api_memorialevent_change', args=[event.pk])
         } for event in all_events
     ]
@@ -382,9 +382,9 @@ def dashboard_view(request):
         "latest_condolences": latest_condolences,
         "latest_candles": latest_candles,
         "calendar_events_json": json.dumps(calendar_events),
-        **admin.site.each_context(request), # Wichtig für Unfold-Kontext
+        **admin.site.each_context(request),
     }
     return render(request, "admin/dashboard.html", context)
 
-# Wir überschreiben die Standard-Index-Ansicht der Admin-Seite mit unserer Dashboard-Ansicht.
 admin.site.index = dashboard_view
+

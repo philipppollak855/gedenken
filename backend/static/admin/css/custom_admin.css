@@ -83,8 +83,6 @@ body {
 /* ---------------------------------- */
 /* MODAL STYLES (Kalender & Widgets)  */
 /* ---------------------------------- */
-
-/* HINZUGEFÜGT: Fix, damit Popups nicht abgeschnitten werden */
 #content {
     overflow: visible !important;
 }
@@ -131,14 +129,4 @@ body {
 .nav-group-wrapper .nav-link i.right { transition: transform .3s ease; }
 .nav-group-wrapper:not(.menu-open) .nav-treeview { display: none; }
 .nav-group-wrapper.menu-open > .nav-link i.right { transform: rotate(-90deg); }
-```
 
-### Zusammenfassung der Änderung
-
-* **In `backend/static/admin/css/custom_admin.css`:**
-    * Ich habe eine neue Regel hinzugefügt:
-      ```css
-      #content {
-          overflow: visible !important;
-      }
-      

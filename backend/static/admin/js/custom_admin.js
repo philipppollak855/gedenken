@@ -1,21 +1,26 @@
 // backend/static/admin/js/custom_admin.js
 
-// Live-Uhr
-function updateTime() {
-    const now = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-    const formattedDateTime = now.toLocaleString('de-AT', options);
-    const timeElement = document.getElementById('current-datetime');
-    if (timeElement) {
-        timeElement.textContent = formattedDateTime;
-    }
-}
-setInterval(updateTime, 1000);
-updateTime();
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Dieser Code wird ausgeführt, sobald die Seite geladen ist.
-    
+    // HINZUGEFÜGT: Verschiebt die Modals an das Ende des Body.
+    // Dies ist der robusteste Weg, um zu verhindern, dass sie von anderen Elementen
+    // mit "overflow: hidden" abgeschnitten werden.
+    document.querySelectorAll('.modal').forEach(modal => {
+        document.body.appendChild(modal);
+    });
+
+    // Live-Uhr
+    function updateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const formattedDateTime = now.toLocaleString('de-AT', options);
+        const timeElement = document.getElementById('current-datetime');
+        if (timeElement) {
+            timeElement.textContent = formattedDateTime;
+        }
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
     // Globale Variable für Kalender-Events, die vom Template gefüllt wird
     const events = window.calendarEvents || [];
 
@@ -29,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentDate = new Date();
 
     function renderCalendar() {
+        if (!monthYearEl || !calendarBody) return; // Sicherstellen, dass die Elemente existieren
         calendarBody.innerHTML = '';
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -37,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const firstDayOfMonth = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-        // Korrektur für Montag als Wochenstart
         const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
 
         for (let i = 0; i < dayOffset; i++) {
@@ -55,7 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dayEvents = events.filter(e => e.date.startsWith(dateStr));
+            // KORRIGIERT: Fügt eine Prüfung hinzu, um den "startsWith of undefined" Fehler zu verhindern.
+            const dayEvents = events.filter(e => e && e.date && e.date.startsWith(dateStr));
 
             if (dayEvents.length > 0) {
                 dayEl.classList.add('has-events');
@@ -72,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const item = document.createElement('li');
             const link = document.createElement('a');
             link.href = event.url;
+            // KORRIGIERT: Verwendet jetzt event.time, das vom Backend korrekt bereitgestellt wird.
             link.textContent = `${event.time} - ${event.title}`;
             item.appendChild(link);
             list.appendChild(item);
@@ -81,10 +88,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Positionieren und anzeigen
         dayEl.appendChild(eventListPopup);
         eventListPopup.style.display = 'block';
+
+        // Event Listener, um das Popup zu schließen, wenn man woanders hinklickt
+        setTimeout(() => {
+            document.addEventListener('click', function hidePopup(e) {
+                if (!dayEl.contains(e.target)) {
+                    eventListPopup.style.display = 'none';
+                    document.removeEventListener('click', hidePopup);
+                }
+            });
+        }, 0);
     }
 
     if (openCalendarBtn) {
-        openCalendarBtn.onclick = () => { calendarModal.style.display = 'block'; renderCalendar(); };
+        openCalendarBtn.onclick = () => { if(calendarModal) { calendarModal.style.display = 'block'; renderCalendar(); }};
     }
     if (prevMonthBtn) {
         prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
@@ -93,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
         nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
     }
     
-    // Generische Modal-Logik
     const widgetModal = document.getElementById('widget-modal');
     const widgetModalTitle = document.getElementById('widget-modal-title');
     const widgetModalBody = document.getElementById('widget-modal-body');
@@ -106,15 +122,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
                 widgetModalTitle.textContent = title;
-                widgetModalBody.innerHTML = ''; // Clear previous content
+                widgetModalBody.innerHTML = '';
                 widgetModalBody.appendChild(contentSource.cloneNode(true));
-                widgetModalBody.firstChild.style.display = 'block'; // Make the cloned content visible
+                widgetModalBody.firstChild.style.display = 'flex';
                 widgetModal.style.display = 'block';
             }
         });
     });
 
-    // Schließ-Logik für alle Modals
     document.querySelectorAll('.modal').forEach(modal => {
         const closeBtn = modal.querySelector('.close-modal');
         if (closeBtn) {
@@ -127,7 +142,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Filter-Logik für Listen in Widgets
     document.body.addEventListener('input', function(event) {
         if (event.target.matches('.filter-input')) {
             const filterValue = event.target.value.toLowerCase();
@@ -135,15 +149,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const list = document.getElementById(targetListId) || (widgetModalBody ? widgetModalBody.querySelector(`#${targetListId}`) : null);
 
             if (list) {
-                list.querySelectorAll('li').forEach(item => {
+                list.querySelectorAll('li, .list-item-link').forEach(item => { // Sucht nach li oder dem a-tag
                     const text = item.textContent.toLowerCase();
+                    const parentLink = item.closest('.list-item-link') || item;
                     if (text.includes(filterValue)) {
-                        item.style.display = '';
+                        parentLink.style.display = '';
                     } else {
-                        item.style.display = 'none';
+                        parentLink.style.display = 'none';
                     }
                 });
             }
         }
     });
 });
+

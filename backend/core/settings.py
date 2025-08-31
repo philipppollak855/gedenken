@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Pfade für STYLES und SCRIPTS auf den Standard zurückgesetzt, um den 500-Fehler zu beheben.
+# KORRIGIERT: STATIC_URL korrigiert, um den 404-Fehler bei statischen Dateien zu beheben.
 
 import os
 import dj_database_url
@@ -101,7 +101,7 @@ TIME_ZONE = 'Europe/Vienna'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/' # KORRIGIERT
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -124,10 +124,10 @@ UNFOLD = {
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
     "STYLES": [
-        "admin/css/custom_admin.css", # Zurück zum sauberen Pfad
+        "admin/css/custom_admin.css",
     ],
     "SCRIPTS": [
-        "admin/js/custom_admin.js", # Zurück zum sauberen Pfad
+        "admin/js/custom_admin.js",
     ],
     "SIDEBAR": {
         "navigation": [

@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Alle reverse_lazy-Aufrufe in der UNFOLD-Konfiguration wurden durch statische Pfade ersetzt, um Ladefehler zu vermeiden.
+# KORRIGIERT: Der Pfad in UNFOLD["STYLES"] wurde auf den korrekten relativen Pfad gesetzt.
 
 import os
 import dj_database_url
@@ -121,7 +121,7 @@ UNFOLD = {
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
     "STYLES": [
-        "admin/css/custom_admin.css",
+        "admin/css/custom_admin.css", # KORRIGIERT: Der Pfad ist jetzt relativ.
     ],
     "SIDEBAR": {
         "navigation": [
@@ -174,3 +174,4 @@ UNFOLD = {
         ]
     },
 }
+

@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Umstellung auf Django URL-Namen in der Sidebar, um den 500 Server Error endgültig zu beheben.
+# KORRIGIERT: Umstellung auf die "models"-basierte Sidebar-Konfiguration für korrekte Verschachtelung und zur Behebung des 500-Fehlers.
 
 import os
 import dj_database_url
@@ -133,60 +133,60 @@ UNFOLD = {
         "navigation": [
             {
                 "title": "Dashboard",
-                "link": "admin:index", # Verwendet den URL-Namen für das Dashboard
+                "link": "admin:index",
                 "icon": "fas fa-tachometer-alt",
             },
             {
                 "title": "Hauptverwaltung",
                 "icon": "fas fa-users-cog",
-                "items": [
-                    {"title": "Benutzer", "link": "admin:api_user_changelist"},
-                    {"title": "Gedenkseiten", "link": "admin:api_memorialpage_changelist"},
-                    {"title": "Freigabe-Anfragen", "link": "admin:api_releaserequest_changelist"},
+                "models": [
+                    {"model": "api.user", "title": "Benutzer"},
+                    {"model": "api.memorialpage", "title": "Gedenkseiten"},
+                    {"model": "api.releaserequest", "title": "Freigabe-Anfragen"},
                 ]
             },
             {
                 "title": "Inhalte & Vorsorge",
                 "icon": "fas fa-layer-group",
-                "items": [
-                     {"title": "Mediathek", "link": "admin:api_mediaasset_changelist"},
-                     {"title": "Letzte Wünsche", "link": "admin:api_lastwishes_changelist"},
-                     {"title": "Dokumente", "link": "admin:api_document_changelist"},
-                     {"title": "Digitaler Nachlass", "link": "admin:api_digitallegacyitem_changelist"},
+                "models": [
+                     {"model": "api.mediaasset", "title": "Mediathek"},
+                     {"model": "api.lastwishes", "title": "Letzte Wünsche"},
+                     {"model": "api.document", "title": "Dokumente"},
+                     {"model": "api.digitallegacyitem", "title": "Digitaler Nachlass"},
                 ]
             },
              {
                 "title": "Ereignisse & Interaktion",
                 "icon": "fas fa-calendar-check",
-                "items": [
-                     {"title": "Termine", "link": "admin:api_memorialevent_changelist"},
-                     {"title": "Teilnahmen", "link": "admin:api_eventattendance_changelist"},
-                     {"title": "Kondolenzen", "link": "admin:api_condolence_changelist"},
-                     {"title": "Gedenkkerzen", "link": "admin:api_memorialcandle_changelist"},
-                     {"title": "Galerie", "link": "admin:api_galleryitem_changelist"},
-                     {"title": "Chronik", "link": "admin:api_timelineevent_changelist"},
+                "models": [
+                     {"model": "api.memorialevent", "title": "Termine"},
+                     {"model": "api.eventattendance", "title": "Teilnahmen"},
+                     {"model": "api.condolence", "title": "Kondolenzen"},
+                     {"model": "api.memorialcandle", "title": "Gedenkkerzen"},
+                     {"model": "api.galleryitem", "title": "Galerie"},
+                     {"model": "api.timelineevent", "title": "Chronik"},
                 ]
             },
             {
                 "title": "Finanzen & Verträge",
                 "icon": "fas fa-file-invoice-dollar",
-                "items": [
-                    {"title": "Verträge", "link": "admin:api_contractitem_changelist"},
-                    {"title": "Versicherungen", "link": "admin:api_insuranceitem_changelist"},
-                    {"title": "Finanzen", "link": "admin:api_financialitem_changelist"},
+                "models": [
+                    {"model": "api.contractitem", "title": "Verträge"},
+                    {"model": "api.insuranceitem", "title": "Versicherungen"},
+                    {"model": "api.financialitem", "title": "Finanzen"},
                 ]
             },
              {
                 "title": "System & Stammdaten",
                 "icon": "fas fa-cogs",
-                "items": [
-                    {"title": "Globale Einstellungen", "link": "admin:api_sitesettings_changelist"},
-                    {"title": "Veranstaltungsorte", "link": "admin:api_eventlocation_changelist"},
-                    {"title": "Kondolenz-Vorlagen", "link": "admin:api_condolencetemplate_changelist"},
-                    {"title": "Kerzenbilder", "link": "admin:api_candleimage_changelist"},
-                    {"title": "Kerzen-Vorlagen", "link": "admin:api_candlemessagetemplate_changelist"},
-                    {"title": "System-Verknüpfungen", "link": "admin:api_familylink_changelist"},
-                    {"title": "Benutzergruppen", "link": "admin:auth_group_changelist"},
+                "models": [
+                    {"model": "api.sitesettings", "title": "Globale Einstellungen"},
+                    {"model": "api.eventlocation", "title": "Veranstaltungsorte"},
+                    {"model": "api.condolencetemplate", "title": "Kondolenz-Vorlagen"},
+                    {"model": "api.candleimage", "title": "Kerzenbilder"},
+                    {"model": "api.candlemessagetemplate", "title": "Kerzen-Vorlagen"},
+                    {"model": "api.familylink", "title": "System-Verknüpfungen"},
+                    {"model": "auth.group", "title": "Benutzergruppen"},
                 ]
             },
         ]

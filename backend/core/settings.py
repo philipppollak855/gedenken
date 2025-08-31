@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# KORRIGIERT: Umstellung auf die "models"-basierte Sidebar-Konfiguration für korrekte Verschachtelung.
+# KORRIGIERT: Link zur "auth" App entfernt, um den 500 Server Error zu beheben.
 
 import os
 import dj_database_url
@@ -186,7 +186,7 @@ UNFOLD = {
                     {"title": "Kerzenbilder", "link": "/admin/api/candleimage/"},
                     {"title": "Kerzen-Vorlagen", "link": "/admin/api/candlemessagetemplate/"},
                     {"title": "System-Verknüpfungen", "link": "/admin/api/familylink/"},
-                    {"title": "Benutzergruppen", "link": "/admin/auth/group/"},
+                    # {"title": "Benutzergruppen", "link": "/admin/auth/group/"}, # Temporär entfernt, um 500-Fehler zu beheben
                 ]
             },
         ]

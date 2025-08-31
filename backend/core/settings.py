@@ -1,5 +1,6 @@
 # backend/core/settings.py
-# KORRIGIERT: Umstellung auf die korrekte "models"-basierte Sidebar-Konfiguration für stabile, verschachtelte Menüs.
+# KORRIGIERT: Die fehlerhafte SIDEBAR-Konfiguration wurde vollständig entfernt, um den 500-Fehler zu beheben.
+# Unfold wird nun die stabile Standard-Sidebar generieren.
 
 import os
 import dj_database_url
@@ -126,67 +127,6 @@ UNFOLD = {
     "SCRIPTS": [
         "/static/admin/js/custom_admin.js",
     ],
-    "SIDEBAR": {
-        "navigation": [
-            {
-                "title": "Dashboard",
-                "link": "admin:index",
-                "icon": "fas fa-tachometer-alt",
-            },
-            {
-                "title": "Hauptverwaltung",
-                "icon": "fas fa-users-cog",
-                "models": [
-                    "api.user",
-                    "api.memorialpage",
-                    "api.releaserequest",
-                ]
-            },
-            {
-                "title": "Inhalte & Vorsorge",
-                "icon": "fas fa-layer-group",
-                "models": [
-                     "api.mediaasset",
-                     "api.lastwishes",
-                     "api.document",
-                     "api.digitallegacyitem",
-                ]
-            },
-             {
-                "title": "Ereignisse & Interaktion",
-                "icon": "fas fa-calendar-check",
-                "models": [
-                     "api.memorialevent",
-                     "api.eventattendance",
-                     "api.condolence",
-                     "api.memorialcandle",
-                     "api.galleryitem",
-                     "api.timelineevent",
-                ]
-            },
-            {
-                "title": "Finanzen & Verträge",
-                "icon": "fas fa-file-invoice-dollar",
-                "models": [
-                    "api.contractitem",
-                    "api.insuranceitem",
-                    "api.financialitem",
-                ]
-            },
-             {
-                "title": "System & Stammdaten",
-                "icon": "fas fa-cogs",
-                "models": [
-                    "api.sitesettings",
-                    "api.eventlocation",
-                    "api.condolencetemplate",
-                    "api.candleimage",
-                    "api.candlemessagetemplate",
-                    "api.familylink",
-                    "auth.group",
-                ]
-            },
-        ]
-    },
+    # Die "SIDEBAR"-Konfiguration wurde entfernt. Unfold generiert jetzt das Standard-Menü.
 }
 

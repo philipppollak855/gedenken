@@ -19,6 +19,11 @@
     display: none !important;
 }
 
+/* KORRIGIERT: Verschiebt den Hauptinhalt nach rechts, um Platz zu schaffen */
+.main-content {
+    margin-left: 250px !important; /* Breite der alten Sidebar */
+}
+
 /* Der Toggle-Button für unsere neue Sidebar */
 #custom-sidebar-toggle {
     background: none;
@@ -143,4 +148,3 @@ li.has-submenu.submenu-open > a > .submenu-arrow {
         padding-left: 280px;
     }
 }
-

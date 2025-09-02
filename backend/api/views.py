@@ -1,6 +1,7 @@
 # backend/api/views.py
 # ERWEITERT: Neuer ViewSet für EventAttendance hinzugefügt.
 # NEU: GlobalSearchView für die anwendungsweite Suche hinzugefügt.
+# KORRIGIERT: Authentifizierung und Fehlertoleranz in GlobalSearchView verbessert.
 
 import os
 from django.core.management import call_command
@@ -12,6 +13,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth.hashers import make_password
+from rest_framework.authentication import SessionAuthentication
+
 from .serializers import (
     RegisterSerializer, UserSerializer, DigitalLegacyItemSerializer,
     FinancialItemSerializer, InsuranceItemSerializer, ContractItemSerializer,
@@ -33,6 +36,7 @@ class GlobalSearchView(APIView):
     """
     Stellt eine globale Suche über verschiedene Modelle im Admin-Backend bereit.
     """
+    authentication_classes = [SessionAuthentication] # KORREKTUR: Erlaubt Authentifizierung aus dem Admin-Panel.
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request, *args, **kwargs):
@@ -41,53 +45,66 @@ class GlobalSearchView(APIView):
 
         if query and len(query) > 2:
             # Benutzer durchsuchen
-            users = User.objects.filter(
-                Q(first_name__icontains=query) |
-                Q(last_name__icontains=query) |
-                Q(email__icontains=query)
-            )[:10]
-            for user in users:
-                results.append({
-                    'type': 'Benutzer',
-                    'title': f"{user.first_name} {user.last_name} ({user.email})",
-                    'url': reverse('admin:api_user_change', args=[user.pk])
-                })
+            try:
+                users = User.objects.filter(
+                    Q(first_name__icontains=query) |
+                    Q(last_name__icontains=query) |
+                    Q(email__icontains=query)
+                )[:10]
+                for user in users:
+                    results.append({
+                        'type': 'Benutzer',
+                        'title': f"{user.first_name} {user.last_name} ({user.email})",
+                        'url': reverse('admin:api_user_change', args=[user.pk])
+                    })
+            except Exception as e:
+                print(f"Fehler bei der Benutzersuche: {e}")
 
             # Gedenkseiten durchsuchen
-            pages = MemorialPage.objects.filter(
-                Q(first_name__icontains=query) |
-                Q(last_name__icontains=query)
-            )[:10]
-            for page in pages:
-                results.append({
-                    'type': 'Gedenkseite',
-                    'title': f"Gedenkseite für {page.first_name} {page.last_name}",
-                    'url': reverse('admin:api_memorialpage_change', args=[page.pk])
-                })
+            try:
+                pages = MemorialPage.objects.filter(
+                    Q(first_name__icontains=query) |
+                    Q(last_name__icontains=query)
+                )[:10]
+                for page in pages:
+                    results.append({
+                        'type': 'Gedenkseite',
+                        'title': f"Gedenkseite für {page.first_name} {page.last_name}",
+                        'url': reverse('admin:api_memorialpage_change', args=[page.pk])
+                    })
+            except Exception as e:
+                print(f"Fehler bei der Gedenkseitensuche: {e}")
 
             # Kondolenzen durchsuchen
-            condolences = Condolence.objects.filter(
-                 Q(guest_name__icontains=query) |
-                 Q(message__icontains=query)
-            ).select_related('page')[:10]
-            for condolence in condolences:
-                 results.append({
-                    'type': 'Kondolenz',
-                    'title': f"'{condolence.message[:30]}...' von {condolence.guest_name} für {condolence.page}",
-                    'url': reverse('admin:api_condolence_change', args=[condolence.condolence_id])
-                })
+            try:
+                condolences = Condolence.objects.filter(
+                     Q(guest_name__icontains=query) |
+                     Q(message__icontains=query)
+                ).select_related('page')[:10]
+                for condolence in condolences:
+                     results.append({
+                        'type': 'Kondolenz',
+                        'title': f"'{condolence.message[:30]}...' von {condolence.guest_name} für {condolence.page}",
+                        'url': reverse('admin:api_condolence_change', args=[condolence.condolence_id])
+                    })
+            except Exception as e:
+                print(f"Fehler bei der Kondolenzsuche: {e}")
+
 
             # Gedenkkerzen durchsuchen
-            candles = MemorialCandle.objects.filter(
-                 Q(guest_name__icontains=query) |
-                 Q(message__icontains=query)
-            ).select_related('page')[:10]
-            for candle in candles:
-                 results.append({
-                    'type': 'Gedenkkerze',
-                    'title': f"'{candle.message[:30]}...' von {candle.guest_name} für {candle.page}",
-                    'url': reverse('admin:api_memorialcandle_change', args=[candle.candle_id])
-                })
+            try:
+                candles = MemorialCandle.objects.filter(
+                     Q(guest_name__icontains=query) |
+                     Q(message__icontains=query)
+                ).select_related('page')[:10]
+                for candle in candles:
+                     results.append({
+                        'type': 'Gedenkkerze',
+                        'title': f"'{candle.message[:30]}...' von {candle.guest_name} für {candle.page}",
+                        'url': reverse('admin:api_memorialcandle_change', args=[candle.candle_id])
+                    })
+            except Exception as e:
+                print(f"Fehler bei der Kerzensuche: {e}")
 
         return Response(results)
 
@@ -332,3 +349,4 @@ class EventAttendanceViewSet(viewsets.ModelViewSet):
         event = generics.get_object_or_404(MemorialEvent, pk=self.kwargs['event_pk'])
         author = self.request.user if self.request.user.is_authenticated else None
         serializer.save(event=event, user=author)
+

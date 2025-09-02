@@ -61,7 +61,7 @@
     box-shadow: 0 0 10px rgba(140, 128, 115, 0.7);
 }
 
-/* KORRIGIERT: Stile für den Dashboard-Button in den Breadcrumbs mit höherer Spezifität */
+/* KORRIGIERT: Stile für den Dashboard-Button in den Breadcrumbs mit HÖCHSTER Spezifität */
 .breadcrumbs {
     display: flex;
     align-items: center;
@@ -84,6 +84,7 @@ main.content .breadcrumbs .dashboard-btn { /* Spezifischerer Selektor, um Unfold
     text-decoration: none !important;
     white-space: nowrap !important;
     transition: background-color 0.2s;
+    margin-left: auto; /* Sorgt dafür, dass der Button rechts ist */
 }
 
 main.content .breadcrumbs .dashboard-btn:hover {

@@ -1,5 +1,6 @@
 /* backend/static/admin/css/custom_admin.css */
-/* KORRIGIERT: CSS-Regeln mit erhöhter Spezifität und !important, um das Unfold-Layout zu überschreiben. */
+/* KORRIGIERT: CSS-Regeln mit erhÃ¶hter SpezifitÃ¤t und !important, um das Unfold-Layout zu Ã¼berschreiben. */
+/* KORRIGIERT: Scroll-Verhalten im vergrößerten Widget-Modal repariert. */
 
 /* ---------------------------------- */
 /* DASHBOARD STYLES                   */
@@ -8,7 +9,7 @@
 #content-main .dashboard-header h1 { margin: 0; }
 #content-main #current-datetime { font-size: 1rem; font-weight: 500; color: #ccc; background-color: #4a535c; padding: 0.5rem 1rem; border-radius: 6px; white-space: nowrap; }
 
-/* Erzwingt das korrekte Grid-Layout für das Dashboard */
+/* Erzwingt das korrekte Grid-Layout fÃ¼r das Dashboard */
 #content-main .dashboard-grid { 
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
@@ -26,7 +27,7 @@
     flex-direction: column; 
     min-height: 0; 
     width: auto !important; /* Verhindert, dass das Widget auf volle Breite gezwungen wird */
-    margin-bottom: 0 !important; /* Überschreibt eventuelle Abstände von Unfold */
+    margin-bottom: 0 !important; /* Ãœberschreibt eventuelle AbstÃ¤nde von Unfold */
 }
 
 #content-main .widget-header { display: flex; justify-content: space-between; align-items: center; }
@@ -61,7 +62,7 @@
     display: grid; 
     grid-template-columns: repeat(5, 1fr); 
     gap: 1rem;
-    padding-top: 1rem; /* NEU: Fügt Abstand nach oben hinzu */
+    padding-top: 1rem; /* NEU: FÃ¼gt Abstand nach oben hinzu */
 }
 #content-main .event-card { width: 100%; background: #4a535c; padding: 0.8rem; border-radius: 6px; border-left: 4px solid #8c8073; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.8rem; transition: transform 0.2s, box-shadow 0.2s; }
 #content-main .event-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
@@ -80,13 +81,6 @@
     overflow: visible !important;
 }
 
-/* NEU: Stellt sicher, dass die Liste im Modal scrollbar ist */
-#widget-modal-body .activity-list.scrollable {
-    overflow-y: auto;
-    flex-grow: 1;
-    min-height: 0;
-}
-
 .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
 .modal-content { background-color: #2c343c; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; border-radius: 8px; position: relative; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4a535c; padding-bottom: 10px; margin-bottom: 15px; }
@@ -102,3 +96,23 @@
 .calendar-day.has-events { background-color: #8c8073; color: #fff; cursor: pointer; font-weight: bold; }
 #event-list-popup { display: none; position: absolute; background: #1e2227; border: 1px solid #555; border-radius: 6px; padding: 15px; z-index: 10; box-shadow: 0 5px 15px rgba(0,0,0,0.5); width: 250px; }
 
+/* KORRIGIERTE STILE FÜR DAS WIDGET-MODAL SCROLLING */
+#widget-modal-body {
+    display: flex;          /* Macht den Body zu einem Flex-Container */
+    flex-direction: column; /* Stellt die Richtung auf vertikal */
+    flex-grow: 1;           /* Erlaubt dem Body, den verbleibenden Platz auszufüllen */
+    min-height: 0;          /* Wichtig für Flexbox-Scrolling in manchen Browsern */
+}
+
+#widget-modal-body .widget-content-source {
+    display: flex;
+    flex-direction: column;
+    height: 100%;           /* Füllt die Höhe des modal-body aus */
+}
+
+#widget-modal-body .activity-list.scrollable {
+    overflow-y: auto;       /* Aktiviert die vertikale Scrollbar bei Bedarf */
+    flex-grow: 1;           /* Nimmt den verbleibenden Platz im Parent ein */
+    min-height: 0;          /* Verhindert, dass das Element überläuft */
+    padding-right: 10px;    /* Platz für die Scrollbar */
+}

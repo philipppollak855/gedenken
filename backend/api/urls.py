@@ -1,5 +1,6 @@
 # backend/api/urls.py
-# ERWEITERT: Neue Route für EventAttendance hinzugefügt.
+# ERWEITERT: Neue Route fÃ¼r EventAttendance hinzugefÃ¼gt.
+# NEU: Route für die globale Suche hinzugefügt.
 
 from django.urls import path, include
 from rest_framework_nested import routers
@@ -11,7 +12,7 @@ from .views import (
     MemorialCandleViewSet, ManagedMemorialPageViewSet, TimelineEventViewSet, 
     GalleryItemViewSet, ReleaseRequestViewSet, SiteSettingsView, MyContributionsView,
     CondolenceTemplateViewSet, CandleImageViewSet, CandleMessageTemplateViewSet,
-    SeedDatabaseView, EventAttendanceViewSet, MemorialEventViewSet
+    SeedDatabaseView, EventAttendanceViewSet, MemorialEventViewSet, GlobalSearchView
 )
 
 router = routers.DefaultRouter()
@@ -39,7 +40,7 @@ managed_pages_router = routers.NestedSimpleRouter(router, r'manage/memorial-page
 managed_pages_router.register(r'timeline-events', TimelineEventViewSet, basename='page-timeline-events')
 managed_pages_router.register(r'gallery-items', GalleryItemViewSet, basename='page-gallery-items')
 
-# NEU: Router für die Teilnahme an Events
+# NEU: Router fÃ¼r die Teilnahme an Events
 events_router = routers.NestedSimpleRouter(pages_router, r'events', lookup='event')
 events_router.register(r'attendees', EventAttendanceViewSet, basename='event-attendees')
 
@@ -54,5 +55,6 @@ urlpatterns = [
     path('last-wishes/', LastWishesView.as_view(), name='last-wishes'),
     path('settings/', SiteSettingsView.as_view(), name='site-settings'),
     path('my-contributions/', MyContributionsView.as_view(), name='my-contributions'),
+    path('global-search/', GlobalSearchView.as_view(), name='global-search'),
     path('seed-database/<str:key>/', SeedDatabaseView.as_view(), name='seed-database'),
 ]

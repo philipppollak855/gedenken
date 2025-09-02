@@ -116,7 +116,7 @@
     flex-direction: column;
     flex-grow: 1;
     min-height: 0;
-    overflow: hidden !important;
+    overflow: hidden; /* DIES WURDE GEÄNDERT - !important entfernt */
 }
 #widget-modal-body .widget-content-source {
     display: flex;

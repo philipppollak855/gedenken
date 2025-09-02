@@ -116,15 +116,16 @@
     flex-direction: column;
     flex-grow: 1;
     min-height: 0;
-    /* overflow: hidden;  <-- DIESE ZEILE WURDE ENTFERNT */
+    overflow: hidden; /* Verhindert, dass dieser Container scrollt */
 }
 #widget-modal-body .widget-content-source {
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0; /* Erlaubt dem Container zu schrumpfen */
 }
 #widget-modal-body .activity-list.scrollable {
-    overflow-y: auto !important;
+    overflow-y: auto !important; /* Erzwingt die interne Scrollbar */
     flex-grow: 1;
     min-height: 0;
     padding-right: 15px;

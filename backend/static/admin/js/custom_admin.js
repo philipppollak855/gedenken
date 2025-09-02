@@ -1,8 +1,6 @@
 // backend/static/admin/js/custom_admin.js
-// KORRIGIERT: Filterfunktion für das vergrößerte Modal repariert.
-// NEU: Fügt Header-Navigation an der korrekten Stelle in der Unfold-UI hinzu.
-// NEU: Setzt die Sidebar standardmäßig auf eingeklappt.
-// NEU: Verbessert die Positionierung des Kalender-Popups.
+// ... (existing code from previous steps) ...
+// NEU: Fügt die Logik für die Dock-Navigation hinzu.
 
 document.addEventListener('DOMContentLoaded', function() {
     // NEU: Sidebar standardmäßig einklappen
@@ -29,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateTime, 1000);
     updateTime();
 
-    // NEU: Header-Navigation an der korrekten Stelle einfügen
+    // Header-Navigation
     function addHeaderNavigation() {
         const headerActionsContainer = document.querySelector('header .flex.items-center.gap-x-4');
         if (!headerActionsContainer) return;
@@ -63,8 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     addHeaderNavigation();
 
+    // Kalender-Logik
     const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');
+    // ... (rest of the calendar logic remains unchanged) ...
     const openCalendarBtn = document.getElementById('open-calendar-modal');
     const calendarBody = document.getElementById('calendar-body');
     const monthYearEl = document.getElementById('calendar-month-year');
@@ -118,14 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
             list.appendChild(item);
         });
         eventListPopup.appendChild(list);
-        
-        // Popup positionieren
         const calendarGrid = document.querySelector('.calendar-grid-container');
         if (calendarGrid) {
             calendarGrid.appendChild(eventListPopup);
-            const dayRect = dayEl.getBoundingClientRect();
-            const gridRect = calendarGrid.getBoundingClientRect();
-
             eventListPopup.style.left = `${dayEl.offsetLeft + dayEl.offsetWidth}px`;
             eventListPopup.style.top = `${dayEl.offsetTop}px`;
             eventListPopup.style.display = 'block';
@@ -148,6 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, true);
 
+    // Widget Modal & Filter Logic
+    // ... (this part remains unchanged) ...
     const widgetModal = document.getElementById('widget-modal');
     const widgetModalTitle = document.getElementById('widget-modal-title');
     const widgetModalBody = document.getElementById('widget-modal-body');
@@ -206,5 +203,45 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.filter-input').forEach(input => {
         input.addEventListener('input', handleFilter);
     });
+
+    // NEU: Logik für Dock-Navigation
+    const dockTrigger = document.getElementById('dock-trigger');
+    const navWheelContainer = document.getElementById('nav-wheel-container');
+    const navWheelToggle = document.getElementById('nav-wheel-toggle');
+
+    function toggleNavWheel(show) {
+        if (show) {
+            navWheelContainer.classList.add('active');
+            const items = navWheelContainer.querySelectorAll('.wheel-item');
+            const numItems = items.length;
+            const angle = 360 / numItems;
+            const radius = 150; // Radius in px
+            items.forEach((item, index) => {
+                const rotation = angle * index;
+                const transform = `rotate(${rotation}deg) translate(${radius}px) rotate(${-rotation}deg)`;
+                item.style.transitionDelay = `${index * 50}ms`;
+                item.style.transform = transform;
+            });
+        } else {
+            navWheelContainer.classList.remove('active');
+            navWheelContainer.querySelectorAll('.wheel-item').forEach(item => {
+                item.style.transform = 'scale(0)';
+                item.style.transitionDelay = '0ms';
+            });
+        }
+    }
+
+    if (dockTrigger && navWheelContainer && navWheelToggle) {
+        dockTrigger.addEventListener('click', () => toggleNavWheel(true));
+        navWheelToggle.addEventListener('click', () => toggleNavWheel(false));
+        
+        // Klick außerhalb schließt das Rad
+        navWheelContainer.addEventListener('click', function(e) {
+            if (e.target === navWheelContainer) {
+                toggleNavWheel(false);
+            }
+        });
+    }
+
 });
 

@@ -1,10 +1,6 @@
 /* backend/static/admin/css/custom_admin.css */
-/* KORRIGIERT: CSS-Regeln mit erhöhter Spezifität und !important, um das Unfold-Layout zu überschreiben. */
-/* KORRIGIERT: Scroll-Verhalten im vergrößerten Widget-Modal repariert. */
-/* NEU: Verbessertes Design für Listeneinträge in den Widgets. */
-/* NEU: Luftigeres Layout und überarbeitete Terminkarten. */
-/* NEU: Stile für Header-Navigation. */
-/* NEU: Verbessertes Design für Kalender-Event-Popup */
+/* ... existing styles ... */
+/* NEU: Stile für prominenteren Dashboard-Link und Dock-Navigation */
 
 /* ---------------------------------- */
 /* DASHBOARD STYLES                   */
@@ -13,7 +9,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem; /* Mehr Abstand nach unten */
+    margin-bottom: 2rem;
     gap: 1.5rem;
 }
 #content-main .dashboard-header h1 { margin: 0; }
@@ -39,16 +35,25 @@
     color: #f1f1f1 !important;
     border: 1px solid #5a636c !important;
     font-size: 1rem !important;
+    transition: all 0.2s ease-in-out !important;
 }
 .header-navigation-tools .btn:hover,
 .header-navigation-tools a.btn:hover {
     background-color: #5a636c !important;
+    transform: scale(1.1);
+}
+
+/* Prominenter Dashboard-Button */
+.header-navigation-tools a.btn[title='Dashboard'] {
+    background-color: #8c8073 !important;
+    color: white !important;
+    box-shadow: 0 0 10px rgba(140, 128, 115, 0.7);
 }
 
 #content-main .dashboard-grid { 
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
-    gap: 2rem !important; /* Luftiger */
+    gap: 2rem !important;
     width: 100% !important;
 }
 
@@ -131,9 +136,8 @@
 #content-main .event-card-time { font-size: 1rem; font-weight: bold; color: #fff; background-color: #8c8073; padding: 0.2rem 0.6rem; border-radius: 4px; }
 #content-main .event-card-time span { font-weight: normal; font-size: 0.8rem; }
 
-/* ---------------------------------- */
-/* NEUE STILE FÜR LISTENEINTRÄGE      */
-/* ---------------------------------- */
+/* ... existing styles ... */
+
 .activity-list ul { list-style: none; padding: 0; margin: 0; }
 .activity-item {
     padding: 1rem 0.5rem;
@@ -148,16 +152,14 @@
 .item-message {
     font-size: 0.9rem;
     color: #ccc;
-    background-color: #3a424a; /* Hebt die Nachricht optisch ab */
+    background-color: #3a424a;
     padding: 0.75rem;
     border-radius: 4px;
     margin: 0;
 }
 
+/* ... existing modal styles ... */
 
-/* ---------------------------------- */
-/* MODAL STYLES (Kalender & Widgets)  */
-/* ---------------------------------- */
 .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
 .modal-content { background-color: #2c343c; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; border-radius: 8px; position: relative; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4a535c; padding-bottom: 10px; margin-bottom: 15px; }
@@ -182,7 +184,6 @@
     z-index: 10; 
     box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
     width: 280px;
-    transform: translate(10px, -10px);
 }
 #event-list-popup::before {
     content: '';
@@ -217,16 +218,16 @@
     flex-direction: column;
     flex-grow: 1;
     min-height: 0;
-    overflow: hidden; /* Verhindert, dass dieser Container scrollt */
+    overflow: hidden;
 }
 #widget-modal-body .widget-content-source {
     display: flex;
     flex-direction: column;
     height: 100%;
-    min-height: 0; /* Erlaubt dem Container zu schrumpfen */
+    min-height: 0;
 }
 #widget-modal-body .activity-list.scrollable {
-    overflow-y: auto !important; /* Erzwingt die interne Scrollbar */
+    overflow-y: auto !important;
     flex-grow: 1;
     min-height: 0;
     padding-right: 15px;
@@ -234,4 +235,136 @@
 #widget-modal-body .activity-list.scrollable::-webkit-scrollbar { width: 8px; }
 #widget-modal-body .activity-list.scrollable::-webkit-scrollbar-track { background: #2c343c; }
 #widget-modal-body .activity-list.scrollable::-webkit-scrollbar-thumb { background-color: #888; border-radius: 4px; border: 2px solid #2c343c; }
+
+
+/* ---------------------------------- */
+/* DOCK & RADIAL NAVIGATION           */
+/* ---------------------------------- */
+#dock-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+}
+
+#dock-trigger {
+    position: absolute;
+    bottom: 0;
+    width: 200px;
+    height: 10px;
+    background-color: transparent;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+#dock-container:hover #dock-trigger {
+    height: 20px;
+    background-color: rgba(140, 128, 115, 0.5);
+    box-shadow: 0 0 15px rgba(140, 128, 115, 0.8);
+}
+
+.nav-wheel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0s 0.4s;
+    z-index: 9998;
+}
+.nav-wheel.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s ease;
+}
+
+.nav-wheel-center-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #f1f1f1;
+    color: #3a3a3a;
+    border: 3px solid #8c8073;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
+    transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+.nav-wheel.active .nav-wheel-center-button {
+    transform: rotate(360deg);
+}
+
+.wheel-items-container {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    pointer-events: none; /* Container selbst ist nicht klickbar */
+}
+
+.wheel-item {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin: -30px;
+    background-color: #4a535c;
+    color: #f1f1f1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: auto; /* Items sind klickbar */
+}
+.nav-wheel.active .wheel-item {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.wheel-item:hover {
+    background-color: #8c8073;
+    transform: scale(1.15) !important; /* Wichtig, um die Positionierung zu überschreiben */
+}
+
+.wheel-item::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 120%;
+    background-color: #1e2227;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.2s;
+    pointer-events: none;
+}
+
+.wheel-item:hover::after {
+    opacity: 1;
+    transform: translateY(0);
+}
 

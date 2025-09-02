@@ -115,10 +115,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 widgetModalBody.appendChild(clonedContent);
                 widgetModal.style.display = 'block';
                 
-                // KORRIGIERT: Event Listener für das Filter-Input im Modal neu hinzufügen
-                const filterInput = clonedContent.querySelector('.filter-input');
-                if (filterInput) {
-                    filterInput.addEventListener('input', handleFilter);
+                // Event Listener für das Filter-Input im Modal neu hinzufügen
+                const filterInputInModal = clonedContent.querySelector('.filter-input');
+                if (filterInputInModal) {
+                    filterInputInModal.addEventListener('input', handleFilter);
                 }
             }
         });
@@ -136,19 +136,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Filterfunktion ausgelagert
+    // Filterfunktion ausgelagert und verbessert
     const handleFilter = (event) => {
-        const filterValue = event.target.value.toLowerCase();
-        const targetListId = event.target.dataset.target;
+        const inputElement = event.target;
+        const filterValue = inputElement.value.toLowerCase();
+        const targetListId = inputElement.dataset.target;
         
-        // Sucht die Liste sowohl im Dashboard als auch im Modal
-        const list = document.getElementById(targetListId) || (widgetModalBody ? widgetModalBody.querySelector(`#${targetListId}`) : null);
-
-        if (list) {
-            list.querySelectorAll('.activity-item').forEach(item => { // Stellt sicher, dass nur Listenelemente gefiltert werden
-                const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(filterValue) ? '' : 'none';
-            });
+        // Findet den korrekten Container (entweder das Modal oder das ursprüngliche Widget)
+        const container = inputElement.closest('.widget-modal-content') || inputElement.closest('.dashboard-widget');
+        
+        if (container) {
+            const list = container.querySelector(`#${targetListId}`);
+            if (list) {
+                list.querySelectorAll('li.activity-item').forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(filterValue) ? '' : 'none';
+                });
+            }
         }
     };
     
@@ -157,3 +161,4 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', handleFilter);
     });
 });
+

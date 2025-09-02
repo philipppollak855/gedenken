@@ -1,8 +1,15 @@
 // backend/static/admin/js/custom_admin.js
 // KORRIGIERT: Filterfunktion für das vergrößerte Modal repariert.
 // NEU: Fügt Header-Navigation an der korrekten Stelle in der Unfold-UI hinzu.
+// NEU: Setzt die Sidebar standardmäßig auf eingeklappt.
+// NEU: Verbessert die Positionierung des Kalender-Popups.
 
 document.addEventListener('DOMContentLoaded', function() {
+    // NEU: Sidebar standardmäßig einklappen
+    if (!document.body.classList.contains('sidebar-collapse')) {
+        document.body.classList.add('sidebar-collapse');
+    }
+
     function moveModalsToBody() {
         document.querySelectorAll('.modal').forEach(modal => {
             document.body.appendChild(modal);
@@ -52,11 +59,9 @@ document.addEventListener('DOMContentLoaded', function() {
         navContainer.appendChild(forwardButton);
         navContainer.appendChild(homeLink);
 
-        // Fügt die Navigation VOR den bestehenden Aktionen (z.B. User-Icon) ein
         headerActionsContainer.prepend(navContainer);
     }
     addHeaderNavigation();
-
 
     const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');
@@ -102,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showEventsForDay(dayEvents, dayEl) {
-        document.querySelectorAll('#event-list-popup').forEach(p => p.style.display = 'none');
         eventListPopup.innerHTML = '';
         const list = document.createElement('ul');
         dayEvents.forEach(event => {
@@ -114,8 +118,18 @@ document.addEventListener('DOMContentLoaded', function() {
             list.appendChild(item);
         });
         eventListPopup.appendChild(list);
-        dayEl.appendChild(eventListPopup);
-        eventListPopup.style.display = 'block';
+        
+        // Popup positionieren
+        const calendarGrid = document.querySelector('.calendar-grid-container');
+        if (calendarGrid) {
+            calendarGrid.appendChild(eventListPopup);
+            const dayRect = dayEl.getBoundingClientRect();
+            const gridRect = calendarGrid.getBoundingClientRect();
+
+            eventListPopup.style.left = `${dayEl.offsetLeft + dayEl.offsetWidth}px`;
+            eventListPopup.style.top = `${dayEl.offsetTop}px`;
+            eventListPopup.style.display = 'block';
+        }
     }
 
     if (openCalendarBtn) {
@@ -128,8 +142,8 @@ document.addEventListener('DOMContentLoaded', function() {
         nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
     }
     
-    document.body.addEventListener('click', () => {
-        if(eventListPopup && eventListPopup.style.display === 'block') {
+    document.body.addEventListener('click', (e) => {
+        if(eventListPopup && !eventListPopup.contains(e.target) && !e.target.classList.contains('has-events')) {
              eventListPopup.style.display = 'none';
         }
     }, true);
@@ -152,7 +166,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 widgetModalBody.appendChild(clonedContent);
                 widgetModal.style.display = 'block';
                 
-                // Event Listener für das Filter-Input im Modal neu hinzufügen
                 const filterInputInModal = clonedContent.querySelector('.filter-input');
                 if (filterInputInModal) {
                     filterInputInModal.addEventListener('input', handleFilter);
@@ -173,13 +186,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Filterfunktion ausgelagert und verbessert
     const handleFilter = (event) => {
         const inputElement = event.target;
         const filterValue = inputElement.value.toLowerCase();
         const targetListId = inputElement.dataset.target;
-        
-        // Findet den korrekten Container (entweder das Modal oder das ursprüngliche Widget)
         const container = inputElement.closest('.widget-modal-content') || inputElement.closest('.dashboard-widget');
         
         if (container) {
@@ -193,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    // Event Listener für die ursprünglichen Filter-Inputs auf dem Dashboard
     document.querySelectorAll('.filter-input').forEach(input => {
         input.addEventListener('input', handleFilter);
     });

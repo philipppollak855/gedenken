@@ -1,6 +1,6 @@
 // backend/static/admin/js/custom_admin.js
 // KORRIGIERT: Filterfunktion für das vergrößerte Modal repariert.
-// NEU: Fügt Header-Navigation hinzu.
+// NEU: Fügt Header-Navigation an der korrekten Stelle in der Unfold-UI hinzu.
 
 document.addEventListener('DOMContentLoaded', function() {
     function moveModalsToBody() {
@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateTime, 1000);
     updateTime();
 
-    // NEU: Header-Navigation hinzufügen
+    // NEU: Header-Navigation an der korrekten Stelle einfügen
     function addHeaderNavigation() {
-        const dashboardHeader = document.querySelector('#content-main .dashboard-header');
-        if (!dashboardHeader) return;
+        const headerActionsContainer = document.querySelector('header .flex.items-center.gap-x-4');
+        if (!headerActionsContainer) return;
 
         const navContainer = document.createElement('div');
         navContainer.className = 'header-navigation-tools';
@@ -52,7 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
         navContainer.appendChild(forwardButton);
         navContainer.appendChild(homeLink);
 
-        dashboardHeader.prepend(navContainer);
+        // Fügt die Navigation VOR den bestehenden Aktionen (z.B. User-Icon) ein
+        headerActionsContainer.prepend(navContainer);
     }
     addHeaderNavigation();
 

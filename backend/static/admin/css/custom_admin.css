@@ -2,18 +2,52 @@
 /* KORRIGIERT: CSS-Regeln mit erhöhter Spezifität und !important, um das Unfold-Layout zu überschreiben. */
 /* KORRIGIERT: Scroll-Verhalten im vergrößerten Widget-Modal repariert. */
 /* NEU: Verbessertes Design für Listeneinträge in den Widgets. */
+/* NEU: Luftigeres Layout und überarbeitete Terminkarten. */
+/* NEU: Stile für Header-Navigation. */
 
 /* ---------------------------------- */
 /* DASHBOARD STYLES                   */
 /* ---------------------------------- */
-#content-main .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+#content-main .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem; /* Mehr Abstand nach unten */
+    gap: 1.5rem;
+}
 #content-main .dashboard-header h1 { margin: 0; }
 #content-main #current-datetime { font-size: 1rem; font-weight: 500; color: #ccc; background-color: #4a535c; padding: 0.5rem 1rem; border-radius: 6px; white-space: nowrap; }
+
+/* Header Navigation Tools */
+.header-navigation-tools {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+.header-navigation-tools .btn,
+.header-navigation-tools a.btn {
+    padding: 0 !important;
+    width: 38px !important;
+    height: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+    background-color: #4a535c !important;
+    color: #f1f1f1 !important;
+    border: 1px solid #5a636c !important;
+    font-size: 1rem !important;
+}
+.header-navigation-tools .btn:hover,
+.header-navigation-tools a.btn:hover {
+    background-color: #5a636c !important;
+}
 
 #content-main .dashboard-grid { 
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
-    gap: 1.5rem !important;
+    gap: 2rem !important; /* Luftiger */
     width: 100% !important;
 }
 
@@ -54,20 +88,47 @@
 #content-main .quick-links a:hover { background-color: #5a636c; border-color: #8c8073; transform: translateX(5px); }
 #content-main .quick-links a .fas { width: 20px; }
 
+/* Event Grid & Cards Redesign */
 #content-main .event-grid { 
     display: grid; 
-    grid-template-columns: repeat(5, 1fr); 
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
     padding-top: 1rem;
 }
-#content-main .event-card { width: 100%; background: #4a535c; padding: 0.8rem; border-radius: 6px; border-left: 4px solid #8c8073; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.8rem; transition: transform 0.2s, box-shadow 0.2s; }
+.event-card-link { text-decoration: none; }
+#content-main .event-card { 
+    width: 100%; 
+    background: #4a535c; 
+    border-radius: 6px; 
+    border-left: 4px solid #8c8073; 
+    display: flex; 
+    flex-direction: column;
+    font-size: 0.8rem; 
+    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 1rem;
+    height: 100%;
+}
 #content-main .event-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
-#content-main .event-card-header { display: flex; justify-content: space-between; align-items: baseline; }
-#content-main .event-card-date { font-weight: bold; font-size: 0.85rem; color: #fff; }
-#content-main .event-card-time { font-size: 0.8rem; color: #ccc; }
-#content-main .event-card-body { margin-top: 0.4rem; }
-#content-main .event-card-title { font-size: 1rem; font-weight: 600; margin: 0.2rem 0; color: #fff; }
-#content-main .event-card-page { font-size: 0.75rem; color: #ccc; }
+
+#content-main .event-card-header { padding-bottom: 0.5rem; }
+#content-main .event-card-title { font-size: 1.1rem; font-weight: 600; color: #fff; }
+#content-main .event-card-page { font-size: 0.8rem; color: #ccc; margin-top: 0.25rem; }
+
+#content-main .event-card-body { flex-grow: 1; padding: 0.75rem 0; }
+#content-main .event-card-location { display: flex; align-items: center; gap: 0.5rem; color: #ddd; font-size: 0.85rem;}
+#content-main .event-card-location .fas { color: #8c8073; }
+
+#content-main .event-card-footer { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    border-top: 1px solid #5a636c;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+#content-main .event-card-date { font-weight: 500; font-size: 0.85rem; color: #fff; }
+#content-main .event-card-time { font-size: 1rem; font-weight: bold; color: #fff; background-color: #8c8073; padding: 0.2rem 0.6rem; border-radius: 4px; }
+#content-main .event-card-time span { font-weight: normal; font-size: 0.8rem; }
 
 /* ---------------------------------- */
 /* NEUE STILE FÜR LISTENEINTRÄGE      */

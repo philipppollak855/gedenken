@@ -1,5 +1,6 @@
 // backend/static/admin/js/custom_admin.js
 // KORRIGIERT: Filterfunktion für das vergrößerte Modal repariert.
+// NEU: Fügt Header-Navigation hinzu.
 
 document.addEventListener('DOMContentLoaded', function() {
     function moveModalsToBody() {
@@ -20,6 +21,41 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     setInterval(updateTime, 1000);
     updateTime();
+
+    // NEU: Header-Navigation hinzufügen
+    function addHeaderNavigation() {
+        const dashboardHeader = document.querySelector('#content-main .dashboard-header');
+        if (!dashboardHeader) return;
+
+        const navContainer = document.createElement('div');
+        navContainer.className = 'header-navigation-tools';
+
+        const backButton = document.createElement('button');
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i>';
+        backButton.title = 'Zurück';
+        backButton.onclick = () => window.history.back();
+        backButton.className = 'btn';
+
+        const forwardButton = document.createElement('button');
+        forwardButton.innerHTML = '<i class="fas fa-arrow-right"></i>';
+        forwardButton.title = 'Vorwärts';
+        forwardButton.onclick = () => window.history.forward();
+        forwardButton.className = 'btn';
+        
+        const homeLink = document.createElement('a');
+        homeLink.href = '/admin/';
+        homeLink.title = 'Dashboard';
+        homeLink.className = 'btn';
+        homeLink.innerHTML = '<i class="fas fa-home"></i>';
+
+        navContainer.appendChild(backButton);
+        navContainer.appendChild(forwardButton);
+        navContainer.appendChild(homeLink);
+
+        dashboardHeader.prepend(navContainer);
+    }
+    addHeaderNavigation();
+
 
     const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');

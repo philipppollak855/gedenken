@@ -60,15 +60,17 @@
                 <a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="event-card-link">
                     <div class="event-card">
                         <div class="event-card-header">
-                            <div class="event-card-date">{{ event.date|date:"l, d. F Y" }}</div>
-                            <div class="event-card-time">{{ event.date|date:"H:i" }} Uhr</div>
-                        </div>
-                        <div class="event-card-body">
                             <div class="event-card-title">{{ event.title }}</div>
                             <div class="event-card-page">für {{ event.page }}</div>
+                        </div>
+                        <div class="event-card-body">
                             {% if event.location %}
                             <div class="event-card-location"><i class="fas fa-map-marker-alt"></i> {{ event.location.name }}</div>
                             {% endif %}
+                        </div>
+                        <div class="event-card-footer">
+                            <div class="event-card-date">{{ event.date|date:"D, d. F Y" }}</div>
+                            <div class="event-card-time">{{ event.date|date:"H:i" }}<span>&nbsp;Uhr</span></div>
                         </div>
                     </div>
                 </a>
@@ -91,16 +93,14 @@
                         <li class="activity-item">
                             <div class="item-header">
                                 <span class="item-author">
-                                    <a href="{% url 'admin:api_condolence_change' condolence.condolence_id %}">{{ condolence.guest_name }}</a>
-                                    für 
-                                    <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
+                                    <a href="{% url 'admin:api_condolence_change' condolence.condolence_id %}">{{ condolence.guest_name }}</a> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
                                 </span>
                                 <span class="item-meta">{{ condolence.created_at|timesince }} ago</span>
                             </div>
                             <p class="item-message">{{ condolence.message }}</p>
                         </li>
                         {% empty %}
-                        <li>Keine Kondolenzen vorhanden.</li>
+                        <li class="activity-item"><p class="item-message">Keine Kondolenzen vorhanden.</p></li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -120,16 +120,14 @@
                         <li class="activity-item">
                            <div class="item-header">
                                 <span class="item-author">
-                                    <a href="{% url 'admin:api_memorialcandle_change' candle.candle_id %}">{{ candle.guest_name }}</a> 
-                                    für 
-                                    <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
+                                    <a href="{% url 'admin:api_memorialcandle_change' candle.candle_id %}">{{ candle.guest_name }}</a> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
                                 </span>
-                               <span class="item-meta">{{ candle.created_at|timesince }} ago</span>
-                           </div>
-                           <p class="item-message">{{ candle.message }}</p>
+                                <span class="item-meta">{{ candle.created_at|timesince }} ago</span>
+                            </div>
+                            <p class="item-message">{{ candle.message }}</p>
                         </li>
                         {% empty %}
-                        <li>Keine Kerzen angezündet.</li>
+                        <li class="activity-item"><p class="item-message">Keine Kerzen angezündet.</p></li>
                         {% endfor %}
                     </ul>
                 </div>

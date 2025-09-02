@@ -589,7 +589,7 @@
     width: 400px;
     height: 400px;
     flex-shrink: 0;
-    transform: translateX(-150px); /* KORREKTUR: Schiebt das Rad weiter nach links */
+    transform: translateX(-250px); /* KORRIGIERT: Fährt weiter aus */
 }
 
 .nav-wheel {
@@ -630,7 +630,8 @@
     position: absolute;
     width: 60px;
     height: 60px;
-    background-color: #4a535c;
+    background-color: #8c8073; /* KORRIGIERT: Bessere Grundfarbe */
+    border: 2px solid rgba(255, 255, 255, 0.2);
     color: #f1f1f1;
     border-radius: 50%;
     display: flex;
@@ -638,9 +639,8 @@
     justify-content: center;
     font-size: 1.5rem;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease; /* KORRIGIERT: Transform in Transition aufgenommen */
     cursor: pointer;
-    border: none;
 }
 
 .wheel-center-button {
@@ -654,9 +654,9 @@
 }
 
 .wheel-item:hover {
-    background-color: #8c8073;
+    background-color: #a99a8c; /* KORRIGIERT: Hellere Hover-Farbe */
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    transform: scale(1.15) !important; /* Wichtig, um die Positionierung zu überschreiben */
+    /* KORRIGIERT: Das 'transform' hier entfernt, um das "Wackeln" zu verhindern. Es ist bereits in der Haupt-Klasse. */
 }
 
 .wheel-item-label {

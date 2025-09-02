@@ -5,8 +5,7 @@
 {% block content %}
 <div id="content-main">
     <div class="dashboard-header">
-        <h1>{{ title }}</h1>
-        <div id="current-datetime"></div>
+        <!-- Navigation und Titel werden per JS hier eingefügt -->
     </div>
     <div class="dashboard-grid">
         
@@ -60,17 +59,17 @@
                 <a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="event-card-link">
                     <div class="event-card">
                         <div class="event-card-header">
-                            <div class="event-card-title">{{ event.title }}</div>
-                            <div class="event-card-page">für {{ event.page }}</div>
+                            <h3 class="event-card-title">{{ event.title }}</h3>
+                            <p class="event-card-page">für {{ event.page }}</p>
                         </div>
-                        <div class="event-card-body">
+                         <div class="event-card-body">
                             {% if event.location %}
                             <div class="event-card-location"><i class="fas fa-map-marker-alt"></i> {{ event.location.name }}</div>
                             {% endif %}
                         </div>
                         <div class="event-card-footer">
-                            <div class="event-card-date">{{ event.date|date:"D, d. M. Y" }}</div>
-                            <div class="event-card-time">{{ event.date|date:"H:i" }}<span>&nbsp;Uhr</span></div>
+                           <span class="event-card-date">{{ event.date|date:"D, j. M. Y" }}</span>
+                           <span class="event-card-time">{{ event.date|date:"H:i" }} <span>Uhr</span></span>
                         </div>
                     </div>
                 </a>
@@ -95,7 +94,7 @@
                                 <span class="item-author">
                                     <a href="{% url 'admin:api_condolence_change' condolence.condolence_id %}">{{ condolence.guest_name }}</a> für <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
                                 </span>
-                                <span class="item-meta">{{ condolence.created_at|timesince }} ago</span>
+                                <span class="item-meta">{{ condolence.created_at|timesince }}</span>
                             </div>
                             <p class="item-message">{{ condolence.message }}</p>
                         </li>
@@ -117,12 +116,12 @@
                 <div class="activity-list scrollable" id="candle-list">
                     <ul>
                         {% for candle in latest_candles %}
-                        <li class="activity-item">
-                           <div class="item-header">
+                         <li class="activity-item">
+                            <div class="item-header">
                                 <span class="item-author">
                                     <a href="{% url 'admin:api_memorialcandle_change' candle.candle_id %}">{{ candle.guest_name }}</a> für <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
                                 </span>
-                                <span class="item-meta">{{ candle.created_at|timesince }} ago</span>
+                                <span class="item-meta">{{ candle.created_at|timesince }}</span>
                             </div>
                             <p class="item-message">{{ candle.message }}</p>
                         </li>
@@ -152,8 +151,8 @@
                 <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
             </div>
             <div id="calendar-body" class="calendar-body"></div>
+            <div id="event-list-popup"></div>
         </div>
-        <div id="event-list-popup"></div>
     </div>
 </div>
 
@@ -168,15 +167,15 @@
     </div>
 </div>
 
-<!-- KORREKTUR: Overlay aus dem Container herausgelöst -->
+<!-- Seitliche Dock-Navigation -->
 <div id="side-dock-container">
-    <div id="side-dock-trigger">
-        <i class="fas fa-cogs"></i>
+    <div id="side-dock-trigger"><i class="fas fa-chevron-left"></i></div>
+    <div id="nav-wheel-overlay">
+        <!-- Container für die Räder, um die Positionierung zu stabilisieren -->
+        <div id="wheel-container"></div>
     </div>
 </div>
-<div id="nav-wheel-overlay">
-    <!-- JS füllt diesen Bereich dynamisch -->
-</div>
+
 
 <!-- Übergibt die Event-Daten an das externe JavaScript -->
 <script>

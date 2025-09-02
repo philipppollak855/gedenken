@@ -1,12 +1,13 @@
 // backend/static/admin/js/custom_admin.js
-// ... (existing code from previous steps) ...
-// KORREKTUR: Logik für die verschachtelte Rad-Navigation mit korrekter "Zurück"-Funktionalität.
-
 document.addEventListener('DOMContentLoaded', function() {
-    // ... (unveränderte Setup-Funktionen wie Sidebar-Kollaps, moveModalsToBody, updateTime, addHeaderNavigation) ...
+    // Standardmäßig einklappen, aber nur, wenn es nicht bereits eingeklappt ist
     if (!document.body.classList.contains('sidebar-collapse')) {
-        document.body.classList.add('sidebar-collapse');
+        const sidebarToggleButton = document.querySelector('[data-widget="pushmenu"]');
+        if (sidebarToggleButton) {
+            sidebarToggleButton.click();
+        }
     }
+
     function moveModalsToBody() {
         document.querySelectorAll('.modal').forEach(modal => {
             document.body.appendChild(modal);
@@ -24,10 +25,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     setInterval(updateTime, 1000);
     updateTime();
+
     function addHeaderNavigation() {
         const headerActionsContainer = document.querySelector('header .flex.items-center.gap-x-4');
-        if (!headerActionsContainer) return;
+        const dashboardHeader = document.querySelector('#content-main .dashboard-header');
+        if (!headerActionsContainer || !dashboardHeader) return;
 
+        // Verschiebt den Titel und das Datum in den Haupt-Header
+        const h1 = dashboardHeader.querySelector('h1');
+        const datetime = document.getElementById('current-datetime');
+        if (h1) {
+            h1.style.color = '#f1f1f1';
+            h1.style.fontSize = '1.5rem';
+            headerActionsContainer.prepend(h1);
+        }
+        if (datetime) headerActionsContainer.parentElement.appendChild(datetime);
+        
         const navContainer = document.createElement('div');
         navContainer.className = 'header-navigation-tools';
         const backButton = document.createElement('button');
@@ -49,10 +62,12 @@ document.addEventListener('DOMContentLoaded', function() {
         navContainer.appendChild(forwardButton);
         navContainer.appendChild(homeLink);
         headerActionsContainer.prepend(navContainer);
+
+        // Entfernt den alten Header, da der Inhalt verschoben wurde
+        dashboardHeader.remove();
     }
     addHeaderNavigation();
     
-    // ... (unveränderte Kalender-, Widget-Modal- und Filter-Logik) ...
     const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');
     const openCalendarBtn = document.getElementById('open-calendar-modal');
@@ -102,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const calendarGrid = document.querySelector('.calendar-grid-container');
         if (calendarGrid) {
             calendarGrid.appendChild(eventListPopup);
-            eventListPopup.style.left = `${dayEl.offsetLeft + dayEl.offsetWidth}px`;
+            eventListPopup.style.left = `${dayEl.offsetLeft + dayEl.offsetWidth + 10}px`;
             eventListPopup.style.top = `${dayEl.offsetTop}px`;
             eventListPopup.style.display = 'block';
         }
@@ -155,10 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     document.querySelectorAll('.filter-input').forEach(input => { input.addEventListener('input', handleFilter); });
 
-    // KORRIGIERTE Logik für seitliche Dock-Navigation
     const sideDockContainer = document.getElementById('side-dock-container');
     const dockTrigger = document.getElementById('side-dock-trigger');
     const navWheelOverlay = document.getElementById('nav-wheel-overlay');
+    const wheelContainer = document.getElementById('wheel-container');
 
     const navData = {
         'main': [
@@ -212,10 +227,9 @@ document.addEventListener('DOMContentLoaded', function() {
         wheel.className = 'nav-wheel';
         wheel.dataset.key = key;
 
-        const isSubLevel = key !== 'main';
         const centerButton = document.createElement('button');
         centerButton.className = 'wheel-center-button';
-        centerButton.innerHTML = `<i class="fas ${isSubLevel ? 'fa-times' : 'fa-times'}"></i>`;
+        centerButton.innerHTML = `<i class="fas fa-times"></i>`;
         centerButton.onclick = () => toggleNav(false);
         wheel.appendChild(centerButton);
 
@@ -224,7 +238,6 @@ document.addEventListener('DOMContentLoaded', function() {
             element.className = 'wheel-item';
             if (item.url) element.href = item.url;
             element.innerHTML = `<i class="fas ${item.icon}"></i><span class="wheel-item-label">${item.label}</span>`;
-
             if (item.children) {
                 element.onclick = () => showWheel(item.children);
             }
@@ -234,11 +247,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function positionItemsOnWheel(wheelElement) {
-        const items = wheelElement.querySelectorAll('.wheel-item');
-        const numItems = items.length;
-        const angle = 360 / numItems;
+        const items = Array.from(wheelElement.querySelectorAll('.wheel-item'));
+        const centerButton = wheelElement.querySelector('.wheel-center-button');
+        // KORREKTUR: Der "Zurück"-Button wird jetzt anders behandelt
+        const backButton = items.find(item => item.querySelector('.fa-arrow-left'));
+
+        let regularItems = items;
+        if (backButton) {
+            // Positioniert den "Zurück"-Button unten in der Mitte
+            backButton.style.transform = `translateY(130px)`;
+            regularItems = items.filter(item => item !== backButton);
+        }
+
+        const numItems = regularItems.length;
+        const angle = 360 / (numItems > 6 ? numItems : 8); // Besserer Winkel bei wenigen Items
         const radius = 170;
-        items.forEach((item, index) => {
+        
+        regularItems.forEach((item, index) => {
             const rotation = angle * index - 90;
             const transform = `rotate(${rotation}deg) translate(${radius}px) rotate(${-rotation}deg)`;
             item.style.transitionDelay = `${index * 40}ms`;
@@ -249,7 +274,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let wheelCache = {};
 
     function showWheel(key) {
-        navWheelOverlay.querySelectorAll('.nav-wheel').forEach(w => w.classList.remove('active'));
+        if (!wheelContainer) return;
+        wheelContainer.querySelectorAll('.nav-wheel').forEach(w => {
+            w.classList.remove('active');
+        });
 
         let wheel = wheelCache[key];
         if (!wheel) {
@@ -257,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!items) return;
             wheel = createWheel(items, key);
             wheelCache[key] = wheel;
-            navWheelOverlay.appendChild(wheel);
+            wheelContainer.appendChild(wheel);
         }
 
         setTimeout(() => {
@@ -274,7 +302,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             sideDockContainer.classList.remove('active');
             navWheelOverlay.classList.remove('active');
-            navWheelOverlay.querySelectorAll('.nav-wheel').forEach(w => w.classList.remove('active'));
         }
     }
 

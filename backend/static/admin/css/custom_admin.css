@@ -61,7 +61,7 @@
     box-shadow: 0 0 10px rgba(140, 128, 115, 0.7);
 }
 
-/* NEU: Stile für den Dashboard-Button in den Breadcrumbs */
+/* KORRIGIERT: Stile für den Dashboard-Button in den Breadcrumbs mit höherer Spezifität */
 .breadcrumbs {
     display: flex;
     align-items: center;
@@ -69,7 +69,9 @@
     width: 100%;
 }
 
-.breadcrumbs .dashboard-btn {
+main.content .breadcrumbs .dashboard-btn { /* Spezifischerer Selektor, um Unfold zu überschreiben */
+    display: inline-flex !important; /* Wichtig, um die Sichtbarkeit zu erzwingen */
+    align-items: center;
     padding: 0.35rem 1rem !important;
     width: auto !important;
     height: auto !important;
@@ -84,7 +86,7 @@
     transition: background-color 0.2s;
 }
 
-.breadcrumbs .dashboard-btn:hover {
+main.content .breadcrumbs .dashboard-btn:hover {
     background-color: #5a636c !important;
     color: #fff !important;
 }

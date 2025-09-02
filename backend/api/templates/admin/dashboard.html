@@ -45,7 +45,7 @@
             <div class="quick-links">
                 <a href="{% url 'admin:api_memorialpage_add' %}"><i class="fas fa-book-dead"></i> Neue Gedenkseite</a>
                 <a href="{% url 'admin:api_user_add' %}"><i class="fas fa-user-plus"></i> Neuen Benutzer anlegen</a>
-                <a href="{% url 'admin:api_releaserequest_changelist' %}"><i class="fas fa-key"></i> Freigabe-Anfragen prÃ¼fen</a>
+                <a href="{% url 'admin:api_releaserequest_changelist' %}"><i class="fas fa-key"></i> Freigabe-Anfragen prüfen</a>
                 <a href="{% url 'admin:api_mediaasset_changelist' %}"><i class="fas fa-photo-video"></i> Mediathek verwalten</a>
             </div>
         </div>
@@ -65,7 +65,7 @@
                         </div>
                         <div class="event-card-body">
                             <div class="event-card-title">{{ event.title }}</div>
-                            <div class="event-card-page">fÃ¼r {{ event.page }}</div>
+                            <div class="event-card-page">für {{ event.page }}</div>
                             {% if event.location %}
                             <div class="event-card-location"><i class="fas fa-map-marker-alt"></i> {{ event.location.name }}</div>
                             {% endif %}
@@ -92,7 +92,7 @@
                             <div class="item-header">
                                 <span class="item-author">
                                     <a href="{% url 'admin:api_condolence_change' condolence.condolence_id %}">{{ condolence.guest_name }}</a>
-                                    fÃ¼r 
+                                    für 
                                     <a href="{% url 'admin:api_memorialpage_change' condolence.page.pk %}">{{ condolence.page }}</a>
                                 </span>
                                 <span class="item-meta">{{ condolence.created_at|timesince }} ago</span>
@@ -121,7 +121,7 @@
                            <div class="item-header">
                                 <span class="item-author">
                                     <a href="{% url 'admin:api_memorialcandle_change' candle.candle_id %}">{{ candle.guest_name }}</a> 
-                                    fÃ¼r 
+                                    für 
                                     <a href="{% url 'admin:api_memorialpage_change' candle.page.pk %}">{{ candle.page }}</a>
                                 </span>
                                <span class="item-meta">{{ candle.created_at|timesince }} ago</span>
@@ -129,7 +129,7 @@
                            <p class="item-message">{{ candle.message }}</p>
                         </li>
                         {% empty %}
-                        <li>Keine Kerzen angezÃ¼ndet.</li>
+                        <li>Keine Kerzen angezündet.</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -170,7 +170,7 @@
     </div>
 </div>
 
-<!-- Ãœbergibt die Event-Daten an das externe JavaScript -->
+<!-- Übergibt die Event-Daten an das externe JavaScript -->
 <script>
     window.calendarEvents = JSON.parse('{{ calendar_events_json|safe }}');
 </script>

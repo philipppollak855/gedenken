@@ -1,8 +1,7 @@
 // backend/static/admin/js/custom_admin.js
-// BEREINIGT: Alle Sidebar-Manipulations-Skripte wurden entfernt.
+// KORRIGIERT: Filterfunktion für das vergrößerte Modal repariert.
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Stellt sicher, dass Modals korrekt über der gesamten Seite angezeigt werden
     function moveModalsToBody() {
         document.querySelectorAll('.modal').forEach(modal => {
             document.body.appendChild(modal);
@@ -10,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     moveModalsToBody();
     
-    // Live-Uhr für das Dashboard
     function updateTime() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
@@ -23,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateTime, 1000);
     updateTime();
 
-    // Kalender-Logik
     const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');
     const openCalendarBtn = document.getElementById('open-calendar-modal');
@@ -36,33 +33,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderCalendar() {
         if (!calendarBody || !monthYearEl) return;
-
         calendarBody.innerHTML = '';
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         monthYearEl.textContent = `${currentDate.toLocaleString('de-DE', { month: 'long' })} ${year}`;
-
         const firstDayOfMonth = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
-
         for (let i = 0; i < dayOffset; i++) {
             calendarBody.innerHTML += `<div></div>`;
         }
-
         for (let day = 1; day <= daysInMonth; day++) {
             const dayEl = document.createElement('div');
             dayEl.textContent = day;
             dayEl.classList.add('calendar-day');
-            
             const today = new Date();
             if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                 dayEl.classList.add('today');
             }
-
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayEvents = events.filter(e => e.date && e.date.startsWith(dateStr));
-
             if (dayEvents.length > 0) {
                 dayEl.classList.add('has-events');
                 dayEl.onclick = (e) => {
@@ -120,9 +110,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
                 widgetModalTitle.textContent = title;
                 widgetModalBody.innerHTML = ''; 
-                widgetModalBody.appendChild(contentSource.cloneNode(true));
-                widgetModalBody.firstChild.style.display = 'block';
+                const clonedContent = contentSource.cloneNode(true);
+                clonedContent.style.display = 'flex';
+                widgetModalBody.appendChild(clonedContent);
                 widgetModal.style.display = 'block';
+                
+                // KORRIGIERT: Event Listener für das Filter-Input im Modal neu hinzufügen
+                const filterInput = clonedContent.querySelector('.filter-input');
+                if (filterInput) {
+                    filterInput.addEventListener('input', handleFilter);
+                }
             }
         });
     });
@@ -139,23 +136,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    document.body.addEventListener('input', function(event) {
-        if (event.target.matches('.filter-input')) {
-            const filterValue = event.target.value.toLowerCase();
-            const targetListId = event.target.dataset.target;
-            const list = document.getElementById(targetListId) || (widgetModalBody ? widgetModalBody.querySelector(`#${targetListId}`) : null);
+    // Filterfunktion ausgelagert
+    const handleFilter = (event) => {
+        const filterValue = event.target.value.toLowerCase();
+        const targetListId = event.target.dataset.target;
+        
+        // Sucht die Liste sowohl im Dashboard als auch im Modal
+        const list = document.getElementById(targetListId) || (widgetModalBody ? widgetModalBody.querySelector(`#${targetListId}`) : null);
 
-            if (list) {
-                list.querySelectorAll('li').forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    if (text.includes(filterValue)) {
-                        item.style.display = '';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            }
+        if (list) {
+            list.querySelectorAll('.activity-item').forEach(item => { // Stellt sicher, dass nur Listenelemente gefiltert werden
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(filterValue) ? '' : 'none';
+            });
         }
+    };
+    
+    // Event Listener für die ursprünglichen Filter-Inputs auf dem Dashboard
+    document.querySelectorAll('.filter-input').forEach(input => {
+        input.addEventListener('input', handleFilter);
     });
 });
-

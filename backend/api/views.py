@@ -1,6 +1,6 @@
-// backend/api/views.py
-// ERWEITERT: Neuer ViewSet für EventAttendance hinzugefügt.
-// NEU: GlobalSearchView für die anwendungsweite Suche hinzugefügt.
+# backend/api/views.py
+# ERWEITERT: Neuer ViewSet für EventAttendance hinzugefügt.
+# NEU: GlobalSearchView für die anwendungsweite Suche hinzugefügt.
 
 import os
 from django.core.management import call_command

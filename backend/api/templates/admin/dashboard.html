@@ -168,24 +168,15 @@
     </div>
 </div>
 
-<!-- NEU: Dock-Navigation am unteren Rand -->
-<div id="dock-container">
-    <div id="dock-trigger"></div>
-    <div id="nav-wheel-container" class="nav-wheel">
-        <button id="nav-wheel-toggle" class="nav-wheel-center-button">
-            <i class="fas fa-times"></i>
-        </button>
-        <div class="wheel-items-container">
-            <a href="{% url 'admin:api_memorialpage_add' %}" class="wheel-item" data-tooltip="Neue Gedenkseite"><i class="fas fa-book-dead"></i></a>
-            <a href="{% url 'admin:api_user_add' %}" class="wheel-item" data-tooltip="Neuer Benutzer"><i class="fas fa-user-plus"></i></a>
-            <a href="{% url 'admin:api_mediaasset_changelist' %}" class="wheel-item" data-tooltip="Mediathek"><i class="fas fa-photo-video"></i></a>
-            <a href="{% url 'admin:api_sitesettings_change' 1 %}" class="wheel-item" data-tooltip="Einstellungen"><i class="fas fa-sliders-h"></i></a>
-            <a href="#" class="wheel-item" data-tooltip="Hilfe"><i class="fas fa-question-circle"></i></a>
-            <a href="{% url 'admin:logout' %}" class="wheel-item" data-tooltip="Logout"><i class="fas fa-sign-out-alt"></i></a>
-        </div>
+<!-- NEU: Rechte Dock-Navigation -->
+<div id="side-dock-container">
+    <div id="side-dock-trigger">
+        <i class="fas fa-cogs"></i>
+    </div>
+    <div id="nav-wheel-overlay">
+        <!-- JS füllt diesen Bereich dynamisch -->
     </div>
 </div>
-
 
 <!-- Übergibt die Event-Daten an das externe JavaScript -->
 <script>

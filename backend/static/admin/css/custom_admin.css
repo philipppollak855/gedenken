@@ -1,10 +1,8 @@
 /* backend/static/admin/css/custom_admin.css */
 /* ... existing styles ... */
-/* NEU: Stile für prominenteren Dashboard-Link und Dock-Navigation */
+/* NEU: Stile für rechte Dock-Navigation mit verschachtelten Rädern */
 
-/* ---------------------------------- */
-/* DASHBOARD STYLES                   */
-/* ---------------------------------- */
+/* ... (vorherige Dashboard-Stile bleiben unverändert) ... */
 #content-main .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -14,8 +12,6 @@
 }
 #content-main .dashboard-header h1 { margin: 0; }
 #content-main #current-datetime { font-size: 1rem; font-weight: 500; color: #ccc; background-color: #4a535c; padding: 0.5rem 1rem; border-radius: 6px; white-space: nowrap; }
-
-/* Header Navigation Tools */
 .header-navigation-tools {
     display: flex;
     gap: 0.75rem;
@@ -42,21 +38,17 @@
     background-color: #5a636c !important;
     transform: scale(1.1);
 }
-
-/* Prominenter Dashboard-Button */
 .header-navigation-tools a.btn[title='Dashboard'] {
     background-color: #8c8073 !important;
     color: white !important;
     box-shadow: 0 0 10px rgba(140, 128, 115, 0.7);
 }
-
 #content-main .dashboard-grid { 
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
     gap: 2rem !important;
     width: 100% !important;
 }
-
 #content-main .dashboard-widget { 
     background: #2c343c; 
     border-radius: 8px; 
@@ -69,17 +61,14 @@
     width: auto !important;
     margin-bottom: 0 !important;
 }
-
 #content-main .widget-header { display: flex; justify-content: space-between; align-items: center; }
 #content-main .widget-header h2 { border-bottom: none; padding-bottom: 0; margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #e1e1e1; }
 #content-main .calendar-icon, #content-main .toggle-widget-icon { font-size: 1.5rem; color: #999; cursor: pointer; transition: color 0.2s, transform 0.3s; }
-
 #content-main .stat-widget { grid-column: span 2 !important; }
 #content-main .quick-links-widget { grid-column: span 2 !important; }
 #content-main .activity-widget.full-width { grid-column: 1 / -1 !important; }
 #content-main #condolence-widget { grid-column: span 2 !important; }
 #content-main #candle-widget { grid-column: span 2 !important; }
-
 #content-main .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
 #content-main .stat-item-link { text-decoration: none; display: flex; }
 #content-main .stat-item { width: 100%; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 1rem; border-radius: 6px; background-color: #4a535c; transition: transform 0.2s ease-in-out, background-color 0.2s; }
@@ -88,13 +77,10 @@
 #content-main .stat-item.danger { background-color: #b94a48; }
 #content-main .stat-item .value { font-size: 2rem; font-weight: 700; color: #fff; line-height: 1; }
 #content-main .stat-item .label { font-size: 0.8rem; color: #f1f1f1; margin-top: 0.5rem; font-weight: 500; }
-
 #content-main .quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 #content-main .quick-links a { display: flex; align-items: center; gap: 0.75rem; background: #4a535c; color: #f1f1f1; padding: 0.9rem 1.25rem; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: 1px solid #5a636c; }
 #content-main .quick-links a:hover { background-color: #5a636c; border-color: #8c8073; transform: translateX(5px); }
 #content-main .quick-links a .fas { width: 20px; }
-
-/* Event Grid & Cards Redesign */
 #content-main .event-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -115,15 +101,12 @@
     height: 100%;
 }
 #content-main .event-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
-
 #content-main .event-card-header { padding-bottom: 0.5rem; }
 #content-main .event-card-title { font-size: 1.1rem; font-weight: 600; color: #fff; }
 #content-main .event-card-page { font-size: 0.8rem; color: #ccc; margin-top: 0.25rem; }
-
 #content-main .event-card-body { flex-grow: 1; padding: 0.75rem 0; }
 #content-main .event-card-location { display: flex; align-items: center; gap: 0.5rem; color: #ddd; font-size: 0.85rem;}
 #content-main .event-card-location .fas { color: #8c8073; }
-
 #content-main .event-card-footer { 
     display: flex; 
     justify-content: space-between; 
@@ -135,9 +118,6 @@
 #content-main .event-card-date { font-weight: 500; font-size: 0.85rem; color: #fff; }
 #content-main .event-card-time { font-size: 1rem; font-weight: bold; color: #fff; background-color: #8c8073; padding: 0.2rem 0.6rem; border-radius: 4px; }
 #content-main .event-card-time span { font-weight: normal; font-size: 0.8rem; }
-
-/* ... existing styles ... */
-
 .activity-list ul { list-style: none; padding: 0; margin: 0; }
 .activity-item {
     padding: 1rem 0.5rem;
@@ -157,9 +137,6 @@
     border-radius: 4px;
     margin: 0;
 }
-
-/* ... existing modal styles ... */
-
 .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
 .modal-content { background-color: #2c343c; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; border-radius: 8px; position: relative; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4a535c; padding-bottom: 10px; margin-bottom: 15px; }
@@ -173,8 +150,6 @@
 .calendar-day { padding: 15px 0; border-radius: 4px; transition: background-color 0.2s; position: relative; }
 .calendar-day.today { background-color: #4a535c; }
 .calendar-day.has-events { background-color: #8c8073; color: #fff; cursor: pointer; font-weight: bold; }
-
-/* Kalender Event Popup Redesign */
 #event-list-popup { 
     display: none; 
     position: absolute; 
@@ -212,7 +187,6 @@
 #event-list-popup li a:hover {
     background-color: #4a535c;
 }
-
 #widget-modal-body {
     display: flex;
     flex-direction: column;
@@ -238,86 +212,92 @@
 
 
 /* ---------------------------------- */
-/* DOCK & RADIAL NAVIGATION           */
+/* DOCK & RADIAL NAVIGATION (RECHTS)  */
 /* ---------------------------------- */
-#dock-container {
+#side-dock-container {
     position: fixed;
-    bottom: 0;
-    left: 0;
+    top: 50%;
     right: 0;
-    height: 30px;
+    transform: translateY(-50%);
     z-index: 9999;
-    display: flex;
-    justify-content: center;
 }
 
-#dock-trigger {
+#side-dock-trigger {
     position: absolute;
-    bottom: 0;
-    width: 200px;
-    height: 10px;
-    background-color: transparent;
+    right: 0;
+    top: 50%;
+    transform: translate(0, -50%);
+    width: 25px;
+    height: 100px;
+    background-color: rgba(140, 128, 115, 0.7);
     border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
-}
-#dock-container:hover #dock-trigger {
-    height: 20px;
-    background-color: rgba(140, 128, 115, 0.5);
-    box-shadow: 0 0 15px rgba(140, 128, 115, 0.8);
-}
-
-.nav-wheel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    top: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+}
+#side-dock-trigger:hover {
+    width: 30px;
+    background-color: rgba(140, 128, 115, 0.9);
+}
+#side-dock-trigger i {
+    transition: transform 0.3s;
+}
+#side-dock-container.active #side-dock-trigger i {
+    transform: rotate(180deg);
+}
+
+#nav-wheel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.4s ease, visibility 0s 0.4s;
     z-index: 9998;
 }
-.nav-wheel.active {
+#side-dock-container.active #nav-wheel-overlay {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.4s ease;
 }
 
-.nav-wheel-center-button {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background-color: #f1f1f1;
-    color: #3a3a3a;
-    border: 3px solid #8c8073;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    cursor: pointer;
-    position: relative;
-    z-index: 10;
-    transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-}
-.nav-wheel.active .nav-wheel-center-button {
-    transform: rotate(360deg);
-}
-
-.wheel-items-container {
+.nav-wheel {
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 400px;
     height: 400px;
-    pointer-events: none; /* Container selbst ist nicht klickbar */
+    border-radius: 50%;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-out;
+    transform-origin: center;
+}
+.nav-wheel.active {
+    opacity: 1;
+    visibility: visible;
+}
+.nav-wheel.level-1 {
+    transform: translate(-50%, -50%) scale(1);
+}
+.nav-wheel.level-2 {
+    transform: translate(-50%, -50%) scale(1.2);
+}
+.nav-wheel.hidden {
+    transform: translate(-50%, -50%) scale(0);
 }
 
-.wheel-item {
+.wheel-item, .wheel-center-button {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -333,38 +313,38 @@
     font-size: 1.5rem;
     text-decoration: none;
     transition: all 0.3s ease;
-    transform: scale(0);
-    opacity: 0;
-    pointer-events: auto; /* Items sind klickbar */
+    cursor: pointer;
+    border: none;
 }
-.nav-wheel.active .wheel-item {
-    opacity: 1;
-    transform: scale(1);
+.wheel-center-button {
+    width: 80px;
+    height: 80px;
+    margin: -40px;
+    background-color: #f1f1f1;
+    color: #3a3a3a;
+    border: 3px solid #8c8073;
+    font-size: 2rem;
+    z-index: 10;
 }
-
 .wheel-item:hover {
     background-color: #8c8073;
-    transform: scale(1.15) !important; /* Wichtig, um die Positionierung zu überschreiben */
+    transform: scale(1.15) !important;
 }
 
-.wheel-item::after {
-    content: attr(data-tooltip);
+.wheel-item-label {
     position: absolute;
-    bottom: 120%;
-    background-color: #1e2227;
+    bottom: -25px;
     color: white;
-    padding: 0.5rem 1rem;
+    background: rgba(0,0,0,0.6);
+    padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     white-space: nowrap;
     opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.2s;
+    transition: opacity 0.2s;
     pointer-events: none;
 }
-
-.wheel-item:hover::after {
+.wheel-item:hover .wheel-item-label {
     opacity: 1;
-    transform: translateY(0);
 }
 

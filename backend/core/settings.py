@@ -133,3 +133,21 @@ UNFOLD = {
     # Die "SIDEBAR"-Konfiguration wurde entfernt. Unfold generiert jetzt das Standard-Menü.
 }
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join('/var/media', 'media'))
+
+UNFOLD = {
+    "SITE_TITLE": "Vorsorge-Plattform Admin",
+    "SITE_HEADER": "Vorsorge-Plattform",
+    "SITE_BRAND": "Verwaltung",
+    "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
+    "COPYRIGHT": "Ihre Bestattung GmbH",
+    "THEME": "dark",
+    "STYLES": [
+        # "/static/admin/css/custom_admin.css", # Aus der Unfold-Konfiguration entfernt
+    ],
+    "SCRIPTS": [
+        "/static/admin/js/custom_admin.js",
+    ],
+    # Die "SIDEBAR"-Konfiguration wurde entfernt. Unfold generiert jetzt das Standard-Menü.
+}

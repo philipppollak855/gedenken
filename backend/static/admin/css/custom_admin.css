@@ -1,6 +1,6 @@
 /* backend/static/admin/css/custom_admin.css */
 /* ... existing styles ... */
-/* NEU: Stile für rechte Dock-Navigation mit verschachtelten Rädern */
+/* KORREKTUR: Positionierung und Selektoren für das Navigationsrad angepasst */
 
 /* ... (vorherige Dashboard-Stile bleiben unverändert) ... */
 #content-main .dashboard-header {
@@ -263,47 +263,48 @@
     visibility: hidden;
     transition: opacity 0.4s ease, visibility 0s 0.4s;
     z-index: 9998;
+    display: flex; /* Flexbox für Zentrierung */
+    align-items: center;
+    justify-content: center;
 }
-#side-dock-container.active #nav-wheel-overlay {
+#nav-wheel-overlay.active {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.4s ease;
 }
 
 .nav-wheel {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: relative; /* Position relativ zum Overlay-Flex-Container */
     width: 400px;
     height: 400px;
     border-radius: 50%;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease-out;
+    transform: scale(0);
     transform-origin: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .nav-wheel.active {
     opacity: 1;
     visibility: visible;
-}
-.nav-wheel.level-1 {
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
 }
 .nav-wheel.level-2 {
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: scale(1.2);
 }
 .nav-wheel.hidden {
-    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0);
 }
 
 .wheel-item, .wheel-center-button {
     position: absolute;
-    top: 50%;
-    left: 50%;
     width: 60px;
     height: 60px;
-    margin: -30px;
     background-color: #4a535c;
     color: #f1f1f1;
     border-radius: 50%;
@@ -319,7 +320,6 @@
 .wheel-center-button {
     width: 80px;
     height: 80px;
-    margin: -40px;
     background-color: #f1f1f1;
     color: #3a3a3a;
     border: 3px solid #8c8073;

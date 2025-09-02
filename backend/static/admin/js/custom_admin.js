@@ -1,6 +1,6 @@
 // backend/static/admin/js/custom_admin.js
 // ... (existing code from previous steps) ...
-// NEU: Komplett überarbeitete Logik für die verschachtelte Rad-Navigation an der rechten Seite.
+// KORREKTUR: Logik für die verschachtelte Rad-Navigation, um die Positionierung zu verbessern.
 
 document.addEventListener('DOMContentLoaded', function() {
     // ... (unveränderte Setup-Funktionen wie Sidebar-Kollaps, moveModalsToBody, updateTime, addHeaderNavigation) ...
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     document.querySelectorAll('.filter-input').forEach(input => { input.addEventListener('input', handleFilter); });
 
-    // NEU: Logik für seitliche Dock-Navigation mit verschachtelten Rädern
+    // KORREKTUR: Logik für seitliche Dock-Navigation
     const sideDockContainer = document.getElementById('side-dock-container');
     const dockTrigger = document.getElementById('side-dock-trigger');
     const navWheelOverlay = document.getElementById('nav-wheel-overlay');
@@ -202,17 +202,17 @@ document.addEventListener('DOMContentLoaded', function() {
         ],
     };
 
-    function createWheel(items, level, backTarget = null) {
+    function createWheel(items, level, backTargetKey = null) {
         const wheel = document.createElement('div');
         wheel.className = `nav-wheel level-${level}`;
         wheel.dataset.level = level;
-
+        
         const centerButton = document.createElement('button');
         centerButton.className = 'wheel-center-button';
-        centerButton.innerHTML = `<i class="fas ${backTarget ? 'fa-arrow-left' : 'fa-times'}"></i>`;
+        centerButton.innerHTML = `<i class="fas ${backTargetKey ? 'fa-arrow-left' : 'fa-times'}"></i>`;
         centerButton.onclick = () => {
-            if (backTarget) {
-                showWheel(backTarget);
+            if (backTargetKey) {
+                showWheel(backTargetKey);
             } else {
                 toggleNav(false);
             }
@@ -226,11 +226,10 @@ document.addEventListener('DOMContentLoaded', function() {
             element.innerHTML = `<i class="fas ${item.icon}"></i><span class="wheel-item-label">${item.label}</span>`;
             
             if (item.children) {
-                element.onclick = () => showWheel(item.children, level + 1, `level-${level}`);
+                element.onclick = () => showWheel(item.children, level + 1, item.id);
             }
             wheel.appendChild(element);
         });
-
         return wheel;
     }
 
@@ -240,28 +239,41 @@ document.addEventListener('DOMContentLoaded', function() {
         const angle = 360 / numItems;
         const radius = 170;
         items.forEach((item, index) => {
-            const rotation = angle * index - 90; // Start at the top
+            const rotation = angle * index - 90;
             const transform = `rotate(${rotation}deg) translate(${radius}px) rotate(${-rotation}deg)`;
             item.style.transitionDelay = `${index * 40}ms`;
             item.style.transform = transform;
         });
     }
+    
+    let wheelCache = {};
+    let currentWheelKey = 'main';
 
-    function showWheel(wheelId, level = 1, backTarget = null) {
-        // Hide all current wheels
+    function showWheel(key, level = 1, backTargetKey = null) {
         navWheelOverlay.querySelectorAll('.nav-wheel').forEach(w => w.classList.add('hidden'));
 
-        // Check if wheel already exists
-        let wheel = navWheelOverlay.querySelector(`.nav-wheel[data-wheel-id="${wheelId}"]`);
+        currentWheelKey = key;
+
+        let wheel = wheelCache[key];
         if (!wheel) {
-            wheel = createWheel(navData[wheelId], level, backTarget);
-            wheel.dataset.wheelId = wheelId;
+            const items = navData[key];
+            if (!items) return;
+            wheel = createWheel(items, level, backTargetKey);
+            wheelCache[key] = wheel;
             navWheelOverlay.appendChild(wheel);
         }
         
         setTimeout(() => {
             wheel.classList.remove('hidden');
             wheel.classList.add('active');
+            
+            // KORREKTUR: Verschiebt das Rad weiter nach links
+            if (level === 1) {
+                wheel.style.left = 'calc(50% - 150px)';
+            } else {
+                 wheel.style.left = '50%';
+            }
+            
             positionItemsOnWheel(wheel);
         }, 50);
     }
@@ -269,13 +281,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleNav(show) {
         if (show) {
             sideDockContainer.classList.add('active');
-            showWheel('main');
+            navWheelOverlay.classList.add('active');
+            showWheel(currentWheelKey || 'main');
         } else {
             sideDockContainer.classList.remove('active');
-            navWheelOverlay.querySelectorAll('.nav-wheel').forEach(w => {
-                w.classList.remove('active');
-                w.classList.add('hidden');
-            });
+            navWheelOverlay.classList.remove('active');
         }
     }
     

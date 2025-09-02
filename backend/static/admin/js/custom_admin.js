@@ -1,6 +1,6 @@
 // backend/static/admin/js/custom_admin.js
 // ... (existing code from previous steps) ...
-// KORREKTUR: Logik für die verschachtelte Rad-Navigation, um die Positionierung zu verbessern.
+// KORREKTUR: Logik für die verschachtelte Rad-Navigation mit korrekter "Zurück"-Funktionalität.
 
 document.addEventListener('DOMContentLoaded', function() {
     // ... (unveränderte Setup-Funktionen wie Sidebar-Kollaps, moveModalsToBody, updateTime, addHeaderNavigation) ...
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     document.querySelectorAll('.filter-input').forEach(input => { input.addEventListener('input', handleFilter); });
 
-    // KORREKTUR: Logik für seitliche Dock-Navigation
+    // KORRIGIERTE Logik für seitliche Dock-Navigation
     const sideDockContainer = document.getElementById('side-dock-container');
     const dockTrigger = document.getElementById('side-dock-trigger');
     const navWheelOverlay = document.getElementById('nav-wheel-overlay');
@@ -171,11 +171,13 @@ document.addEventListener('DOMContentLoaded', function() {
             { id: 'logout', icon: 'fa-sign-out-alt', label: 'Logout', url: '/admin/logout/' }
         ],
         'verwaltung_sub': [
+            { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
             { icon: 'fa-users', label: 'Benutzer', url: '/admin/api/user/' },
             { icon: 'fa-users-cog', label: 'Gruppen', url: '/admin/auth/group/' },
             { icon: 'fa-key', label: 'Freigaben', url: '/admin/api/releaserequest/' },
         ],
         'gedenken_sub': [
+             { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
              { icon: 'fa-book-dead', label: 'Gedenkseiten', url: '/admin/api/memorialpage/' },
              { icon: 'fa-comment-dots', label: 'Kondolenzen', url: '/admin/api/condolence/' },
              { icon: 'fa-candle-holder', label: 'Gedenkkerzen', url: '/admin/api/memorialcandle/' },
@@ -184,6 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
              { icon: 'fa-stream', label: 'Chroniken', url: '/admin/api/timelineevent/' },
         ],
          'vorsorge_sub': [
+            { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
             { icon: 'fa-hand-holding-heart', label: 'Letzte Wünsche', url: '/admin/api/lastwishes/' },
             { icon: 'fa-file-alt', label: 'Dokumente', url: '/admin/api/document/' },
             { icon: 'fa-file-signature', label: 'Verträge', url: '/admin/api/contractitem/' },
@@ -192,41 +195,38 @@ document.addEventListener('DOMContentLoaded', function() {
             { icon: 'fa-cloud', label: 'Digitaler Nachlass', url: '/admin/api/digitallegacyitem/' },
         ],
         'stammdaten_sub': [
+            { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
             { icon: 'fa-map-marker-alt', label: 'Orte', url: '/admin/api/eventlocation/' },
             { icon: 'fa-image', label: 'Kerzenbilder', url: '/admin/api/candleimage/' },
             { icon: 'fa-comment-alt', label: 'Kerzen-Vorlagen', url: '/admin/api/candlemessagetemplate/' },
             { icon: 'fa-paste', label: 'Kondolenz-Vorlagen', url: '/admin/api/condolencetemplate/' },
         ],
         'design_sub': [
+             { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
              { icon: 'fa-palette', label: 'Globale Einstellungen', url: '/admin/api/sitesettings/1/change/' },
         ],
     };
 
-    function createWheel(items, level, backTargetKey = null) {
+    function createWheel(items, key) {
         const wheel = document.createElement('div');
-        wheel.className = `nav-wheel level-${level}`;
-        wheel.dataset.level = level;
-        
+        wheel.className = 'nav-wheel';
+        wheel.dataset.key = key;
+
+        const isSubLevel = key !== 'main';
         const centerButton = document.createElement('button');
         centerButton.className = 'wheel-center-button';
-        centerButton.innerHTML = `<i class="fas ${backTargetKey ? 'fa-arrow-left' : 'fa-times'}"></i>`;
-        centerButton.onclick = () => {
-            if (backTargetKey) {
-                showWheel(backTargetKey);
-            } else {
-                toggleNav(false);
-            }
-        };
+        centerButton.innerHTML = `<i class="fas ${isSubLevel ? 'fa-times' : 'fa-times'}"></i>`;
+        centerButton.onclick = () => toggleNav(false);
         wheel.appendChild(centerButton);
-        
+
         items.forEach(item => {
             const element = document.createElement(item.url ? 'a' : 'button');
             element.className = 'wheel-item';
             if (item.url) element.href = item.url;
             element.innerHTML = `<i class="fas ${item.icon}"></i><span class="wheel-item-label">${item.label}</span>`;
-            
+
             if (item.children) {
-                element.onclick = () => showWheel(item.children, level + 1, item.id);
+                element.onclick = () => showWheel(item.children);
             }
             wheel.appendChild(element);
         });
@@ -245,35 +245,23 @@ document.addEventListener('DOMContentLoaded', function() {
             item.style.transform = transform;
         });
     }
-    
+
     let wheelCache = {};
-    let currentWheelKey = 'main';
 
-    function showWheel(key, level = 1, backTargetKey = null) {
-        navWheelOverlay.querySelectorAll('.nav-wheel').forEach(w => w.classList.add('hidden'));
-
-        currentWheelKey = key;
+    function showWheel(key) {
+        navWheelOverlay.querySelectorAll('.nav-wheel').forEach(w => w.classList.remove('active'));
 
         let wheel = wheelCache[key];
         if (!wheel) {
             const items = navData[key];
             if (!items) return;
-            wheel = createWheel(items, level, backTargetKey);
+            wheel = createWheel(items, key);
             wheelCache[key] = wheel;
             navWheelOverlay.appendChild(wheel);
         }
-        
+
         setTimeout(() => {
-            wheel.classList.remove('hidden');
             wheel.classList.add('active');
-            
-            // KORREKTUR: Verschiebt das Rad weiter nach links
-            if (level === 1) {
-                wheel.style.left = 'calc(50% - 150px)';
-            } else {
-                 wheel.style.left = '50%';
-            }
-            
             positionItemsOnWheel(wheel);
         }, 50);
     }
@@ -282,13 +270,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (show) {
             sideDockContainer.classList.add('active');
             navWheelOverlay.classList.add('active');
-            showWheel(currentWheelKey || 'main');
+            showWheel('main');
         } else {
             sideDockContainer.classList.remove('active');
             navWheelOverlay.classList.remove('active');
+            navWheelOverlay.querySelectorAll('.nav-wheel').forEach(w => w.classList.remove('active'));
         }
     }
-    
+
     if (dockTrigger && navWheelOverlay) {
         dockTrigger.addEventListener('click', () => {
             const isActive = sideDockContainer.classList.contains('active');

@@ -575,9 +575,8 @@
     z-index: 9998;
     display: flex;
     align-items: center;
-    /* KORREKTUR: Positionierung des Inhalts an das rechte Ende */
     justify-content: flex-end; 
-    padding-right: 100px; /* Abstand vom rechten Rand */
+    padding-right: 280px; /* KORRIGIERT: Abstand vom rechten Rand vergrößert */
 }
 
 #nav-wheel-overlay.active {
@@ -647,8 +646,8 @@
 
 .wheel-item:hover {
     background-color: #8c8073;
-    /* KORREKTUR: transform entfernt, um Positions-Sprünge zu vermeiden */
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5); /* Stabiler Hover-Effekt */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    transform: scale(1.15); /* KORRIGIERT: Hover-Effekt wieder hinzugefügt */
 }
 
 .wheel-item-label {

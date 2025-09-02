@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { id: 'vorsorge', icon: 'fa-file-invoice', label: 'Vorsorge', children: 'vorsorge_sub' },
             { id: 'stammdaten', icon: 'fa-database', label: 'Inhalte & Vorlagen', children: 'stammdaten_sub' },
             { id: 'design', icon: 'fa-sliders-h', label: 'System & Design', children: 'design_sub' },
+            { id: 'search', icon: 'fa-search', label: 'Suchen' },
             { id: 'logout', icon: 'fa-sign-out-alt', label: 'Logout', url: '/admin/logout/' }
         ],
         'verwaltung_sub': [
@@ -236,10 +237,16 @@ document.addEventListener('DOMContentLoaded', function() {
         items.forEach(item => {
             const element = document.createElement(item.url ? 'a' : 'button');
             element.className = 'wheel-item';
+            if (item.id === 'main') {
+                element.classList.add('wheel-item-back');
+            }
             if (item.url) element.href = item.url;
             element.innerHTML = `<i class="fas ${item.icon}"></i><span class="wheel-item-label">${item.label}</span>`;
+            
             if (item.children) {
                 element.onclick = () => showWheel(item.children);
+            } else if (item.id === 'search') {
+                element.onclick = () => openGlobalSearch();
             }
             wheel.appendChild(element);
         });
@@ -248,34 +255,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function positionItemsOnWheel(wheelElement) {
         const items = Array.from(wheelElement.querySelectorAll('.wheel-item'));
-        const centerButton = wheelElement.querySelector('.wheel-center-button');
-        const backButton = items.find(item => item.querySelector('.fa-arrow-left'));
-
-        let regularItems = items;
-        if (backButton) {
-            backButton.style.transform = `translateY(130px)`;
-            regularItems = items.filter(item => item !== backButton);
-        }
+        const backButton = items.find(item => item.classList.contains('wheel-item-back'));
+        const regularItems = items.filter(item => !item.classList.contains('wheel-item-back'));
 
         const numItems = regularItems.length;
-        const angle = 360 / (numItems > 6 ? numItems : 8);
+        const angle = 360 / (numItems > 6 ? numItems : 8); 
         const radius = 170;
         
         regularItems.forEach((item, index) => {
-            const rotation = angle * index - 90;
+            const rotation = (angle * index) - 90;
             const itemTransform = `rotate(${rotation}deg) translate(${radius}px) rotate(${-rotation}deg)`;
             item.style.transitionDelay = `${index * 40}ms`;
             item.style.transform = itemTransform;
         });
+
+        if (backButton) {
+            backButton.style.transitionDelay = `${numItems * 40}ms`;
+            backButton.style.transform = `translateY(${radius * 0.75}px)`;
+        }
     }
 
     let wheelCache = {};
 
     function showWheel(key) {
         if (!wheelContainer) return;
-        wheelContainer.querySelectorAll('.nav-wheel').forEach(w => {
-            w.classList.remove('active');
-        });
+        
+        const currentActive = wheelContainer.querySelector('.nav-wheel.active');
+        if (currentActive) {
+            currentActive.classList.remove('active');
+        }
 
         let wheel = wheelCache[key];
         if (!wheel) {
@@ -302,8 +310,79 @@ document.addEventListener('DOMContentLoaded', function() {
             navWheelOverlay.classList.remove('active');
         }
     }
+    
+    // Globale Suche
+    const searchModal = document.getElementById('global-search-modal');
+    const searchInput = document.getElementById('global-search-input');
+    const searchResultsContainer = document.getElementById('global-search-results');
+    let searchableItems = [];
 
-    if (dockTrigger && navWheelOverlay) {
+    function flattenNavData() {
+        const flatList = [];
+        const mainCategories = navData['main'];
+        
+        mainCategories.forEach(cat => {
+            if (cat.children && navData[cat.children]) {
+                navData[cat.children].forEach(item => {
+                    if (item.url) {
+                        flatList.push({
+                            label: item.label,
+                            url: item.url,
+                            category: cat.label
+                        });
+                    }
+                });
+            } else if (cat.url) {
+                 flatList.push({
+                    label: cat.label,
+                    url: cat.url,
+                    category: "Hauptmenü"
+                });
+            }
+        });
+        searchableItems = flatList;
+    }
+
+    function openGlobalSearch() {
+        if (searchModal) {
+            toggleNav(false);
+            searchModal.style.display = 'block';
+            searchInput.focus();
+        }
+    }
+
+    function closeGlobalSearch() {
+        if (searchModal) {
+            searchModal.style.display = 'none';
+            searchInput.value = '';
+            searchResultsContainer.innerHTML = '';
+        }
+    }
+
+    function handleSearchInput() {
+        const query = searchInput.value.toLowerCase();
+        searchResultsContainer.innerHTML = '';
+        if (query.length < 2) {
+            return;
+        }
+
+        const results = searchableItems.filter(item => 
+            item.label.toLowerCase().includes(query) || 
+            item.category.toLowerCase().includes(query)
+        );
+
+        results.forEach(item => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = item.url;
+            a.innerHTML = `${item.label} <span class="search-result-category">${item.category}</span>`;
+            li.appendChild(a);
+            searchResultsContainer.appendChild(li);
+        });
+    }
+
+    if (sideDockContainer) {
+        flattenNavData();
         dockTrigger.addEventListener('click', () => {
             const isActive = sideDockContainer.classList.contains('active');
             toggleNav(!isActive);
@@ -313,6 +392,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 toggleNav(false);
             }
         });
+    }
+    if (searchModal) {
+        const closeBtn = searchModal.querySelector('.close-modal');
+        if (closeBtn) closeBtn.onclick = closeGlobalSearch;
+        searchInput.addEventListener('input', handleSearchInput);
     }
 });
 

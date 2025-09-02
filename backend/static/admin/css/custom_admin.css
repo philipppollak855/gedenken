@@ -589,7 +589,7 @@
     width: 400px;
     height: 400px;
     flex-shrink: 0;
-    transform: translateX(-250px); /* KORRIGIERT: Fährt weiter aus */
+    transform: translateX(-250px);
 }
 
 .nav-wheel {
@@ -630,7 +630,7 @@
     position: absolute;
     width: 60px;
     height: 60px;
-    background-color: #8c8073; /* KORRIGIERT: Bessere Grundfarbe */
+    background-color: #8c8073;
     border: 2px solid rgba(255, 255, 255, 0.2);
     color: #f1f1f1;
     border-radius: 50%;
@@ -639,7 +639,7 @@
     justify-content: center;
     font-size: 1.5rem;
     text-decoration: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease; /* KORRIGIERT: Transform in Transition aufgenommen */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
 }
 
@@ -654,9 +654,8 @@
 }
 
 .wheel-item:hover {
-    background-color: #a99a8c; /* KORRIGIERT: Hellere Hover-Farbe */
+    background-color: #a99a8c;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    /* KORRIGIERT: Das 'transform' hier entfernt, um das "Wackeln" zu verhindern. Es ist bereits in der Haupt-Klasse. */
 }
 
 .wheel-item-label {
@@ -675,5 +674,69 @@
 
 .wheel-item:hover .wheel-item-label {
     opacity: 1;
+}
+
+/* ---------------------------------- */
+/* GLOBAL SEARCH MODAL                */
+/* ---------------------------------- */
+.search-modal-content {
+    max-width: 700px;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#global-search-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+#global-search-input {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.2rem;
+    border: none;
+    border-bottom: 2px solid #8c8073;
+    background-color: #3a424a;
+    color: #f1f1f1;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+#global-search-input:focus {
+    outline: none;
+    border-bottom-color: #a99a8c;
+}
+
+#global-search-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+#global-search-results li a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    color: #e1e1e1;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+#global-search-results li a:hover {
+    background-color: #4a535c;
+}
+
+.search-result-category {
+    font-size: 0.8rem;
+    color: #999;
+    background-color: #2c343c;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
 }
 

@@ -53,20 +53,24 @@ document.addEventListener('DOMContentLoaded', function() {
         forwardButton.title = 'Vorwärts';
         forwardButton.onclick = () => window.history.forward();
         forwardButton.className = 'btn';
-        const homeLink = document.createElement('a');
-        homeLink.href = '/admin/';
-        homeLink.title = 'Dashboard';
-        homeLink.className = 'btn';
-        homeLink.innerHTML = '<i class="fas fa-home"></i>';
+        // Der Home-Button wird jetzt über die neue Funktion hinzugefügt
+        // const homeLink = document.createElement('a');
+        // homeLink.href = '/admin/';
+        // homeLink.title = 'Dashboard';
+        // homeLink.className = 'btn';
+        // homeLink.innerHTML = '<i class="fas fa-home"></i>';
         navContainer.appendChild(backButton);
         navContainer.appendChild(forwardButton);
-        navContainer.appendChild(homeLink);
+        // navContainer.appendChild(homeLink);
         headerActionsContainer.prepend(navContainer);
 
         // Entfernt den alten Header, da der Inhalt verschoben wurde
         dashboardHeader.remove();
     }
-    addHeaderNavigation();
+    // HINWEIS: Diese Funktion wird jetzt selektiver aufgerufen.
+    if (document.querySelector('#content-main .dashboard-header')) {
+        addHeaderNavigation();
+    }
     
     const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');
@@ -117,8 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const calendarGrid = document.querySelector('.calendar-grid-container');
         if (calendarGrid) {
             calendarGrid.appendChild(eventListPopup);
-            eventListPopup.style.left = `${dayEl.offsetLeft + dayEl.offsetWidth + 10}px`;
-            eventListPopup.style.top = `${dayEl.offsetTop}px`;
+            const gridRect = calendarGrid.getBoundingClientRect();
+            const dayRect = dayEl.getBoundingClientRect();
+            eventListPopup.style.left = `${dayRect.right - gridRect.left + 10}px`;
+            eventListPopup.style.top = `${dayRect.top - gridRect.top}px`;
             eventListPopup.style.display = 'block';
         }
     }
@@ -259,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const regularItems = items.filter(item => !item.classList.contains('wheel-item-back'));
 
         const numItems = regularItems.length;
-        const angle = 360 / (numItems > 6 ? numItems : 8); 
+        const angle = 360 / (numItems > 6 ? 8 : numItems); 
         const radius = 170;
         
         regularItems.forEach((item, index) => {
@@ -271,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (backButton) {
             backButton.style.transitionDelay = `${numItems * 40}ms`;
-            backButton.style.transform = `translateY(${radius * 0.75}px)`;
+            backButton.style.transform = `translate(0, ${radius * 0.9}px)`; // Position adjusted
         }
     }
 
@@ -315,32 +321,57 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchModal = document.getElementById('global-search-modal');
     const searchInput = document.getElementById('global-search-input');
     const searchResultsContainer = document.getElementById('global-search-results');
-    let searchableItems = [];
+    
+    let debounceTimer;
+    function debounce(func, delay) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(func, delay);
+    }
 
-    function flattenNavData() {
-        const flatList = [];
-        const mainCategories = navData['main'];
-        
-        mainCategories.forEach(cat => {
-            if (cat.children && navData[cat.children]) {
-                navData[cat.children].forEach(item => {
-                    if (item.url) {
-                        flatList.push({
-                            label: item.label,
-                            url: item.url,
-                            category: cat.label
-                        });
-                    }
-                });
-            } else if (cat.url) {
-                 flatList.push({
-                    label: cat.label,
-                    url: cat.url,
-                    category: "Hauptmenü"
-                });
+    async function handleSearchInput() {
+        const query = searchInput.value;
+        searchResultsContainer.innerHTML = '';
+
+        if (query.length < 3) {
+            searchResultsContainer.innerHTML = '<li><span class="search-result-category">Bitte geben Sie mindestens 3 Zeichen ein.</span></li>';
+            return;
+        }
+
+        searchResultsContainer.innerHTML = '<li><span class="search-result-category">Suche...</span></li>';
+
+        try {
+            // CSRF-Token für die API-Anfrage holen
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const response = await fetch(`/api/global-search/?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Accept': 'application/json',
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Netzwerkfehler bei der Suche');
             }
-        });
-        searchableItems = flatList;
+            const results = await response.json();
+
+            searchResultsContainer.innerHTML = ''; 
+            if (results.length === 0) {
+                searchResultsContainer.innerHTML = '<li><span class="search-result-category">Keine Ergebnisse gefunden.</span></li>';
+                return;
+            }
+
+            results.forEach(item => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = item.url;
+                a.innerHTML = `${item.title} <span class="search-result-category">${item.type}</span>`;
+                li.appendChild(a);
+                searchResultsContainer.appendChild(li);
+            });
+
+        } catch (error) {
+            console.error('Search error:', error);
+            searchResultsContainer.innerHTML = '<li><span class="search-result-category">Fehler bei der Suche.</span></li>';
+        }
     }
 
     function openGlobalSearch() {
@@ -359,30 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function handleSearchInput() {
-        const query = searchInput.value.toLowerCase();
-        searchResultsContainer.innerHTML = '';
-        if (query.length < 2) {
-            return;
-        }
-
-        const results = searchableItems.filter(item => 
-            item.label.toLowerCase().includes(query) || 
-            item.category.toLowerCase().includes(query)
-        );
-
-        results.forEach(item => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = item.url;
-            a.innerHTML = `${item.label} <span class="search-result-category">${item.category}</span>`;
-            li.appendChild(a);
-            searchResultsContainer.appendChild(li);
-        });
-    }
-
     if (sideDockContainer) {
-        flattenNavData();
         dockTrigger.addEventListener('click', () => {
             const isActive = sideDockContainer.classList.contains('active');
             toggleNav(!isActive);
@@ -396,7 +404,35 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchModal) {
         const closeBtn = searchModal.querySelector('.close-modal');
         if (closeBtn) closeBtn.onclick = closeGlobalSearch;
-        searchInput.addEventListener('input', handleSearchInput);
+        searchInput.addEventListener('input', () => debounce(handleSearchInput, 300));
+    }
+
+    // NEU: Funktion zum Hinzufügen des Dashboard-Buttons
+    function addDashboardButtonToBreadcrumbs() {
+        const breadcrumbsContainer = document.querySelector('.breadcrumbs');
+        if (breadcrumbsContainer && !breadcrumbsContainer.querySelector('.dashboard-btn')) {
+            // Nur hinzufügen, wenn wir nicht auf der Dashboard-Seite sind
+            if (window.location.pathname === '/admin/' || window.location.pathname === '/admin') return;
+
+            const dashboardLink = document.createElement('a');
+            dashboardLink.href = '/admin/';
+            dashboardLink.className = 'dashboard-btn';
+            dashboardLink.textContent = 'Zum Dashboard';
+            breadcrumbsContainer.appendChild(dashboardLink);
+        }
+    }
+
+    // Führt die Funktion aus, um den Button hinzuzufügen, sobald der DOM geladen ist.
+    addDashboardButtonToBreadcrumbs();
+
+    // Beobachtet Ã„nderungen im DOM, falls Unfold die Breadcrumbs dynamisch nachlÃ¤dt.
+    const observer = new MutationObserver(() => {
+        addDashboardButtonToBreadcrumbs();
+    });
+    
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+        observer.observe(mainElement, { childList: true, subtree: true });
     }
 });
 

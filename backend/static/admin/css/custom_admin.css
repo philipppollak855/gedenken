@@ -1,5 +1,5 @@
 /* backend/static/admin/css/custom_admin.css */
-/* KORRIGIERT: CSS-Regeln mit erhÃ¶hter SpezifitÃ¤t und !important, um das Unfold-Layout zu Ã¼berschreiben. */
+/* KORRIGIERT: CSS-Regeln mit erhöhter Spezifität und !important, um das Unfold-Layout zu überschreiben. */
 /* KORRIGIERT: Scroll-Verhalten im vergrößerten Widget-Modal repariert. */
 /* NEU: Verbessertes Design für Listeneinträge in den Widgets. */
 
@@ -116,7 +116,7 @@
     flex-direction: column;
     flex-grow: 1;
     min-height: 0;
-    overflow: hidden; /* DIES WURDE GEÄNDERT - !important entfernt */
+    /* overflow: hidden;  <-- DIESE ZEILE WURDE ENTFERNT */
 }
 #widget-modal-body .widget-content-source {
     display: flex;

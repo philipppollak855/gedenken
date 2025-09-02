@@ -180,16 +180,15 @@ document.addEventListener('DOMContentLoaded', function() {
             { id: 'verwaltung', icon: 'fa-cog', label: 'Hauptverwaltung', children: 'verwaltung_sub' },
             { id: 'gedenken', icon: 'fa-book-dead', label: 'Gedenken', children: 'gedenken_sub' },
             { id: 'vorsorge', icon: 'fa-file-invoice', label: 'Vorsorge', children: 'vorsorge_sub' },
-            { id: 'stammdaten', icon: 'fa-database', label: 'Stammdaten', children: 'stammdaten_sub' },
-            { id: 'design', icon: 'fa-sliders-h', label: 'Design', children: 'design_sub' },
-            { id: 'mediathek', icon: 'fa-photo-video', label: 'Mediathek', url: '/admin/api/mediaasset/' },
+            { id: 'stammdaten', icon: 'fa-database', label: 'Inhalte & Vorlagen', children: 'stammdaten_sub' },
+            { id: 'design', icon: 'fa-sliders-h', label: 'System & Design', children: 'design_sub' },
             { id: 'logout', icon: 'fa-sign-out-alt', label: 'Logout', url: '/admin/logout/' }
         ],
         'verwaltung_sub': [
             { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
             { icon: 'fa-users', label: 'Benutzer', url: '/admin/api/user/' },
             { icon: 'fa-users-cog', label: 'Gruppen', url: '/admin/auth/group/' },
-            { icon: 'fa-key', label: 'Freigaben', url: '/admin/api/releaserequest/' },
+            { icon: 'fa-key', label: 'Freigabe-Anfragen', url: '/admin/api/releaserequest/' },
         ],
         'gedenken_sub': [
              { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
@@ -211,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ],
         'stammdaten_sub': [
             { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
-            { icon: 'fa-map-marker-alt', label: 'Orte', url: '/admin/api/eventlocation/' },
+            { icon: 'fa-map-marker-alt', label: 'Veranstaltungsorte', url: '/admin/api/eventlocation/' },
             { icon: 'fa-image', label: 'Kerzenbilder', url: '/admin/api/candleimage/' },
             { icon: 'fa-comment-alt', label: 'Kerzen-Vorlagen', url: '/admin/api/candlemessagetemplate/' },
             { icon: 'fa-paste', label: 'Kondolenz-Vorlagen', url: '/admin/api/condolencetemplate/' },
@@ -219,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'design_sub': [
              { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
              { icon: 'fa-palette', label: 'Globale Einstellungen', url: '/admin/api/sitesettings/1/change/' },
+             { id: 'mediathek', icon: 'fa-photo-video', label: 'Mediathek', url: '/admin/api/mediaasset/' },
         ],
     };
 
@@ -249,25 +249,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function positionItemsOnWheel(wheelElement) {
         const items = Array.from(wheelElement.querySelectorAll('.wheel-item'));
         const centerButton = wheelElement.querySelector('.wheel-center-button');
-        // KORREKTUR: Der "Zurück"-Button wird jetzt anders behandelt
         const backButton = items.find(item => item.querySelector('.fa-arrow-left'));
 
         let regularItems = items;
         if (backButton) {
-            // Positioniert den "Zurück"-Button unten in der Mitte
             backButton.style.transform = `translateY(130px)`;
             regularItems = items.filter(item => item !== backButton);
         }
 
         const numItems = regularItems.length;
-        const angle = 360 / (numItems > 6 ? numItems : 8); // Besserer Winkel bei wenigen Items
+        const angle = 360 / (numItems > 6 ? numItems : 8);
         const radius = 170;
         
         regularItems.forEach((item, index) => {
             const rotation = angle * index - 90;
-            const transform = `rotate(${rotation}deg) translate(${radius}px) rotate(${-rotation}deg)`;
+            const itemTransform = `rotate(${rotation}deg) translate(${radius}px) rotate(${-rotation}deg)`;
             item.style.transitionDelay = `${index * 40}ms`;
-            item.style.transform = transform;
+            item.style.transform = itemTransform;
         });
     }
 

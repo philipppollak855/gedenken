@@ -619,13 +619,25 @@ main.content .breadcrumbs .dashboard-btn:hover {
     transition: opacity 0.4s ease;
 }
 
-#wheel-container {
-    position: relative;
+#wheel-container-wrapper {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
     width: 400px;
     height: 400px;
-    flex-shrink: 0;
-    transform: translateX(-250px);
+    pointer-events: none; /* Wichtig, damit nur das Rad klickbar ist */
 }
+
+#wheel-container {
+    position: absolute;
+    right: -170px; /* Positioniert das Zentrum des Rads */
+    top: 0;
+    width: 400px;
+    height: 400px;
+    pointer-events: auto; /* Re-aktiviert Klicks für das Rad */
+}
+
 
 .nav-wheel {
     position: absolute;
@@ -674,7 +686,7 @@ main.content .breadcrumbs .dashboard-btn:hover {
     justify-content: center;
     font-size: 1.5rem;
     text-decoration: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.2s ease-in-out;
     cursor: pointer;
 }
 
@@ -691,6 +703,7 @@ main.content .breadcrumbs .dashboard-btn:hover {
 .wheel-item:hover {
     background-color: #a99a8c;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    transform: scale(1.1); /* Ersetzt das Zittern */
 }
 
 .wheel-item-label {
@@ -775,12 +788,18 @@ main.content .breadcrumbs .dashboard-btn:hover {
     border-radius: 4px;
 }
 
-/* NEU: IFRAME MODAL STYLES */
+/* IFRAME MODAL STYLES */
+#iframe-modal {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
 .iframe-modal-content {
     width: 85%;
     height: 85vh;
     max-width: none;
-    margin: auto;
+    margin: 0;
     display: flex;
     flex-direction: column;
 }

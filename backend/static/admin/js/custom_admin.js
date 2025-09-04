@@ -1,64 +1,70 @@
 // backend/static/admin/js/custom_admin.js
 
+// Globale Variablen für Modals, um wiederholte DOM-Abfragen zu vermeiden
+let iframeModal, iframe, iframeTitle;
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Diese Funktion wird jetzt zentral aufgerufen
     initializeDashboardFeatures();
 });
 
-// NEU: Wir lauschen auf das "turbo:load" Event von Unfold.
-// Dies stellt sicher, dass unsere Funktionen nach JEDEM Seitenwechsel im Admin-Bereich erneut ausgeführt werden.
 document.addEventListener("turbo:load", function() {
     initializeDashboardFeatures();
 });
 
-
-// NEU: Eine Hauptfunktion, die alle unsere Anpassungen bündelt.
 function initializeDashboardFeatures() {
-    // Stellt sicher, dass Modals korrekt über der gesamten Seite angezeigt werden
     moveModalsToBody();
-    
-    // Live-Uhr für das Dashboard
     updateTime();
-
-    // Kalender-Logik initialisieren
     initializeCalendar();
-    
-    // Widget-Modals initialisieren
     initializeWidgetModals();
-
-    // Filter-Funktion für die Modals initialisieren
     initializeFilters();
-
-    // Fügt den "Zum Dashboard" Button in den Breadcrumbs hinzu
     addDashboardButton();
-
-    // Initialisiert das seitliche Navigationsrad
     initializeSideDock();
+    initializeIframeModal(); // Stellt sicher, dass die globalen Variablen gesetzt sind
+    initializeDashboardQuickLinks(); // NEU: Initialisiert die Schnellzugriffe
+}
 
-    // NEU: Initialisiert das IFrame-Modal
-    initializeIframeModal();
+// HILFSFUNKTION: Öffnet eine URL im IFrame-Modal
+function openInIframeModal(url, title) {
+    if (iframe && iframeModal && iframeTitle) {
+        // Bereinigt die URL von möglichen "§"-Zeichen, die von Unfold hinzugefügt werden
+        const cleanUrl = url.split('?')[0];
+        iframe.src = cleanUrl;
+        iframeTitle.textContent = title;
+        iframeModal.style.display = 'flex'; // 'flex' für Zentrierung
+    } else {
+        // Fallback, falls das Modal nicht initialisiert wurde
+        window.location.href = url;
+    }
+}
+
+// NEU: Initialisiert die Schnellzugriffe auf dem Dashboard
+function initializeDashboardQuickLinks() {
+    document.querySelectorAll('.quick-links a').forEach(link => {
+        if (link.hasAttribute('data-modal-listener')) return;
+        link.setAttribute('data-modal-listener', 'true');
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.href;
+            const title = this.textContent.trim();
+            openInIframeModal(url, title);
+        });
+    });
 }
 
 
 function addDashboardButton() {
-    // Funktion wird nur auf Unterseiten ausgeführt, nicht auf dem Dashboard selbst
     if (window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) {
-        // Entfernen, falls er von einer vorherigen Seite noch da ist
         const existingBtn = document.querySelector('.dashboard-btn');
         if (existingBtn) existingBtn.remove();
         return;
     }
 
     const breadcrumbs = document.querySelector('.breadcrumbs');
-    // Prüfen, ob der Button nicht bereits existiert
     if (breadcrumbs && !breadcrumbs.querySelector('.dashboard-btn')) {
         const dashboardBtn = document.createElement('a');
         dashboardBtn.href = '/admin/';
         dashboardBtn.textContent = 'Zum Dashboard';
         dashboardBtn.classList.add('dashboard-btn');
-        
-        // Fügt den Button als erstes Element in die Breadcrumbs ein
-        // CSS kümmert sich um die Positionierung ganz rechts
         breadcrumbs.appendChild(dashboardBtn);
     }
 }
@@ -66,7 +72,6 @@ function addDashboardButton() {
 
 function moveModalsToBody() {
     document.querySelectorAll('.modal').forEach(modal => {
-        // Nur verschieben, wenn es nicht schon direkt im body ist
         if (modal.parentNode !== document.body) {
             document.body.appendChild(modal);
         }
@@ -82,7 +87,6 @@ function updateTime() {
             timeElement.textContent = now.toLocaleString('de-AT', options);
         }, 1000);
         timeElement.setAttribute('data-interval-id', intervalId);
-        // Initialer Aufruf
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
         timeElement.textContent = now.toLocaleString('de-AT', options);
@@ -196,7 +200,6 @@ function initializeWidgetModals() {
     const widgetModalBody = document.getElementById('widget-modal-body');
 
     document.querySelectorAll('.toggle-widget-icon').forEach(icon => {
-        // Verhindert doppelte Event-Listener
         if (icon.getAttribute('data-listener') === 'true') return;
         icon.setAttribute('data-listener', 'true');
 
@@ -209,31 +212,14 @@ function initializeWidgetModals() {
                 widgetModalTitle.textContent = title;
                 widgetModalBody.innerHTML = ''; 
                 widgetModalBody.appendChild(contentSource.cloneNode(true));
-                widgetModalBody.firstChild.style.display = 'flex'; // Sicherstellen, dass der Container sichtbar ist
+                widgetModalBody.firstChild.style.display = 'flex';
                 widgetModal.style.display = 'block';
             }
         });
     });
-
-    document.querySelectorAll('.modal').forEach(modal => {
-        const closeBtn = modal.querySelector('.close-modal');
-        if (closeBtn && !closeBtn.getAttribute('data-listener')) {
-            closeBtn.setAttribute('data-listener', 'true');
-            closeBtn.onclick = () => { modal.style.display = 'none'; };
-        }
-        if (!modal.getAttribute('data-listener')) {
-             modal.setAttribute('data-listener', 'true');
-             modal.addEventListener('click', (event) => {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        }
-    });
 }
 
 function initializeFilters() {
-     // Wichtig: Event-Delegation am Body, da der Inhalt der Modals dynamisch ist.
     document.body.addEventListener('input', function(event) {
         if (event.target.matches('.filter-input')) {
             const filterValue = event.target.value.toLowerCase();
@@ -249,7 +235,6 @@ function initializeFilters() {
     });
 }
 
-
 function initializeSideDock() {
     const dockContainer = document.getElementById('side-dock-container');
     if (!dockContainer) return;
@@ -257,11 +242,7 @@ function initializeSideDock() {
     const trigger = document.getElementById('side-dock-trigger');
     const overlay = document.getElementById('nav-wheel-overlay');
     const wheelContainer = document.getElementById('wheel-container');
-    const iframeModal = document.getElementById('iframe-modal');
-    const iframe = document.getElementById('content-iframe');
-    const iframeTitle = document.getElementById('iframe-modal-title');
     
-    // KORREKTUR: Variablen für die Suche werden hier oben deklariert.
     const searchModal = document.getElementById('global-search-modal');
     const searchInput = document.getElementById('global-search-input');
     const searchResults = document.getElementById('global-search-results');
@@ -297,7 +278,8 @@ function initializeSideDock() {
                 { id: 'locations', label: 'Orte', icon: 'fa-map-marker-alt', url: '/admin/api/eventlocation/' },
                 { id: 'condolence-tpl', label: 'Kondolenz-Vorlagen', icon: 'fa-paste', url: '/admin/api/condolencetemplate/' },
                 { id: 'candle-img', label: 'Kerzen-Bilder', icon: 'fa-image', url: '/admin/api/candleimage/' },
-                { id: 'candle-msg-tpl', label: 'Kerzen-Nachrichten', icon: 'fa-comment-alt', url: '/admin/api/candle-message-template/' },
+                // KORRIGIERT: Falsche URL für Kerzen-Nachrichten-Vorlagen
+                { id: 'candle-msg-tpl', label: 'Kerzen-Nachrichten', icon: 'fa-comment-alt', url: '/admin/api/candlemessagetemplate/' },
             ]},
              { id: 'design', label: 'Design & Medien', icon: 'fa-palette', children: [
                 { id: 'settings', label: 'Globale Einstellungen', icon: 'fa-sliders-h', url: '/admin/api/sitesettings/' },
@@ -306,29 +288,32 @@ function initializeSideDock() {
         ]
     };
     
-    function createWheel(items, parentId = null) {
+    function createWheel(items, parentId = null, parentData = null) {
         const wheel = document.createElement('div');
-        wheel.id = parentId ? `wheel-${parentId}` : 'main-wheel';
+        const wheelId = parentId ? `wheel-${parentId}` : 'main-wheel';
+        wheel.id = wheelId;
         wheel.className = 'nav-wheel';
         wheelContainer.appendChild(wheel);
 
         const radius = 150;
-        const angleStep = (2 * Math.PI) / (items.length + (parentId ? 1 : 0));
-
+        let effectiveItems = [...items];
+        
         if (parentId) {
             const backButton = document.createElement('button');
             backButton.className = 'wheel-center-button';
             backButton.innerHTML = `<i class="fas fa-arrow-left"></i>`;
-            backButton.onclick = () => showWheel(parentId === 'main' ? 'main-wheel' : `wheel-${navData.items.find(i => i.children?.some(c => c.id === parentId))?.id}`);
+            backButton.onclick = () => showWheel(parentData ? parentData.id === 'main' ? 'main-wheel' : `wheel-${parentData.id}` : 'main-wheel');
             wheel.appendChild(backButton);
         } else {
-            const centerLogo = document.createElement('div');
-            centerLogo.className = 'wheel-center-button';
-            centerLogo.innerHTML = `<i class="fas fa-star"></i>`;
-            wheel.appendChild(centerLogo);
+             const centerLogo = document.createElement('div');
+             centerLogo.className = 'wheel-center-button';
+             centerLogo.innerHTML = `<i class="fas fa-star"></i>`;
+             wheel.appendChild(centerLogo);
         }
 
-        items.forEach((item, index) => {
+        const angleStep = (2 * Math.PI) / effectiveItems.length;
+
+        effectiveItems.forEach((item, index) => {
             const angle = index * angleStep - (Math.PI / 2);
             const x = Math.cos(angle) * radius + 170;
             const y = Math.sin(angle) * radius + 170;
@@ -351,7 +336,7 @@ function initializeSideDock() {
                  }
             } else if (item.children) {
                 wheelItem.onclick = () => showWheel(`wheel-${item.id}`);
-                createWheel(item.children, item.id);
+                createWheel(item.children, item.id, {id: parentId || 'main'});
             }
             wheel.appendChild(wheelItem);
         });
@@ -367,18 +352,6 @@ function initializeSideDock() {
         }
     }
     
-    function openInIframeModal(url, title) {
-        if (iframe && iframeModal && iframeTitle) {
-            iframe.src = url;
-            iframeTitle.textContent = title;
-            iframeModal.style.display = 'block';
-            overlay.classList.remove('active');
-            dockContainer.classList.remove('active');
-        } else {
-            window.location.href = url;
-        }
-    }
-
     function openSearchModal() {
         if(searchModal) searchModal.style.display = 'block';
         if(searchInput) searchInput.focus();
@@ -389,7 +362,7 @@ function initializeSideDock() {
     if (trigger && !trigger.hasAttribute('data-listener')) {
         trigger.setAttribute('data-listener', 'true');
         wheelContainer.innerHTML = '';
-        createWheel(navData.items);
+        createWheel(navData.items, null, navData);
         showWheel('main-wheel');
 
         trigger.addEventListener('click', () => {
@@ -412,11 +385,9 @@ function initializeSideDock() {
              searchResults.innerHTML = '';
              if (query.length < 2) return;
 
-             // Hier kommt die erweiterte Suche
              fetch(`/api/global-search/?q=${query}`)
                  .then(res => res.json())
                  .then(data => {
-                     // Navigations-Links zuerst
                      allAdminLinks.forEach(link => {
                          if (link.textContent.toLowerCase().includes(query)) {
                              const li = document.createElement('li');
@@ -430,7 +401,6 @@ function initializeSideDock() {
                          }
                      });
                      
-                     // API Ergebnisse
                      Object.keys(data).forEach(category => {
                          data[category].forEach(item => {
                              const li = document.createElement('li');
@@ -448,9 +418,12 @@ function initializeSideDock() {
      }
 }
 
-// NEU: Eigene Funktion für das Iframe-Modal
 function initializeIframeModal() {
-    const iframeModal = document.getElementById('iframe-modal');
+    // Globale Variablen zuweisen
+    iframeModal = document.getElementById('iframe-modal');
+    iframe = document.getElementById('content-iframe');
+    iframeTitle = document.getElementById('iframe-modal-title');
+
     if (!iframeModal) return;
 
     const closeBtn = iframeModal.querySelector('.close-modal');
@@ -459,7 +432,7 @@ function initializeIframeModal() {
         closeBtn.setAttribute('data-iframe-listener', 'true');
         closeBtn.onclick = () => {
             iframeModal.style.display = 'none';
-            iframeModal.querySelector('#content-iframe').src = 'about:blank';
+            iframe.src = 'about:blank';
         };
     }
     
@@ -468,7 +441,7 @@ function initializeIframeModal() {
         iframeModal.onclick = (event) => {
             if (event.target === iframeModal) {
                 iframeModal.style.display = 'none';
-                iframeModal.querySelector('#content-iframe').src = 'about:blank';
+                iframe.src = 'about:blank';
             }
         };
     }

@@ -1,79 +1,99 @@
 // backend/static/admin/js/custom_admin.js
-document.addEventListener('DOMContentLoaded', function() {
-    // Standardmäßig einklappen, aber nur, wenn es nicht bereits eingeklappt ist
-    if (!document.body.classList.contains('sidebar-collapse')) {
-        const sidebarToggleButton = document.querySelector('[data-widget="pushmenu"]');
-        if (sidebarToggleButton) {
-            sidebarToggleButton.click();
-        }
-    }
 
-    function moveModalsToBody() {
-        document.querySelectorAll('.modal').forEach(modal => {
-            document.body.appendChild(modal);
-        });
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    // Diese Funktion wird jetzt zentral aufgerufen
+    initializeDashboardFeatures();
+});
+
+// NEU: Wir lauschen auf das "turbo:load" Event von Unfold.
+// Dies stellt sicher, dass unsere Funktionen nach JEDEM Seitenwechsel im Admin-Bereich erneut ausgeführt werden.
+document.addEventListener("turbo:load", function() {
+    initializeDashboardFeatures();
+});
+
+
+// NEU: Eine Hauptfunktion, die alle unsere Anpassungen bündelt.
+function initializeDashboardFeatures() {
+    // Stellt sicher, dass Modals korrekt über der gesamten Seite angezeigt werden
     moveModalsToBody();
-    function updateTime() {
-        const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-        const formattedDateTime = now.toLocaleString('de-AT', options);
-        const timeElement = document.getElementById('current-datetime');
-        if (timeElement) {
-            timeElement.textContent = formattedDateTime;
-        }
-    }
-    setInterval(updateTime, 1000);
+    
+    // Live-Uhr für das Dashboard
     updateTime();
 
-    function addHeaderNavigation() {
-        const headerActionsContainer = document.querySelector('header .flex.items-center.gap-x-4');
-        const dashboardHeader = document.querySelector('#content-main .dashboard-header');
-        if (!headerActionsContainer || !dashboardHeader) return;
-
-        // Verschiebt den Titel und das Datum in den Haupt-Header
-        const h1 = dashboardHeader.querySelector('h1');
-        const datetime = document.getElementById('current-datetime');
-        if (h1) {
-            h1.style.color = '#f1f1f1';
-            h1.style.fontSize = '1.5rem';
-            headerActionsContainer.prepend(h1);
-        }
-        if (datetime) headerActionsContainer.parentElement.appendChild(datetime);
-        
-        const navContainer = document.createElement('div');
-        navContainer.className = 'header-navigation-tools';
-        const backButton = document.createElement('button');
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i>';
-        backButton.title = 'Zurück';
-        backButton.onclick = () => window.history.back();
-        backButton.className = 'btn';
-        const forwardButton = document.createElement('button');
-        forwardButton.innerHTML = '<i class="fas fa-arrow-right"></i>';
-        forwardButton.title = 'Vorwärts';
-        forwardButton.onclick = () => window.history.forward();
-        forwardButton.className = 'btn';
-        // Der Home-Button wird jetzt über die neue Funktion hinzugefügt
-        // const homeLink = document.createElement('a');
-        // homeLink.href = '/admin/';
-        // homeLink.title = 'Dashboard';
-        // homeLink.className = 'btn';
-        // homeLink.innerHTML = '<i class="fas fa-home"></i>';
-        navContainer.appendChild(backButton);
-        navContainer.appendChild(forwardButton);
-        // navContainer.appendChild(homeLink);
-        headerActionsContainer.prepend(navContainer);
-
-        // Entfernt den alten Header, da der Inhalt verschoben wurde
-        dashboardHeader.remove();
-    }
-    // HINWEIS: Diese Funktion wird jetzt selektiver aufgerufen.
-    if (document.querySelector('#content-main .dashboard-header')) {
-        addHeaderNavigation();
-    }
+    // Kalender-Logik initialisieren
+    initializeCalendar();
     
+    // Widget-Modals initialisieren
+    initializeWidgetModals();
+
+    // Filter-Funktion für die Modals initialisieren
+    initializeFilters();
+
+    // Fügt den "Zum Dashboard" Button in den Breadcrumbs hinzu
+    addDashboardButton();
+
+    // Initialisiert das seitliche Navigationsrad
+    initializeSideDock();
+
+    // NEU: Initialisiert das IFrame-Modal
+    initializeIframeModal();
+}
+
+
+function addDashboardButton() {
+    // Funktion wird nur auf Unterseiten ausgeführt, nicht auf dem Dashboard selbst
+    if (window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) {
+        // Entfernen, falls er von einer vorherigen Seite noch da ist
+        const existingBtn = document.querySelector('.dashboard-btn');
+        if (existingBtn) existingBtn.remove();
+        return;
+    }
+
+    const breadcrumbs = document.querySelector('.breadcrumbs');
+    // Prüfen, ob der Button nicht bereits existiert
+    if (breadcrumbs && !breadcrumbs.querySelector('.dashboard-btn')) {
+        const dashboardBtn = document.createElement('a');
+        dashboardBtn.href = '/admin/';
+        dashboardBtn.textContent = 'Zum Dashboard';
+        dashboardBtn.classList.add('dashboard-btn');
+        
+        // Fügt den Button als erstes Element in die Breadcrumbs ein
+        // CSS kümmert sich um die Positionierung ganz rechts
+        breadcrumbs.appendChild(dashboardBtn);
+    }
+}
+
+
+function moveModalsToBody() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        // Nur verschieben, wenn es nicht schon direkt im body ist
+        if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
+        }
+    });
+}
+
+function updateTime() {
+    const timeElement = document.getElementById('current-datetime');
+    if (timeElement && !timeElement.hasAttribute('data-interval-id')) {
+        const intervalId = setInterval(() => {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            timeElement.textContent = now.toLocaleString('de-AT', options);
+        }, 1000);
+        timeElement.setAttribute('data-interval-id', intervalId);
+        // Initialer Aufruf
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        timeElement.textContent = now.toLocaleString('de-AT', options);
+    }
+}
+
+function initializeCalendar() {
     const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');
+    if (!calendarModal) return;
+
     const openCalendarBtn = document.getElementById('open-calendar-modal');
     const calendarBody = document.getElementById('calendar-body');
     const monthYearEl = document.getElementById('calendar-month-year');
@@ -81,358 +101,369 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextMonthBtn = document.getElementById('next-month');
     const eventListPopup = document.getElementById('event-list-popup');
     let currentDate = new Date();
+
     function renderCalendar() {
         if (!calendarBody || !monthYearEl) return;
+
         calendarBody.innerHTML = '';
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         monthYearEl.textContent = `${currentDate.toLocaleString('de-DE', { month: 'long' })} ${year}`;
+
         const firstDayOfMonth = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
-        for (let i = 0; i < dayOffset; i++) { calendarBody.innerHTML += `<div></div>`; }
+
+        for (let i = 0; i < dayOffset; i++) {
+            calendarBody.innerHTML += `<div></div>`;
+        }
+
         for (let day = 1; day <= daysInMonth; day++) {
             const dayEl = document.createElement('div');
             dayEl.textContent = day;
             dayEl.classList.add('calendar-day');
+            
             const today = new Date();
-            if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) { dayEl.classList.add('today'); }
+            if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                dayEl.classList.add('today');
+            }
+
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayEvents = events.filter(e => e.date && e.date.startsWith(dateStr));
+
             if (dayEvents.length > 0) {
                 dayEl.classList.add('has-events');
-                dayEl.onclick = (e) => { e.stopPropagation(); showEventsForDay(dayEvents, dayEl); };
+                dayEl.onclick = (e) => {
+                    e.stopPropagation(); 
+                    showEventsForDay(dayEvents, dayEl);
+                };
             }
             calendarBody.appendChild(dayEl);
         }
     }
+    
     function showEventsForDay(dayEvents, dayEl) {
-        eventListPopup.innerHTML = '';
-        const list = document.createElement('ul');
+        document.querySelectorAll('#event-list-popup').forEach(p => p.style.display = 'none');
+        eventListPopup.innerHTML = '<ul></ul>';
+        const list = eventListPopup.querySelector('ul');
+        
         dayEvents.forEach(event => {
             const item = document.createElement('li');
             const link = document.createElement('a');
             link.href = event.url;
-            link.textContent = `${event.time} - ${event.title}`;
+            link.innerHTML = `<strong>${event.time}</strong><span>${event.title}</span>`;
             item.appendChild(link);
             list.appendChild(item);
         });
-        eventListPopup.appendChild(list);
-        const calendarGrid = document.querySelector('.calendar-grid-container');
-        if (calendarGrid) {
-            calendarGrid.appendChild(eventListPopup);
-            const gridRect = calendarGrid.getBoundingClientRect();
-            const dayRect = dayEl.getBoundingClientRect();
-            eventListPopup.style.left = `${dayRect.right - gridRect.left + 10}px`;
-            eventListPopup.style.top = `${dayRect.top - gridRect.top}px`;
-            eventListPopup.style.display = 'block';
+
+        const rect = dayEl.getBoundingClientRect();
+        const calendarRect = calendarModal.querySelector('.modal-content').getBoundingClientRect();
+
+        eventListPopup.style.display = 'block';
+        eventListPopup.style.top = `${rect.top - calendarRect.top}px`;
+        
+        if ( (rect.left + rect.width + eventListPopup.offsetWidth) < calendarRect.right ) {
+             eventListPopup.style.left = `${rect.left - calendarRect.left + rect.width + 10}px`;
+             eventListPopup.querySelector('::before').style.right = '100%';
+        } else {
+             eventListPopup.style.left = `${rect.left - calendarRect.left - eventListPopup.offsetWidth - 10}px`;
+             eventListPopup.querySelector('::before').style.left = '100%';
         }
     }
-    if (openCalendarBtn) { openCalendarBtn.onclick = () => { if(calendarModal) calendarModal.style.display = 'block'; renderCalendar(); }; }
-    if (prevMonthBtn) { prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }; }
-    if (nextMonthBtn) { nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }; }
-    document.body.addEventListener('click', (e) => {
-        if(eventListPopup && !eventListPopup.contains(e.target) && !e.target.classList.contains('has-events')) { eventListPopup.style.display = 'none'; }
+
+    if (openCalendarBtn) {
+        openCalendarBtn.onclick = () => { if(calendarModal) calendarModal.style.display = 'block'; renderCalendar(); };
+    }
+    if (prevMonthBtn) {
+        prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
+    }
+    if (nextMonthBtn) {
+        nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
+    }
+    
+    document.body.addEventListener('click', () => {
+        if(eventListPopup && eventListPopup.style.display === 'block') {
+             eventListPopup.style.display = 'none';
+        }
     }, true);
+}
+
+function initializeWidgetModals() {
     const widgetModal = document.getElementById('widget-modal');
+    if (!widgetModal) return;
+
     const widgetModalTitle = document.getElementById('widget-modal-title');
     const widgetModalBody = document.getElementById('widget-modal-body');
+
     document.querySelectorAll('.toggle-widget-icon').forEach(icon => {
+        // Verhindert doppelte Event-Listener
+        if (icon.getAttribute('data-listener') === 'true') return;
+        icon.setAttribute('data-listener', 'true');
+
         icon.addEventListener('click', function() {
             const widget = this.closest('.dashboard-widget');
             const title = widget.querySelector('h2').textContent;
             const contentSource = widget.querySelector('.widget-content-source');
+            
             if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
                 widgetModalTitle.textContent = title;
                 widgetModalBody.innerHTML = ''; 
-                const clonedContent = contentSource.cloneNode(true);
-                clonedContent.style.display = 'flex';
-                widgetModalBody.appendChild(clonedContent);
+                widgetModalBody.appendChild(contentSource.cloneNode(true));
+                widgetModalBody.firstChild.style.display = 'flex'; // Sicherstellen, dass der Container sichtbar ist
                 widgetModal.style.display = 'block';
-                const filterInputInModal = clonedContent.querySelector('.filter-input');
-                if (filterInputInModal) { filterInputInModal.addEventListener('input', handleFilter); }
             }
         });
     });
+
     document.querySelectorAll('.modal').forEach(modal => {
         const closeBtn = modal.querySelector('.close-modal');
-        if (closeBtn) { closeBtn.onclick = () => { modal.style.display = 'none'; }; }
-        window.addEventListener('click', (event) => { if (event.target == modal) { modal.style.display = 'none'; } });
+        if (closeBtn && !closeBtn.getAttribute('data-listener')) {
+            closeBtn.setAttribute('data-listener', 'true');
+            closeBtn.onclick = () => { modal.style.display = 'none'; };
+        }
+        if (!modal.getAttribute('data-listener')) {
+             modal.setAttribute('data-listener', 'true');
+             modal.addEventListener('click', (event) => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
     });
-    const handleFilter = (event) => {
-        const inputElement = event.target;
-        const filterValue = inputElement.value.toLowerCase();
-        const targetListId = inputElement.dataset.target;
-        const container = inputElement.closest('.widget-modal-content') || inputElement.closest('.dashboard-widget');
-        if (container) {
-            const list = container.querySelector(`#${targetListId}`);
+}
+
+function initializeFilters() {
+     // Wichtig: Event-Delegation am Body, da der Inhalt der Modals dynamisch ist.
+    document.body.addEventListener('input', function(event) {
+        if (event.target.matches('.filter-input')) {
+            const filterValue = event.target.value.toLowerCase();
+            const list = event.target.closest('.widget-content-source').querySelector('.activity-list');
+
             if (list) {
-                list.querySelectorAll('li.activity-item').forEach(item => {
+                list.querySelectorAll('li, .activity-item').forEach(item => {
                     const text = item.textContent.toLowerCase();
                     item.style.display = text.includes(filterValue) ? '' : 'none';
                 });
             }
         }
-    };
-    document.querySelectorAll('.filter-input').forEach(input => { input.addEventListener('input', handleFilter); });
+    });
+}
 
-    const sideDockContainer = document.getElementById('side-dock-container');
-    const dockTrigger = document.getElementById('side-dock-trigger');
-    const navWheelOverlay = document.getElementById('nav-wheel-overlay');
+
+function initializeSideDock() {
+    const dockContainer = document.getElementById('side-dock-container');
+    if (!dockContainer) return;
+
+    const trigger = document.getElementById('side-dock-trigger');
+    const overlay = document.getElementById('nav-wheel-overlay');
     const wheelContainer = document.getElementById('wheel-container');
-
+    const iframeModal = document.getElementById('iframe-modal');
+    const iframe = document.getElementById('content-iframe');
+    const iframeTitle = document.getElementById('iframe-modal-title');
+    
     const navData = {
-        'main': [
-            { id: 'verwaltung', icon: 'fa-cog', label: 'Hauptverwaltung', children: 'verwaltung_sub' },
-            { id: 'gedenken', icon: 'fa-book-dead', label: 'Gedenken', children: 'gedenken_sub' },
-            { id: 'vorsorge', icon: 'fa-file-invoice', label: 'Vorsorge', children: 'vorsorge_sub' },
-            { id: 'stammdaten', icon: 'fa-database', label: 'Inhalte & Vorlagen', children: 'stammdaten_sub' },
-            { id: 'design', icon: 'fa-sliders-h', label: 'System & Design', children: 'design_sub' },
-            { id: 'search', icon: 'fa-search', label: 'Suchen' },
-            { id: 'logout', icon: 'fa-sign-out-alt', label: 'Logout', url: '/admin/logout/' }
-        ],
-        'verwaltung_sub': [
-            { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
-            { icon: 'fa-users', label: 'Benutzer', url: '/admin/api/user/' },
-            { icon: 'fa-users-cog', label: 'Gruppen', url: '/admin/auth/group/' },
-            { icon: 'fa-key', label: 'Freigabe-Anfragen', url: '/admin/api/releaserequest/' },
-        ],
-        'gedenken_sub': [
-             { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
-             { icon: 'fa-book-dead', label: 'Gedenkseiten', url: '/admin/api/memorialpage/' },
-             { icon: 'fa-comment-dots', label: 'Kondolenzen', url: '/admin/api/condolence/' },
-             { icon: 'fa-candle-holder', label: 'Gedenkkerzen', url: '/admin/api/memorialcandle/' },
-             { icon: 'fa-calendar-alt', label: 'Termine', url: '/admin/api/memorialevent/' },
-             { icon: 'fa-images', label: 'Galerien', url: '/admin/api/galleryitem/' },
-             { icon: 'fa-stream', label: 'Chroniken', url: '/admin/api/timelineevent/' },
-        ],
-         'vorsorge_sub': [
-            { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
-            { icon: 'fa-hand-holding-heart', label: 'Letzte Wünsche', url: '/admin/api/lastwishes/' },
-            { icon: 'fa-file-alt', label: 'Dokumente', url: '/admin/api/document/' },
-            { icon: 'fa-file-signature', label: 'Verträge', url: '/admin/api/contractitem/' },
-            { icon: 'fa-shield-alt', label: 'Versicherungen', url: '/admin/api/insuranceitem/' },
-            { icon: 'fa-euro-sign', label: 'Finanzen', url: '/admin/api/financialitem/' },
-            { icon: 'fa-cloud', label: 'Digitaler Nachlass', url: '/admin/api/digitallegacyitem/' },
-        ],
-        'stammdaten_sub': [
-            { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
-            { icon: 'fa-map-marker-alt', label: 'Veranstaltungsorte', url: '/admin/api/eventlocation/' },
-            { icon: 'fa-image', label: 'Kerzenbilder', url: '/admin/api/candleimage/' },
-            { icon: 'fa-comment-alt', label: 'Kerzen-Vorlagen', url: '/admin/api/candlemessagetemplate/' },
-            { icon: 'fa-paste', label: 'Kondolenz-Vorlagen', url: '/admin/api/condolencetemplate/' },
-        ],
-        'design_sub': [
-             { id: 'main', icon: 'fa-arrow-left', label: 'Zurück', children: 'main' },
-             { icon: 'fa-palette', label: 'Globale Einstellungen', url: '/admin/api/sitesettings/1/change/' },
-             { id: 'mediathek', icon: 'fa-photo-video', label: 'Mediathek', url: '/admin/api/mediaasset/' },
-        ],
+        id: 'main',
+        items: [
+            { id: 'logout', label: 'Logout', icon: 'fa-sign-out-alt', url: '/admin/logout/' },
+            { id: 'search', label: 'Suchen', icon: 'fa-search', action: 'openSearch' },
+            { id: 'home', label: 'Dashboard', icon: 'fa-home', url: '/admin/' },
+            { id: 'verwaltung', label: 'Hauptverwaltung', icon: 'fa-users-cog', children: [
+                { id: 'users', label: 'Benutzer', icon: 'fa-users', url: '/admin/api/user/' },
+                { id: 'releases', label: 'Freigabe-Anfragen', icon: 'fa-key', url: '/admin/api/releaserequest/' },
+                { id: 'familylinks', label: 'Familien-Verknüpfungen', icon: 'fa-link', url: '/admin/api/familylink/' },
+            ]},
+            { id: 'gedenken', label: 'Gedenken', icon: 'fa-book-dead', children: [
+                { id: 'pages', label: 'Gedenkseiten', icon: 'fa-book-open', url: '/admin/api/memorialpage/' },
+                { id: 'events', label: 'Termine', icon: 'fa-calendar-alt', url: '/admin/api/memorialevent/' },
+                { id: 'condolences', label: 'Kondolenzen', icon: 'fa-comment-dots', url: '/admin/api/condolence/' },
+                { id: 'candles', label: 'Gedenkkerzen', icon: 'fa-lightbulb', url: '/admin/api/memorialcandle/' },
+            ]},
+            { id: 'vorsorge', label: 'Vorsorge', icon: 'fa-file-invoice', children: [
+                 { id: 'lastwishes', label: 'Letzte Wünsche', icon: 'fa-hand-holding-heart', url: '/admin/api/lastwishes/' },
+                 { id: 'documents', label: 'Dokumente', icon: 'fa-file-alt', url: '/admin/api/document/' },
+                 { id: 'contracts', label: 'Verträge', icon: 'fa-file-signature', url: '/admin/api/contractitem/' },
+                 { id: 'insurances', label: 'Versicherungen', icon: 'fa-shield-alt', url: '/admin/api/insuranceitem/' },
+                 { id: 'financials', label: 'Finanzen', icon: 'fa-euro-sign', url: '/admin/api/financialitem/' },
+                 { id: 'digitallegacy', label: 'Digitaler Nachlass', icon: 'fa-cloud', url: '/admin/api/digitallegacyitem/' },
+            ]},
+            { id: 'stammdaten', label: 'Stammdaten', icon: 'fa-database', children: [
+                { id: 'locations', label: 'Orte', icon: 'fa-map-marker-alt', url: '/admin/api/eventlocation/' },
+                { id: 'condolence-tpl', label: 'Kondolenz-Vorlagen', icon: 'fa-paste', url: '/admin/api/condolencetemplate/' },
+                { id: 'candle-img', label: 'Kerzen-Bilder', icon: 'fa-image', url: '/admin/api/candleimage/' },
+                { id: 'candle-msg-tpl', label: 'Kerzen-Nachrichten', icon: 'fa-comment-alt', url: '/admin/api/candle-message-template/' },
+            ]},
+             { id: 'design', label: 'Design & Medien', icon: 'fa-palette', children: [
+                { id: 'settings', label: 'Globale Einstellungen', icon: 'fa-sliders-h', url: '/admin/api/sitesettings/' },
+                { id: 'media', label: 'Mediathek', icon: 'fa-photo-video', url: '/admin/api/mediaasset/' },
+            ]},
+        ]
     };
-
-    function createWheel(items, key) {
+    
+    function createWheel(items, parentId = null) {
         const wheel = document.createElement('div');
+        wheel.id = parentId ? `wheel-${parentId}` : 'main-wheel';
         wheel.className = 'nav-wheel';
-        wheel.dataset.key = key;
+        wheelContainer.appendChild(wheel);
 
-        const centerButton = document.createElement('button');
-        centerButton.className = 'wheel-center-button';
-        centerButton.innerHTML = `<i class="fas fa-times"></i>`;
-        centerButton.onclick = () => toggleNav(false);
-        wheel.appendChild(centerButton);
+        const radius = 150;
+        const angleStep = (2 * Math.PI) / (items.length + (parentId ? 1 : 0));
 
-        items.forEach(item => {
-            const element = document.createElement(item.url ? 'a' : 'button');
-            element.className = 'wheel-item';
-            if (item.id === 'main') {
-                element.classList.add('wheel-item-back');
-            }
-            if (item.url) element.href = item.url;
-            element.innerHTML = `<i class="fas ${item.icon}"></i><span class="wheel-item-label">${item.label}</span>`;
+        if (parentId) {
+            const backButton = document.createElement('button');
+            backButton.className = 'wheel-center-button';
+            backButton.innerHTML = `<i class="fas fa-arrow-left"></i>`;
+            backButton.onclick = () => showWheel(parentId === 'main' ? 'main-wheel' : `wheel-${navData.items.find(i => i.children?.some(c => c.id === parentId))?.id}`);
+            wheel.appendChild(backButton);
+        } else {
+            const centerLogo = document.createElement('div');
+            centerLogo.className = 'wheel-center-button';
+            centerLogo.innerHTML = `<i class="fas fa-star"></i>`;
+            wheel.appendChild(centerLogo);
+        }
+
+        items.forEach((item, index) => {
+            const angle = index * angleStep - (Math.PI / 2);
+            const x = Math.cos(angle) * radius + 170;
+            const y = Math.sin(angle) * radius + 170;
+
+            const wheelItem = document.createElement('a');
+            wheelItem.className = 'wheel-item';
+            wheelItem.style.left = `${x}px`;
+            wheelItem.style.top = `${y}px`;
+            wheelItem.innerHTML = `<i class="fas ${item.icon}"></i><span class="wheel-item-label">${item.label}</span>`;
             
-            if (item.children) {
-                element.onclick = () => showWheel(item.children);
-            } else if (item.id === 'search') {
-                element.onclick = () => openGlobalSearch();
+            if (item.action === 'openSearch') {
+                wheelItem.onclick = openSearchModal;
+            } else if (item.url) {
+                 wheelItem.href = item.url;
+                 if (item.id !== 'logout' && item.url !== '/admin/') {
+                     wheelItem.addEventListener('click', function(e) {
+                         e.preventDefault();
+                         openInIframeModal(this.href, item.label);
+                     });
+                 }
+            } else if (item.children) {
+                wheelItem.onclick = () => showWheel(`wheel-${item.id}`);
+                createWheel(item.children, item.id);
             }
-            wheel.appendChild(element);
+            wheel.appendChild(wheelItem);
         });
+
         return wheel;
     }
 
-    function positionItemsOnWheel(wheelElement) {
-        const items = Array.from(wheelElement.querySelectorAll('.wheel-item'));
-        const backButton = items.find(item => item.classList.contains('wheel-item-back'));
-        const regularItems = items.filter(item => !item.classList.contains('wheel-item-back'));
-
-        const numItems = regularItems.length;
-        const angle = 360 / (numItems > 6 ? 8 : numItems); 
-        const radius = 170;
-        
-        regularItems.forEach((item, index) => {
-            const rotation = (angle * index) - 90;
-            const itemTransform = `rotate(${rotation}deg) translate(${radius}px) rotate(${-rotation}deg)`;
-            item.style.transitionDelay = `${index * 40}ms`;
-            item.style.transform = itemTransform;
-        });
-
-        if (backButton) {
-            backButton.style.transitionDelay = `${numItems * 40}ms`;
-            backButton.style.transform = `translate(0, ${radius * 0.9}px)`; // Position adjusted
+    function showWheel(wheelId) {
+        document.querySelectorAll('.nav-wheel').forEach(w => w.classList.remove('active'));
+        const wheelToShow = document.getElementById(wheelId);
+        if (wheelToShow) {
+            wheelToShow.classList.add('active');
         }
     }
-
-    let wheelCache = {};
-
-    function showWheel(key) {
-        if (!wheelContainer) return;
-        
-        const currentActive = wheelContainer.querySelector('.nav-wheel.active');
-        if (currentActive) {
-            currentActive.classList.remove('active');
-        }
-
-        let wheel = wheelCache[key];
-        if (!wheel) {
-            const items = navData[key];
-            if (!items) return;
-            wheel = createWheel(items, key);
-            wheelCache[key] = wheel;
-            wheelContainer.appendChild(wheel);
-        }
-
-        setTimeout(() => {
-            wheel.classList.add('active');
-            positionItemsOnWheel(wheel);
-        }, 50);
-    }
-
-    function toggleNav(show) {
-        if (show) {
-            sideDockContainer.classList.add('active');
-            navWheelOverlay.classList.add('active');
-            showWheel('main');
+    
+    function openInIframeModal(url, title) {
+        if (iframe && iframeModal && iframeTitle) {
+            iframe.src = url;
+            iframeTitle.textContent = title;
+            iframeModal.style.display = 'block';
+            overlay.classList.remove('active');
+            dockContainer.classList.remove('active');
         } else {
-            sideDockContainer.classList.remove('active');
-            navWheelOverlay.classList.remove('active');
-        }
-    }
-    
-    // Globale Suche
-    const searchModal = document.getElementById('global-search-modal');
-    const searchInput = document.getElementById('global-search-input');
-    const searchResultsContainer = document.getElementById('global-search-results');
-    
-    let debounceTimer;
-    function debounce(func, delay) {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(func, delay);
-    }
-
-    async function handleSearchInput() {
-        const query = searchInput.value;
-        searchResultsContainer.innerHTML = '';
-
-        if (query.length < 3) {
-            searchResultsContainer.innerHTML = '<li><span class="search-result-category">Bitte geben Sie mindestens 3 Zeichen ein.</span></li>';
-            return;
-        }
-
-        searchResultsContainer.innerHTML = '<li><span class="search-result-category">Suche...</span></li>';
-
-        try {
-            // CSRF-Token für die API-Anfrage holen
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            const response = await fetch(`/api/global-search/?q=${encodeURIComponent(query)}`, {
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'Accept': 'application/json',
-                }
-            });
-            if (!response.ok) {
-                throw new Error('Netzwerkfehler bei der Suche');
-            }
-            const results = await response.json();
-
-            searchResultsContainer.innerHTML = ''; 
-            if (results.length === 0) {
-                searchResultsContainer.innerHTML = '<li><span class="search-result-category">Keine Ergebnisse gefunden.</span></li>';
-                return;
-            }
-
-            results.forEach(item => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = item.url;
-                a.innerHTML = `${item.title} <span class="search-result-category">${item.type}</span>`;
-                li.appendChild(a);
-                searchResultsContainer.appendChild(li);
-            });
-
-        } catch (error) {
-            console.error('Search error:', error);
-            searchResultsContainer.innerHTML = '<li><span class="search-result-category">Fehler bei der Suche.</span></li>';
+            window.location.href = url;
         }
     }
 
-    function openGlobalSearch() {
-        if (searchModal) {
-            toggleNav(false);
-            searchModal.style.display = 'block';
-            searchInput.focus();
-        }
+    function openSearchModal() {
+        if(searchModal) searchModal.style.display = 'block';
+        if(searchInput) searchInput.focus();
+        overlay.classList.remove('active');
+        dockContainer.classList.remove('active');
     }
 
-    function closeGlobalSearch() {
-        if (searchModal) {
-            searchModal.style.display = 'none';
-            searchInput.value = '';
-            searchResultsContainer.innerHTML = '';
-        }
-    }
+    if (trigger && !trigger.hasAttribute('data-listener')) {
+        trigger.setAttribute('data-listener', 'true');
+        wheelContainer.innerHTML = '';
+        createWheel(navData.items);
+        showWheel('main-wheel');
 
-    if (sideDockContainer) {
-        dockTrigger.addEventListener('click', () => {
-            const isActive = sideDockContainer.classList.contains('active');
-            toggleNav(!isActive);
+        trigger.addEventListener('click', () => {
+            overlay.classList.toggle('active');
+            dockContainer.classList.toggle('active');
         });
-        navWheelOverlay.addEventListener('click', function(e) {
-            if (e.target === navWheelOverlay) {
-                toggleNav(false);
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+                dockContainer.classList.remove('active');
             }
         });
     }
-    if (searchModal) {
-        const closeBtn = searchModal.querySelector('.close-modal');
-        if (closeBtn) closeBtn.onclick = closeGlobalSearch;
-        searchInput.addEventListener('input', () => debounce(handleSearchInput, 300));
-    }
 
-    // NEU: Funktion zum Hinzufügen des Dashboard-Buttons
-    function addDashboardButtonToBreadcrumbs() {
-        const breadcrumbsContainer = document.querySelector('.breadcrumbs');
-        if (breadcrumbsContainer && !breadcrumbsContainer.querySelector('.dashboard-btn')) {
-            // Nur hinzufügen, wenn wir nicht auf der Dashboard-Seite sind
-            if (window.location.pathname === '/admin/' || window.location.pathname === '/admin') return;
+     if (searchInput && !searchInput.hasAttribute('data-listener')) {
+         searchInput.setAttribute('data-listener', 'true');
+         searchInput.addEventListener('input', (e) => {
+             const query = e.target.value.toLowerCase();
+             searchResults.innerHTML = '';
+             if (query.length < 2) return;
 
-            const dashboardLink = document.createElement('a');
-            dashboardLink.href = '/admin/';
-            dashboardLink.className = 'dashboard-btn';
-            dashboardLink.textContent = 'Zum Dashboard';
-            breadcrumbsContainer.appendChild(dashboardLink);
-        }
-    }
+             // Hier kommt die erweiterte Suche
+             fetch(`/api/global-search/?q=${query}`)
+                 .then(res => res.json())
+                 .then(data => {
+                     // Navigations-Links zuerst
+                     allAdminLinks.forEach(link => {
+                         if (link.textContent.toLowerCase().includes(query)) {
+                             const li = document.createElement('li');
+                             li.innerHTML = `<a href="${link.href}"><span class="search-result-title">${link.textContent.trim()}</span> <span class="search-result-category">Navigation</span></a>`;
+                             li.querySelector('a').onclick = (e) => {
+                                 e.preventDefault();
+                                 openInIframeModal(link.href, link.textContent.trim());
+                                 searchModal.style.display = 'none';
+                             }
+                             searchResults.appendChild(li);
+                         }
+                     });
+                     
+                     // API Ergebnisse
+                     Object.keys(data).forEach(category => {
+                         data[category].forEach(item => {
+                             const li = document.createElement('li');
+                             li.innerHTML = `<a href="${item.url}"><span class="search-result-title">${item.name}</span> <span class="search-result-category">${item.type}</span></a>`;
+                              li.querySelector('a').onclick = (e) => {
+                                 e.preventDefault();
+                                 openInIframeModal(item.url, item.name);
+                                 searchModal.style.display = 'none';
+                             }
+                             searchResults.appendChild(li);
+                         });
+                     });
+                 });
+         });
+     }
+}
 
-    // Führt die Funktion aus, um den Button hinzuzufügen, sobald der DOM geladen ist.
-    addDashboardButtonToBreadcrumbs();
+// NEU: Eigene Funktion für das Iframe-Modal
+function initializeIframeModal() {
+    const iframeModal = document.getElementById('iframe-modal');
+    if (!iframeModal) return;
 
-    // Beobachtet Ã„nderungen im DOM, falls Unfold die Breadcrumbs dynamisch nachlÃ¤dt.
-    const observer = new MutationObserver(() => {
-        addDashboardButtonToBreadcrumbs();
-    });
+    const closeBtn = iframeModal.querySelector('.close-modal');
     
-    const mainElement = document.querySelector('main');
-    if (mainElement) {
-        observer.observe(mainElement, { childList: true, subtree: true });
+    if (closeBtn && !closeBtn.hasAttribute('data-iframe-listener')) {
+        closeBtn.setAttribute('data-iframe-listener', 'true');
+        closeBtn.onclick = () => {
+            iframeModal.style.display = 'none';
+            iframeModal.querySelector('#content-iframe').src = 'about:blank';
+        };
     }
-});
+    
+    if (!iframeModal.hasAttribute('data-iframe-listener')) {
+        iframeModal.setAttribute('data-iframe-listener', 'true');
+        iframeModal.onclick = (event) => {
+            if (event.target === iframeModal) {
+                iframeModal.style.display = 'none';
+                iframeModal.querySelector('#content-iframe').src = 'about:blank';
+            }
+        };
+    }
+}
 

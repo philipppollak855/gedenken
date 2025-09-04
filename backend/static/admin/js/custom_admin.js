@@ -19,36 +19,43 @@ function initializeDashboardFeatures() {
     initializeFilters();
     addDashboardButton();
     initializeSideDock();
-    initializeIframeModal(); // Stellt sicher, dass die globalen Variablen gesetzt sind
-    initializeDashboardQuickLinks(); // NEU: Initialisiert die Schnellzugriffe
+    initializeIframeModal();
+    // KORRIGIERT: Zusammengefasste Funktion für alle modalen Links
+    initializeModalLinks(); 
 }
 
 // HILFSFUNKTION: Öffnet eine URL im IFrame-Modal
 function openInIframeModal(url, title) {
     if (iframe && iframeModal && iframeTitle) {
-        // Bereinigt die URL von möglichen "§"-Zeichen, die von Unfold hinzugefügt werden
         const cleanUrl = url.split('?')[0];
         iframe.src = cleanUrl;
         iframeTitle.textContent = title;
-        iframeModal.style.display = 'flex'; // 'flex' für Zentrierung
+        iframeModal.style.display = 'flex';
     } else {
-        // Fallback, falls das Modal nicht initialisiert wurde
         window.location.href = url;
     }
 }
 
-// NEU: Initialisiert die Schnellzugriffe auf dem Dashboard
-function initializeDashboardQuickLinks() {
-    document.querySelectorAll('.quick-links a').forEach(link => {
-        if (link.hasAttribute('data-modal-listener')) return;
-        link.setAttribute('data-modal-listener', 'true');
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const url = this.href;
-            const title = this.textContent.trim();
-            openInIframeModal(url, title);
+// KORRIGIERT: Eine Funktion für ALLE Links, die im Modal geöffnet werden sollen
+function initializeModalLinks() {
+    // Event Delegation am Hauptcontainer für mehr Robustheit
+    const contentMain = document.getElementById('content-main');
+    if (contentMain && !contentMain.hasAttribute('data-modal-link-listener')) {
+        contentMain.setAttribute('data-modal-link-listener', 'true');
+        
+        contentMain.addEventListener('click', function(e) {
+            // Findet den geklickten Link, auch wenn auf ein Kind-Element geklickt wurde
+            const link = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
+            
+            if (link) {
+                e.preventDefault();
+                const url = link.href;
+                // Holt den Titel entweder aus einem data-Attribut oder dem Textinhalt
+                const title = link.dataset.modalTitle || link.textContent.trim();
+                openInIframeModal(url, title);
+            }
         });
-    });
+    }
 }
 
 
@@ -94,11 +101,22 @@ function updateTime() {
 }
 
 function initializeCalendar() {
-    const events = window.calendarEvents || [];
     const calendarModal = document.getElementById('calendar-modal');
     if (!calendarModal) return;
 
     const openCalendarBtn = document.getElementById('open-calendar-modal');
+    
+    // KORRIGIERT: Stellt sicher, dass der Listener nur einmal angehängt wird
+    if (openCalendarBtn && !openCalendarBtn.hasAttribute('data-listener')) {
+        openCalendarBtn.setAttribute('data-listener', 'true');
+        openCalendarBtn.onclick = () => {
+             if(calendarModal) calendarModal.style.display = 'block'; 
+             renderCalendar(); 
+        };
+    }
+    
+    // Der restliche Kalender-Code...
+    const events = window.calendarEvents || [];
     const calendarBody = document.getElementById('calendar-body');
     const monthYearEl = document.getElementById('calendar-month-year');
     const prevMonthBtn = document.getElementById('prev-month');
@@ -108,49 +126,40 @@ function initializeCalendar() {
 
     function renderCalendar() {
         if (!calendarBody || !monthYearEl) return;
-
         calendarBody.innerHTML = '';
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         monthYearEl.textContent = `${currentDate.toLocaleString('de-DE', { month: 'long' })} ${year}`;
-
         const firstDayOfMonth = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
-
         for (let i = 0; i < dayOffset; i++) {
             calendarBody.innerHTML += `<div></div>`;
         }
-
         for (let day = 1; day <= daysInMonth; day++) {
             const dayEl = document.createElement('div');
             dayEl.textContent = day;
             dayEl.classList.add('calendar-day');
-            
             const today = new Date();
             if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                 dayEl.classList.add('today');
             }
-
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayEvents = events.filter(e => e.date && e.date.startsWith(dateStr));
-
             if (dayEvents.length > 0) {
                 dayEl.classList.add('has-events');
                 dayEl.onclick = (e) => {
-                    e.stopPropagation(); 
+                    e.stopPropagation();
                     showEventsForDay(dayEvents, dayEl);
                 };
             }
             calendarBody.appendChild(dayEl);
         }
     }
-    
     function showEventsForDay(dayEvents, dayEl) {
         document.querySelectorAll('#event-list-popup').forEach(p => p.style.display = 'none');
         eventListPopup.innerHTML = '<ul></ul>';
         const list = eventListPopup.querySelector('ul');
-        
         dayEvents.forEach(event => {
             const item = document.createElement('li');
             const link = document.createElement('a');
@@ -159,38 +168,37 @@ function initializeCalendar() {
             item.appendChild(link);
             list.appendChild(item);
         });
-
         const rect = dayEl.getBoundingClientRect();
         const calendarRect = calendarModal.querySelector('.modal-content').getBoundingClientRect();
-
         eventListPopup.style.display = 'block';
         eventListPopup.style.top = `${rect.top - calendarRect.top}px`;
-        
-        if ( (rect.left + rect.width + eventListPopup.offsetWidth) < calendarRect.right ) {
-             eventListPopup.style.left = `${rect.left - calendarRect.left + rect.width + 10}px`;
-             eventListPopup.querySelector('::before').style.right = '100%';
+        if ((rect.left + rect.width + eventListPopup.offsetWidth) < calendarRect.right) {
+            eventListPopup.style.left = `${rect.left - calendarRect.left + rect.width + 10}px`;
+            eventListPopup.querySelector('::before').style.right = '100%';
         } else {
-             eventListPopup.style.left = `${rect.left - calendarRect.left - eventListPopup.offsetWidth - 10}px`;
-             eventListPopup.querySelector('::before').style.left = '100%';
+            eventListPopup.style.left = `${rect.left - calendarRect.left - eventListPopup.offsetWidth - 10}px`;
+            eventListPopup.querySelector('::before').style.left = '100%';
         }
-    }
-
-    if (openCalendarBtn) {
-        openCalendarBtn.onclick = () => { if(calendarModal) calendarModal.style.display = 'block'; renderCalendar(); };
-    }
-    if (prevMonthBtn) {
-        prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
-    }
-    if (nextMonthBtn) {
-        nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
     }
     
-    document.body.addEventListener('click', () => {
-        if(eventListPopup && eventListPopup.style.display === 'block') {
-             eventListPopup.style.display = 'none';
-        }
-    }, true);
+    if (prevMonthBtn && !prevMonthBtn.hasAttribute('data-listener')) {
+         prevMonthBtn.setAttribute('data-listener', 'true');
+         prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
+    }
+    if (nextMonthBtn && !nextMonthBtn.hasAttribute('data-listener')) {
+        nextMonthBtn.setAttribute('data-listener', 'true');
+        nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
+    }
+    if (!document.body.hasAttribute('data-calendar-listener')) {
+        document.body.setAttribute('data-calendar-listener', 'true');
+        document.body.addEventListener('click', () => {
+            if (eventListPopup && eventListPopup.style.display === 'block') {
+                eventListPopup.style.display = 'none';
+            }
+        }, true);
+    }
 }
+
 
 function initializeWidgetModals() {
     const widgetModal = document.getElementById('widget-modal');
@@ -220,6 +228,9 @@ function initializeWidgetModals() {
 }
 
 function initializeFilters() {
+    if (document.body.hasAttribute('data-filter-listener')) return;
+    document.body.setAttribute('data-filter-listener', 'true');
+
     document.body.addEventListener('input', function(event) {
         if (event.target.matches('.filter-input')) {
             const filterValue = event.target.value.toLowerCase();
@@ -278,7 +289,6 @@ function initializeSideDock() {
                 { id: 'locations', label: 'Orte', icon: 'fa-map-marker-alt', url: '/admin/api/eventlocation/' },
                 { id: 'condolence-tpl', label: 'Kondolenz-Vorlagen', icon: 'fa-paste', url: '/admin/api/condolencetemplate/' },
                 { id: 'candle-img', label: 'Kerzen-Bilder', icon: 'fa-image', url: '/admin/api/candleimage/' },
-                // KORRIGIERT: Falsche URL für Kerzen-Nachrichten-Vorlagen
                 { id: 'candle-msg-tpl', label: 'Kerzen-Nachrichten', icon: 'fa-comment-alt', url: '/admin/api/candlemessagetemplate/' },
             ]},
              { id: 'design', label: 'Design & Medien', icon: 'fa-palette', children: [
@@ -419,7 +429,6 @@ function initializeSideDock() {
 }
 
 function initializeIframeModal() {
-    // Globale Variablen zuweisen
     iframeModal = document.getElementById('iframe-modal');
     iframe = document.getElementById('content-iframe');
     iframeTitle = document.getElementById('iframe-modal-title');

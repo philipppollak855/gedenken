@@ -13,25 +13,25 @@
         <div class="dashboard-widget stat-widget">
             <h2>Auf einen Blick</h2>
             <div class="stat-grid">
-                <a href="{% url 'admin:api_user_changelist' %}" class="stat-item-link">
+                <a href="{% url 'admin:api_user_changelist' %}" class="stat-item-link" data-modal-title="Benutzer">
                     <div class="stat-item">
                         <div class="value">{{ stats.total_users }}</div>
                         <div class="label">Benutzer</div>
                     </div>
                 </a>
-                <a href="{% url 'admin:api_memorialpage_changelist' %}" class="stat-item-link">
+                <a href="{% url 'admin:api_memorialpage_changelist' %}" class="stat-item-link" data-modal-title="Gedenkseiten">
                     <div class="stat-item">
                         <div class="value">{{ stats.total_pages }}</div>
                         <div class="label">Gedenkseiten</div>
                     </div>
                 </a>
-                <a href="{% url 'admin:api_releaserequest_changelist' %}?status__exact=pending" class="stat-item-link">
+                <a href="{% url 'admin:api_releaserequest_changelist' %}?status__exact=pending" class="stat-item-link" data-modal-title="Offene Freigaben">
                     <div class="stat-item warning">
                         <div class="value">{{ stats.pending_releases }}</div>
                         <div class="label">Offene Freigaben</div>
                     </div>
                 </a>
-                <a href="{% url 'admin:api_condolence_changelist' %}?is_approved__exact=0" class="stat-item-link">
+                <a href="{% url 'admin:api_condolence_changelist' %}?is_approved__exact=0" class="stat-item-link" data-modal-title="Ungelesene Kondolenzen">
                     <div class="stat-item danger">
                         <div class="value">{{ stats.unapproved_condolences }}</div>
                         <div class="label">Ungelesene Kondolenzen</div>
@@ -57,7 +57,7 @@
             </div>
             <div class="event-grid">
                 {% for event in upcoming_events_grid %}
-                <a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="event-card-link">
+                <a href="{% url 'admin:api_memorialevent_change' event.pk %}" class="event-card-link" data-modal-title="Termin bearbeiten">
                     <div class="event-card">
                         <div class="event-card-header">
                             <div class="event-card-title">{{ event.title }}</div>

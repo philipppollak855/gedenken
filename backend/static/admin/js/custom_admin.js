@@ -5,21 +5,16 @@ let iframeModal, iframe, iframeTitle;
 
 /**
  * Haupt-Initialisierungslogik, die bei jedem Seitenaufbau (auch nach Turbo-Navigation) ausgeführt wird.
- * Sie stellt sicher, dass alle interaktiven Elemente ihre Funktionalität erhalten.
  */
-function initializeAllDashboardFeatures() {
-    // Weist die globalen Modal-Variablen zu, falls sie noch nicht gesetzt sind.
-    if (!iframeModal) {
-        iframeModal = document.getElementById('iframe-modal');
-        iframe = document.getElementById('content-iframe');
-        iframeTitle = document.getElementById('iframe-modal-title');
-    }
+function initializeOnPageLoad() {
+    // Weist die globalen Modal-Variablen zu
+    iframeModal = document.getElementById('iframe-modal');
+    iframe = document.getElementById('content-iframe');
+    iframeTitle = document.getElementById('iframe-modal-title');
     
-    // Initialisiert alle interaktiven Komponenten des Dashboards.
-    // Jede dieser Funktionen ist so geschrieben, dass sie sicher mehrfach aufgerufen werden kann.
+    // Initialisiert Komponenten, die bei jedem Seitenwechsel neu aufgebaut werden müssen
     initializeSideDock();
     initializeCalendar();
-    initializeFilters();
     addDashboardButton();
     updateTime();
 }
@@ -35,16 +30,32 @@ function setupGlobalEventListeners() {
 
     document.body.addEventListener('click', function(e) {
         
-        // --- Funktionalität für das Navigationsrad (Side Dock) ---
-        // HINWEIS: Der Klick auf den Trigger wird jetzt in initializeSideDock() direkt behandelt.
-        if (e.target.id === 'nav-wheel-overlay') {
-            e.target.classList.remove('active');
+        // --- ZENTRALE KLICK-VERARBEITUNG ---
+
+        const sideDockTrigger = e.target.closest('#side-dock-trigger');
+        const navWheelOverlay = e.target.closest('#nav-wheel-overlay');
+        const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
+        const calendarIcon = e.target.closest('.calendar-icon');
+        const widgetToggleIcon = e.target.closest('.toggle-widget-icon');
+        const closeModalButton = e.target.closest('.close-modal');
+        const modal = e.target.closest('.modal');
+
+        // 1. Navigationsrad öffnen/schließen
+        if (sideDockTrigger) {
+            e.preventDefault();
+            document.getElementById('side-dock-container')?.classList.toggle('active');
+            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
+            return;
+        }
+
+        // 2. Navigationsrad durch Klick auf Overlay schließen
+        if (navWheelOverlay) {
+            navWheelOverlay.classList.remove('active');
             document.getElementById('side-dock-container')?.classList.remove('active');
             return;
         }
 
-        // --- Funktionalität zum Öffnen von Modals ---
-        const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
+        // 3. Links im Dashboard im Modal öffnen
         if (modalLink) {
             e.preventDefault();
             const url = modalLink.href;
@@ -53,7 +64,7 @@ function setupGlobalEventListeners() {
             return;
         }
 
-        const calendarIcon = e.target.closest('.calendar-icon');
+        // 4. Kalender-Modal öffnen
         if (calendarIcon) {
             const calendarModal = document.getElementById('calendar-modal');
             if (calendarModal) {
@@ -63,7 +74,7 @@ function setupGlobalEventListeners() {
             return;
         }
 
-        const widgetToggleIcon = e.target.closest('.toggle-widget-icon');
+        // 5. Widget-Vergrößerung öffnen
         if (widgetToggleIcon) {
             const widgetModal = document.getElementById('widget-modal');
             const widgetModalTitle = document.getElementById('widget-modal-title');
@@ -82,19 +93,20 @@ function setupGlobalEventListeners() {
             return;
         }
 
-        // --- Generische Funktionalität zum Schließen von Modals ---
-        const modal = e.target.closest('.modal');
-        if (e.target.closest('.close-modal') || e.target === modal) {
+        // 6. Jedes Modal schließen (Klick auf 'X' oder außerhalb)
+        if (closeModalButton || e.target === modal) {
             if (modal) {
                 modal.style.display = 'none';
                 if (modal.id === 'iframe-modal' && iframe) {
-                    iframe.src = 'about:blank';
+                    iframe.src = 'about:blank'; // Iframe-Inhalt leeren
                 }
             }
         }
     });
-}
 
+    // Separater Listener für die Filter-Eingabe
+    initializeFilters();
+}
 
 /**
  * Öffnet eine gegebene URL in einem IFrame-Modal.
@@ -114,20 +126,20 @@ function openInIframeModal(url, title) {
 document.addEventListener('DOMContentLoaded', function() {
     moveModalsToBody(); // Modals einmalig verschieben
     setupGlobalEventListeners(); // Globale Listener einmalig einrichten
-    initializeAllDashboardFeatures(); // Features initialisieren
+    initializeOnPageLoad(); // Features initialisieren
 });
-document.addEventListener("turbo:load", initializeAllDashboardFeatures);
+document.addEventListener("turbo:load", initializeOnPageLoad);
 
 
-// --- Einzelne Initialisierungsfunktionen (vereinfacht) ---
+// --- Einzelne Initialisierungsfunktionen (bleiben weitgehend unverändert) ---
 
 function addDashboardButton() {
+    // Diese Funktion fügt den "Zum Dashboard" Button auf Unterseiten hinzu
     if (window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) {
         const existingBtn = document.querySelector('.dashboard-btn');
         if (existingBtn) existingBtn.remove();
         return;
     }
-
     const breadcrumbs = document.querySelector('.breadcrumbs');
     if (breadcrumbs && !breadcrumbs.querySelector('.dashboard-btn')) {
         const dashboardBtn = document.createElement('a');
@@ -263,16 +275,6 @@ function initializeSideDock() {
     if (!dockContainer || dockContainer.hasAttribute('data-initialized')) return;
     dockContainer.setAttribute('data-initialized', 'true');
 
-    // KORRIGIERT: Direkter Event-Listener am Trigger für Zuverlässigkeit
-    const trigger = document.getElementById('side-dock-trigger');
-    const overlay = document.getElementById('nav-wheel-overlay');
-    if (trigger) {
-        trigger.addEventListener('click', () => {
-            dockContainer.classList.toggle('active');
-            overlay?.classList.toggle('active');
-        });
-    }
-
     const wheelContainer = document.getElementById('wheel-container');
     const searchModal = document.getElementById('global-search-modal');
     const searchInput = document.getElementById('global-search-input');
@@ -376,8 +378,8 @@ function initializeSideDock() {
     function openSearchModal() {
         if(searchModal) searchModal.style.display = 'block';
         if(searchInput) searchInput.focus();
-        overlay.classList.remove('active');
-        dockContainer.classList.remove('active');
+        document.getElementById('nav-wheel-overlay')?.classList.remove('active');
+        document.getElementById('side-dock-container')?.classList.remove('active');
     }
 
     wheelContainer.innerHTML = '';

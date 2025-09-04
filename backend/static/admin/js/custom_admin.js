@@ -3,14 +3,7 @@
 // Globale Variablen für Modals, um wiederholte DOM-Abfragen zu vermeiden
 let iframeModal, iframe, iframeTitle;
 
-document.addEventListener('DOMContentLoaded', function() {
-    initializeDashboardFeatures();
-});
-
-document.addEventListener("turbo:load", function() {
-    initializeDashboardFeatures();
-});
-
+// Haupt-Initialisierungslogik, die bei jedem Seitenaufbau ausgeführt wird
 function initializeDashboardFeatures() {
     moveModalsToBody();
     updateTime();
@@ -20,8 +13,6 @@ function initializeDashboardFeatures() {
     addDashboardButton();
     initializeSideDock();
     initializeIframeModal();
-    // KORRIGIERT: Zusammengefasste Funktion für alle modalen Links
-    initializeModalLinks(); 
 }
 
 // HILFSFUNKTION: Öffnet eine URL im IFrame-Modal
@@ -32,31 +23,74 @@ function openInIframeModal(url, title) {
         iframeTitle.textContent = title;
         iframeModal.style.display = 'flex';
     } else {
+        // Fallback, falls das Modal nicht initialisiert wurde
         window.location.href = url;
     }
 }
 
-// KORRIGIERT: Eine Funktion für ALLE Links, die im Modal geöffnet werden sollen
-function initializeModalLinks() {
-    // Event Delegation am Hauptcontainer für mehr Robustheit
-    const contentMain = document.getElementById('content-main');
-    if (contentMain && !contentMain.hasAttribute('data-modal-link-listener')) {
-        contentMain.setAttribute('data-modal-link-listener', 'true');
-        
-        contentMain.addEventListener('click', function(e) {
-            // Findet den geklickten Link, auch wenn auf ein Kind-Element geklickt wurde
-            const link = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
-            
-            if (link) {
-                e.preventDefault();
-                const url = link.href;
-                // Holt den Titel entweder aus einem data-Attribut oder dem Textinhalt
-                const title = link.dataset.modalTitle || link.textContent.trim();
-                openInIframeModal(url, title);
+// ZENTRALER EVENT-HANDLER: Nutzt Event Delegation, um robust zu sein
+function setupGlobalEventListeners() {
+    // Verhindert doppelte Listener
+    if (document.body.hasAttribute('data-global-listeners-attached')) return;
+    document.body.setAttribute('data-global-listeners-attached', 'true');
+
+    document.body.addEventListener('click', function(e) {
+        // Schließt Modals
+        const closeModalButton = e.target.closest('.close-modal');
+        if (closeModalButton) {
+            const modal = closeModalButton.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+                if (modal.id === 'iframe-modal') {
+                    iframe.src = 'about:blank';
+                }
             }
-        });
-    }
+        }
+        
+        // Öffnet Kalender
+        if (e.target.closest('#open-calendar-modal')) {
+            const calendarModal = document.getElementById('calendar-modal');
+            if (calendarModal) {
+                calendarModal.style.display = 'block';
+                // Die renderCalendar Funktion muss global verfügbar sein oder hier referenziert werden
+                if (window.renderCalendar) window.renderCalendar();
+            }
+        }
+
+        // Öffnet Navigationsrad
+        const sideDockTrigger = e.target.closest('#side-dock-trigger');
+        if (sideDockTrigger) {
+            document.getElementById('side-dock-container')?.classList.toggle('active');
+            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
+        }
+
+        // Schließt Navigationsrad bei Klick auf Overlay
+        if (e.target.id === 'nav-wheel-overlay') {
+            e.target.classList.remove('active');
+            document.getElementById('side-dock-container')?.classList.remove('active');
+        }
+
+        // Behandelt Dashboard-Links, die im Modal geöffnet werden sollen
+        const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
+        if (modalLink) {
+            e.preventDefault();
+            const url = modalLink.href;
+            const title = modalLink.dataset.modalTitle || modalLink.textContent.trim();
+            openInIframeModal(url, title);
+        }
+    });
 }
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDashboardFeatures();
+    setupGlobalEventListeners();
+});
+
+document.addEventListener("turbo:load", function() {
+    initializeDashboardFeatures();
+    // Der globale Listener muss nicht neu hinzugefügt werden, da er am body hängt
+});
 
 
 function addDashboardButton() {
@@ -104,18 +138,6 @@ function initializeCalendar() {
     const calendarModal = document.getElementById('calendar-modal');
     if (!calendarModal) return;
 
-    const openCalendarBtn = document.getElementById('open-calendar-modal');
-    
-    // KORRIGIERT: Stellt sicher, dass der Listener nur einmal angehängt wird
-    if (openCalendarBtn && !openCalendarBtn.hasAttribute('data-listener')) {
-        openCalendarBtn.setAttribute('data-listener', 'true');
-        openCalendarBtn.onclick = () => {
-             if(calendarModal) calendarModal.style.display = 'block'; 
-             renderCalendar(); 
-        };
-    }
-    
-    // Der restliche Kalender-Code...
     const events = window.calendarEvents || [];
     const calendarBody = document.getElementById('calendar-body');
     const monthYearEl = document.getElementById('calendar-month-year');
@@ -124,7 +146,8 @@ function initializeCalendar() {
     const eventListPopup = document.getElementById('event-list-popup');
     let currentDate = new Date();
 
-    function renderCalendar() {
+    // Machen Sie renderCalendar global verfügbar
+    window.renderCalendar = function() {
         if (!calendarBody || !monthYearEl) return;
         calendarBody.innerHTML = '';
         const year = currentDate.getFullYear();
@@ -156,6 +179,7 @@ function initializeCalendar() {
             calendarBody.appendChild(dayEl);
         }
     }
+    
     function showEventsForDay(dayEvents, dayEl) {
         document.querySelectorAll('#event-list-popup').forEach(p => p.style.display = 'none');
         eventListPopup.innerHTML = '<ul></ul>';
@@ -183,11 +207,11 @@ function initializeCalendar() {
     
     if (prevMonthBtn && !prevMonthBtn.hasAttribute('data-listener')) {
          prevMonthBtn.setAttribute('data-listener', 'true');
-         prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
+         prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); window.renderCalendar(); };
     }
     if (nextMonthBtn && !nextMonthBtn.hasAttribute('data-listener')) {
         nextMonthBtn.setAttribute('data-listener', 'true');
-        nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
+        nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); window.renderCalendar(); };
     }
     if (!document.body.hasAttribute('data-calendar-listener')) {
         document.body.setAttribute('data-calendar-listener', 'true');
@@ -248,17 +272,15 @@ function initializeFilters() {
 
 function initializeSideDock() {
     const dockContainer = document.getElementById('side-dock-container');
-    if (!dockContainer) return;
+    if (!dockContainer || dockContainer.hasAttribute('data-initialized')) return;
+    dockContainer.setAttribute('data-initialized', 'true');
 
-    const trigger = document.getElementById('side-dock-trigger');
     const overlay = document.getElementById('nav-wheel-overlay');
     const wheelContainer = document.getElementById('wheel-container');
-    
     const searchModal = document.getElementById('global-search-modal');
     const searchInput = document.getElementById('global-search-input');
     const searchResults = document.getElementById('global-search-results');
     const allAdminLinks = Array.from(document.querySelectorAll('.sidebar-wrapper a'));
-
 
     const navData = {
         id: 'main',
@@ -304,10 +326,8 @@ function initializeSideDock() {
         wheel.id = wheelId;
         wheel.className = 'nav-wheel';
         wheelContainer.appendChild(wheel);
-
         const radius = 150;
         let effectiveItems = [...items];
-        
         if (parentId) {
             const backButton = document.createElement('button');
             backButton.className = 'wheel-center-button';
@@ -320,20 +340,16 @@ function initializeSideDock() {
              centerLogo.innerHTML = `<i class="fas fa-star"></i>`;
              wheel.appendChild(centerLogo);
         }
-
         const angleStep = (2 * Math.PI) / effectiveItems.length;
-
         effectiveItems.forEach((item, index) => {
             const angle = index * angleStep - (Math.PI / 2);
             const x = Math.cos(angle) * radius + 170;
             const y = Math.sin(angle) * radius + 170;
-
             const wheelItem = document.createElement('a');
             wheelItem.className = 'wheel-item';
             wheelItem.style.left = `${x}px`;
             wheelItem.style.top = `${y}px`;
             wheelItem.innerHTML = `<i class="fas ${item.icon}"></i><span class="wheel-item-label">${item.label}</span>`;
-            
             if (item.action === 'openSearch') {
                 wheelItem.onclick = openSearchModal;
             } else if (item.url) {
@@ -350,7 +366,6 @@ function initializeSideDock() {
             }
             wheel.appendChild(wheelItem);
         });
-
         return wheel;
     }
 
@@ -369,24 +384,9 @@ function initializeSideDock() {
         dockContainer.classList.remove('active');
     }
 
-    if (trigger && !trigger.hasAttribute('data-listener')) {
-        trigger.setAttribute('data-listener', 'true');
-        wheelContainer.innerHTML = '';
-        createWheel(navData.items, null, navData);
-        showWheel('main-wheel');
-
-        trigger.addEventListener('click', () => {
-            overlay.classList.toggle('active');
-            dockContainer.classList.toggle('active');
-        });
-
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.classList.remove('active');
-                dockContainer.classList.remove('active');
-            }
-        });
-    }
+    wheelContainer.innerHTML = '';
+    createWheel(navData.items, null, navData);
+    showWheel('main-wheel');
 
      if (searchInput && !searchInput.hasAttribute('data-listener')) {
          searchInput.setAttribute('data-listener', 'true');
@@ -394,7 +394,6 @@ function initializeSideDock() {
              const query = e.target.value.toLowerCase();
              searchResults.innerHTML = '';
              if (query.length < 2) return;
-
              fetch(`/api/global-search/?q=${query}`)
                  .then(res => res.json())
                  .then(data => {
@@ -410,7 +409,6 @@ function initializeSideDock() {
                              searchResults.appendChild(li);
                          }
                      });
-                     
                      Object.keys(data).forEach(category => {
                          data[category].forEach(item => {
                              const li = document.createElement('li');
@@ -437,22 +435,23 @@ function initializeIframeModal() {
 
     const closeBtn = iframeModal.querySelector('.close-modal');
     
-    if (closeBtn && !closeBtn.hasAttribute('data-iframe-listener')) {
-        closeBtn.setAttribute('data-iframe-listener', 'true');
-        closeBtn.onclick = () => {
-            iframeModal.style.display = 'none';
-            iframe.src = 'about:blank';
-        };
-    }
-    
-    if (!iframeModal.hasAttribute('data-iframe-listener')) {
-        iframeModal.setAttribute('data-iframe-listener', 'true');
-        iframeModal.onclick = (event) => {
-            if (event.target === iframeModal) {
-                iframeModal.style.display = 'none';
-                iframe.src = 'about:blank';
+    // Globale Listener am Body, um Duplizierung zu vermeiden
+    if (!document.body.hasAttribute('data-iframe-modal-listeners')) {
+        document.body.setAttribute('data-iframe-modal-listeners', 'true');
+        document.body.addEventListener('click', function(e){
+            // Schließt das Iframe-Modal
+            if(e.target.closest('#iframe-modal .close-modal') || e.target.id === 'iframe-modal') {
+                if(iframeModal) {
+                    iframeModal.style.display = 'none';
+                    if(iframe) iframe.src = 'about:blank';
+                }
             }
-        };
+             // Schließt das Widget-Modal
+            if(e.target.closest('#widget-modal .close-modal') || e.target.id === 'widget-modal') {
+                const widgetModal = document.getElementById('widget-modal');
+                if(widgetModal) widgetModal.style.display = 'none';
+            }
+        });
     }
 }
 

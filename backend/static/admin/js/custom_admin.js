@@ -17,31 +17,85 @@ function initializeAllDashboardFeatures() {
     
     // Initialisiert alle interaktiven Komponenten des Dashboards.
     // Jede dieser Funktionen ist so geschrieben, dass sie sicher mehrfach aufgerufen werden kann.
-    initializeModalLinks();
     initializeSideDock();
     initializeCalendar();
-    initializeWidgetModals();
     initializeFilters();
     addDashboardButton();
     updateTime();
 }
 
 /**
- * Nutzt Event Delegation, um Klicks auf Links abzufangen, die in einem Modal geöffnet werden sollen.
- * Dies ist robuster als das direkte Binden von Events an jedes Element.
+ * Einmalige Einrichtung der globalen Event-Listener, die durch Event Delegation funktionieren.
+ * Das macht sie robust gegenüber Turbo-Navigation.
  */
-function initializeModalLinks() {
-    // Verhindert, dass der Listener mehrfach an das body-Element gehängt wird.
-    if (document.body.hasAttribute('data-modal-link-handler')) return;
-    document.body.setAttribute('data-modal-link-handler', 'true');
+function setupGlobalEventListeners() {
+    // Verhindert, dass die Listener mehrfach an das body-Element gehängt werden.
+    if (document.body.hasAttribute('data-global-listeners-attached')) return;
+    document.body.setAttribute('data-global-listeners-attached', 'true');
 
     document.body.addEventListener('click', function(e) {
-        const link = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
-        if (link) {
+        
+        // --- Funktionalität für das Navigationsrad (Side Dock) ---
+        const sideDockTrigger = e.target.closest('#side-dock-trigger');
+        if (sideDockTrigger) {
+            document.getElementById('side-dock-container')?.classList.toggle('active');
+            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
+            return; // Klick verarbeitet, keine weitere Aktion nötig
+        }
+        if (e.target.id === 'nav-wheel-overlay') {
+            e.target.classList.remove('active');
+            document.getElementById('side-dock-container')?.classList.remove('active');
+            return;
+        }
+
+        // --- Funktionalität zum Öffnen von Modals ---
+        const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
+        if (modalLink) {
             e.preventDefault();
-            const url = link.href;
-            const title = link.dataset.modalTitle || link.textContent.trim() || 'Bearbeiten';
+            const url = modalLink.href;
+            const title = modalLink.dataset.modalTitle || modalLink.textContent.trim() || 'Bearbeiten';
             openInIframeModal(url, title);
+            return;
+        }
+
+        const calendarIcon = e.target.closest('.calendar-icon');
+        if (calendarIcon) {
+            const calendarModal = document.getElementById('calendar-modal');
+            if (calendarModal) {
+                calendarModal.style.display = 'block';
+                if (window.renderCalendar) window.renderCalendar();
+            }
+            return;
+        }
+
+        const widgetToggleIcon = e.target.closest('.toggle-widget-icon');
+        if (widgetToggleIcon) {
+            const widgetModal = document.getElementById('widget-modal');
+            const widgetModalTitle = document.getElementById('widget-modal-title');
+            const widgetModalBody = document.getElementById('widget-modal-body');
+            const widget = widgetToggleIcon.closest('.dashboard-widget');
+            const title = widget.querySelector('h2').textContent;
+            const contentSource = widget.querySelector('.widget-content-source');
+            
+            if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
+                widgetModalTitle.textContent = title;
+                widgetModalBody.innerHTML = ''; 
+                widgetModalBody.appendChild(contentSource.cloneNode(true));
+                widgetModalBody.firstChild.style.display = 'flex';
+                widgetModal.style.display = 'block';
+            }
+            return;
+        }
+
+        // --- Generische Funktionalität zum Schließen von Modals ---
+        const modal = e.target.closest('.modal');
+        if (e.target.closest('.close-modal') || e.target === modal) {
+            if (modal) {
+                modal.style.display = 'none';
+                if (modal.id === 'iframe-modal' && iframe) {
+                    iframe.src = 'about:blank';
+                }
+            }
         }
     });
 }
@@ -49,28 +103,28 @@ function initializeModalLinks() {
 
 /**
  * Öffnet eine gegebene URL in einem IFrame-Modal.
- * @param {string} url - Die URL, die im IFrame geladen werden soll.
- * @param {string} title - Der Titel, der im Modal-Header angezeigt wird.
  */
 function openInIframeModal(url, title) {
     if (iframe && iframeModal && iframeTitle) {
-        // Bereinigt die URL von möglichen Parametern, um Caching-Probleme zu vermeiden.
         const cleanUrl = url.split('?')[0];
         iframe.src = cleanUrl;
         iframeTitle.textContent = title;
-        iframeModal.style.display = 'flex'; // 'flex' für die vertikale Zentrierung.
+        iframeModal.style.display = 'flex';
     } else {
-        // Fallback, falls das Modal aus irgendeinem Grund nicht gefunden wird.
         window.location.href = url;
     }
 }
 
-// Event-Listener für das initiale Laden der Seite und für die Navigation innerhalb des Unfold-Frameworks.
-document.addEventListener('DOMContentLoaded', initializeAllDashboardFeatures);
+// Event-Listener für den Seitenaufbau
+document.addEventListener('DOMContentLoaded', function() {
+    moveModalsToBody(); // Modals einmalig verschieben
+    setupGlobalEventListeners(); // Globale Listener einmalig einrichten
+    initializeAllDashboardFeatures(); // Features initialisieren
+});
 document.addEventListener("turbo:load", initializeAllDashboardFeatures);
 
 
-// --- Unten stehende Funktionen bleiben weitgehend gleich, sind aber zur Vollständigkeit hier ---
+// --- Einzelne Initialisierungsfunktionen (vereinfacht) ---
 
 function addDashboardButton() {
     if (window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) {
@@ -88,7 +142,6 @@ function addDashboardButton() {
         breadcrumbs.appendChild(dashboardBtn);
     }
 }
-
 
 function moveModalsToBody() {
     document.querySelectorAll('.modal').forEach(modal => {
@@ -116,9 +169,6 @@ function updateTime() {
 function initializeCalendar() {
     const calendarModal = document.getElementById('calendar-modal');
     if (!calendarModal) return;
-
-    const openCalendarBtn = document.getElementById('open-calendar-modal');
-    // Der Klick wird jetzt vom globalen Event-Handler in `setupGlobalEventListeners` behandelt
     
     const events = window.calendarEvents || [];
     const calendarBody = document.getElementById('calendar-body');
@@ -194,28 +244,6 @@ function initializeCalendar() {
         nextMonthBtn.setAttribute('data-listener', 'true');
         nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); window.renderCalendar(); };
     }
-}
-
-function initializeWidgetModals() {
-    document.body.addEventListener('click', function(e){
-        const toggleIcon = e.target.closest('.toggle-widget-icon');
-        if (!toggleIcon) return;
-
-        const widgetModal = document.getElementById('widget-modal');
-        const widgetModalTitle = document.getElementById('widget-modal-title');
-        const widgetModalBody = document.getElementById('widget-modal-body');
-        const widget = toggleIcon.closest('.dashboard-widget');
-        const title = widget.querySelector('h2').textContent;
-        const contentSource = widget.querySelector('.widget-content-source');
-        
-        if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
-            widgetModalTitle.textContent = title;
-            widgetModalBody.innerHTML = ''; 
-            widgetModalBody.appendChild(contentSource.cloneNode(true));
-            widgetModalBody.firstChild.style.display = 'flex';
-            widgetModal.style.display = 'block';
-        }
-    });
 }
 
 function initializeFilters() {
@@ -389,22 +417,5 @@ function initializeSideDock() {
                  });
          });
      }
-}
-
-function initializeIframeModal() {
-    if (!document.body.hasAttribute('data-iframe-modal-listeners')) {
-        document.body.setAttribute('data-iframe-modal-listeners', 'true');
-        document.body.addEventListener('click', function(e){
-            const modal = e.target.closest('.modal');
-            if(e.target.closest('.close-modal') || e.target === modal) {
-                if(modal) {
-                    modal.style.display = 'none';
-                    if(modal.id === 'iframe-modal' && iframe) {
-                        iframe.src = 'about:blank';
-                    }
-                }
-            }
-        });
-    }
 }
 

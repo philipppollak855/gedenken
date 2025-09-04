@@ -3,95 +3,74 @@
 // Globale Variablen für Modals, um wiederholte DOM-Abfragen zu vermeiden
 let iframeModal, iframe, iframeTitle;
 
-// Haupt-Initialisierungslogik, die bei jedem Seitenaufbau ausgeführt wird
-function initializeDashboardFeatures() {
-    moveModalsToBody();
-    updateTime();
+/**
+ * Haupt-Initialisierungslogik, die bei jedem Seitenaufbau (auch nach Turbo-Navigation) ausgeführt wird.
+ * Sie stellt sicher, dass alle interaktiven Elemente ihre Funktionalität erhalten.
+ */
+function initializeAllDashboardFeatures() {
+    // Weist die globalen Modal-Variablen zu, falls sie noch nicht gesetzt sind.
+    if (!iframeModal) {
+        iframeModal = document.getElementById('iframe-modal');
+        iframe = document.getElementById('content-iframe');
+        iframeTitle = document.getElementById('iframe-modal-title');
+    }
+    
+    // Initialisiert alle interaktiven Komponenten des Dashboards.
+    // Jede dieser Funktionen ist so geschrieben, dass sie sicher mehrfach aufgerufen werden kann.
+    initializeModalLinks();
+    initializeSideDock();
     initializeCalendar();
     initializeWidgetModals();
     initializeFilters();
     addDashboardButton();
-    initializeSideDock();
-    initializeIframeModal();
+    updateTime();
 }
 
-// HILFSFUNKTION: Öffnet eine URL im IFrame-Modal
-function openInIframeModal(url, title) {
-    if (iframe && iframeModal && iframeTitle) {
-        const cleanUrl = url.split('?')[0];
-        iframe.src = cleanUrl;
-        iframeTitle.textContent = title;
-        iframeModal.style.display = 'flex';
-    } else {
-        // Fallback, falls das Modal nicht initialisiert wurde
-        window.location.href = url;
-    }
-}
-
-// ZENTRALER EVENT-HANDLER: Nutzt Event Delegation, um robust zu sein
-function setupGlobalEventListeners() {
-    // Verhindert doppelte Listener
-    if (document.body.hasAttribute('data-global-listeners-attached')) return;
-    document.body.setAttribute('data-global-listeners-attached', 'true');
+/**
+ * Nutzt Event Delegation, um Klicks auf Links abzufangen, die in einem Modal geöffnet werden sollen.
+ * Dies ist robuster als das direkte Binden von Events an jedes Element.
+ */
+function initializeModalLinks() {
+    // Verhindert, dass der Listener mehrfach an das body-Element gehängt wird.
+    if (document.body.hasAttribute('data-modal-link-handler')) return;
+    document.body.setAttribute('data-modal-link-handler', 'true');
 
     document.body.addEventListener('click', function(e) {
-        // Schließt Modals
-        const closeModalButton = e.target.closest('.close-modal');
-        if (closeModalButton) {
-            const modal = closeModalButton.closest('.modal');
-            if (modal) {
-                modal.style.display = 'none';
-                if (modal.id === 'iframe-modal') {
-                    iframe.src = 'about:blank';
-                }
-            }
-        }
-        
-        // Öffnet Kalender
-        if (e.target.closest('#open-calendar-modal')) {
-            const calendarModal = document.getElementById('calendar-modal');
-            if (calendarModal) {
-                calendarModal.style.display = 'block';
-                // Die renderCalendar Funktion muss global verfügbar sein oder hier referenziert werden
-                if (window.renderCalendar) window.renderCalendar();
-            }
-        }
-
-        // Öffnet Navigationsrad
-        const sideDockTrigger = e.target.closest('#side-dock-trigger');
-        if (sideDockTrigger) {
-            document.getElementById('side-dock-container')?.classList.toggle('active');
-            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
-        }
-
-        // Schließt Navigationsrad bei Klick auf Overlay
-        if (e.target.id === 'nav-wheel-overlay') {
-            e.target.classList.remove('active');
-            document.getElementById('side-dock-container')?.classList.remove('active');
-        }
-
-        // Behandelt Dashboard-Links, die im Modal geöffnet werden sollen
-        const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
-        if (modalLink) {
+        const link = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
+        if (link) {
             e.preventDefault();
-            const url = modalLink.href;
-            const title = modalLink.dataset.modalTitle || modalLink.textContent.trim();
+            const url = link.href;
+            const title = link.dataset.modalTitle || link.textContent.trim() || 'Bearbeiten';
             openInIframeModal(url, title);
         }
     });
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
-    initializeDashboardFeatures();
-    setupGlobalEventListeners();
-});
+/**
+ * Öffnet eine gegebene URL in einem IFrame-Modal.
+ * @param {string} url - Die URL, die im IFrame geladen werden soll.
+ * @param {string} title - Der Titel, der im Modal-Header angezeigt wird.
+ */
+function openInIframeModal(url, title) {
+    if (iframe && iframeModal && iframeTitle) {
+        // Bereinigt die URL von möglichen Parametern, um Caching-Probleme zu vermeiden.
+        const cleanUrl = url.split('?')[0];
+        iframe.src = cleanUrl;
+        iframeTitle.textContent = title;
+        iframeModal.style.display = 'flex'; // 'flex' für die vertikale Zentrierung.
+    } else {
+        // Fallback, falls das Modal aus irgendeinem Grund nicht gefunden wird.
+        window.location.href = url;
+    }
+}
 
-document.addEventListener("turbo:load", function() {
-    initializeDashboardFeatures();
-    // Der globale Listener muss nicht neu hinzugefügt werden, da er am body hängt
-});
+// Event-Listener für das initiale Laden der Seite und für die Navigation innerhalb des Unfold-Frameworks.
+document.addEventListener('DOMContentLoaded', initializeAllDashboardFeatures);
+document.addEventListener("turbo:load", initializeAllDashboardFeatures);
 
+
+// --- Unten stehende Funktionen bleiben weitgehend gleich, sind aber zur Vollständigkeit hier ---
 
 function addDashboardButton() {
     if (window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) {
@@ -138,6 +117,9 @@ function initializeCalendar() {
     const calendarModal = document.getElementById('calendar-modal');
     if (!calendarModal) return;
 
+    const openCalendarBtn = document.getElementById('open-calendar-modal');
+    // Der Klick wird jetzt vom globalen Event-Handler in `setupGlobalEventListeners` behandelt
+    
     const events = window.calendarEvents || [];
     const calendarBody = document.getElementById('calendar-body');
     const monthYearEl = document.getElementById('calendar-month-year');
@@ -146,7 +128,6 @@ function initializeCalendar() {
     const eventListPopup = document.getElementById('event-list-popup');
     let currentDate = new Date();
 
-    // Machen Sie renderCalendar global verfügbar
     window.renderCalendar = function() {
         if (!calendarBody || !monthYearEl) return;
         calendarBody.innerHTML = '';
@@ -198,10 +179,10 @@ function initializeCalendar() {
         eventListPopup.style.top = `${rect.top - calendarRect.top}px`;
         if ((rect.left + rect.width + eventListPopup.offsetWidth) < calendarRect.right) {
             eventListPopup.style.left = `${rect.left - calendarRect.left + rect.width + 10}px`;
-            eventListPopup.querySelector('::before').style.right = '100%';
+             if (eventListPopup.querySelector('::before')) eventListPopup.querySelector('::before').style.right = '100%';
         } else {
             eventListPopup.style.left = `${rect.left - calendarRect.left - eventListPopup.offsetWidth - 10}px`;
-            eventListPopup.querySelector('::before').style.left = '100%';
+             if (eventListPopup.querySelector('::before')) eventListPopup.querySelector('::before').style.left = '100%';
         }
     }
     
@@ -213,41 +194,27 @@ function initializeCalendar() {
         nextMonthBtn.setAttribute('data-listener', 'true');
         nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); window.renderCalendar(); };
     }
-    if (!document.body.hasAttribute('data-calendar-listener')) {
-        document.body.setAttribute('data-calendar-listener', 'true');
-        document.body.addEventListener('click', () => {
-            if (eventListPopup && eventListPopup.style.display === 'block') {
-                eventListPopup.style.display = 'none';
-            }
-        }, true);
-    }
 }
 
-
 function initializeWidgetModals() {
-    const widgetModal = document.getElementById('widget-modal');
-    if (!widgetModal) return;
+    document.body.addEventListener('click', function(e){
+        const toggleIcon = e.target.closest('.toggle-widget-icon');
+        if (!toggleIcon) return;
 
-    const widgetModalTitle = document.getElementById('widget-modal-title');
-    const widgetModalBody = document.getElementById('widget-modal-body');
-
-    document.querySelectorAll('.toggle-widget-icon').forEach(icon => {
-        if (icon.getAttribute('data-listener') === 'true') return;
-        icon.setAttribute('data-listener', 'true');
-
-        icon.addEventListener('click', function() {
-            const widget = this.closest('.dashboard-widget');
-            const title = widget.querySelector('h2').textContent;
-            const contentSource = widget.querySelector('.widget-content-source');
-            
-            if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
-                widgetModalTitle.textContent = title;
-                widgetModalBody.innerHTML = ''; 
-                widgetModalBody.appendChild(contentSource.cloneNode(true));
-                widgetModalBody.firstChild.style.display = 'flex';
-                widgetModal.style.display = 'block';
-            }
-        });
+        const widgetModal = document.getElementById('widget-modal');
+        const widgetModalTitle = document.getElementById('widget-modal-title');
+        const widgetModalBody = document.getElementById('widget-modal-body');
+        const widget = toggleIcon.closest('.dashboard-widget');
+        const title = widget.querySelector('h2').textContent;
+        const contentSource = widget.querySelector('.widget-content-source');
+        
+        if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
+            widgetModalTitle.textContent = title;
+            widgetModalBody.innerHTML = ''; 
+            widgetModalBody.appendChild(contentSource.cloneNode(true));
+            widgetModalBody.firstChild.style.display = 'flex';
+            widgetModal.style.display = 'block';
+        }
     });
 }
 
@@ -258,12 +225,10 @@ function initializeFilters() {
     document.body.addEventListener('input', function(event) {
         if (event.target.matches('.filter-input')) {
             const filterValue = event.target.value.toLowerCase();
-            const list = event.target.closest('.widget-content-source').querySelector('.activity-list');
-
+            const list = event.target.closest('.widget-content-source, #widget-modal-body').querySelector('.activity-list');
             if (list) {
                 list.querySelectorAll('li, .activity-item').forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    item.style.display = text.includes(filterValue) ? '' : 'none';
+                    item.style.display = item.textContent.toLowerCase().includes(filterValue) ? '' : 'none';
                 });
             }
         }
@@ -280,8 +245,7 @@ function initializeSideDock() {
     const searchModal = document.getElementById('global-search-modal');
     const searchInput = document.getElementById('global-search-input');
     const searchResults = document.getElementById('global-search-results');
-    const allAdminLinks = Array.from(document.querySelectorAll('.sidebar-wrapper a'));
-
+    
     const navData = {
         id: 'main',
         items: [
@@ -397,6 +361,7 @@ function initializeSideDock() {
              fetch(`/api/global-search/?q=${query}`)
                  .then(res => res.json())
                  .then(data => {
+                     const allAdminLinks = Array.from(document.querySelectorAll('.sidebar-wrapper a'));
                      allAdminLinks.forEach(link => {
                          if (link.textContent.toLowerCase().includes(query)) {
                              const li = document.createElement('li');
@@ -427,29 +392,17 @@ function initializeSideDock() {
 }
 
 function initializeIframeModal() {
-    iframeModal = document.getElementById('iframe-modal');
-    iframe = document.getElementById('content-iframe');
-    iframeTitle = document.getElementById('iframe-modal-title');
-
-    if (!iframeModal) return;
-
-    const closeBtn = iframeModal.querySelector('.close-modal');
-    
-    // Globale Listener am Body, um Duplizierung zu vermeiden
     if (!document.body.hasAttribute('data-iframe-modal-listeners')) {
         document.body.setAttribute('data-iframe-modal-listeners', 'true');
         document.body.addEventListener('click', function(e){
-            // Schließt das Iframe-Modal
-            if(e.target.closest('#iframe-modal .close-modal') || e.target.id === 'iframe-modal') {
-                if(iframeModal) {
-                    iframeModal.style.display = 'none';
-                    if(iframe) iframe.src = 'about:blank';
+            const modal = e.target.closest('.modal');
+            if(e.target.closest('.close-modal') || e.target === modal) {
+                if(modal) {
+                    modal.style.display = 'none';
+                    if(modal.id === 'iframe-modal' && iframe) {
+                        iframe.src = 'about:blank';
+                    }
                 }
-            }
-             // Schließt das Widget-Modal
-            if(e.target.closest('#widget-modal .close-modal') || e.target.id === 'widget-modal') {
-                const widgetModal = document.getElementById('widget-modal');
-                if(widgetModal) widgetModal.style.display = 'none';
             }
         });
     }

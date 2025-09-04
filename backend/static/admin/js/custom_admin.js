@@ -36,12 +36,7 @@ function setupGlobalEventListeners() {
     document.body.addEventListener('click', function(e) {
         
         // --- Funktionalität für das Navigationsrad (Side Dock) ---
-        const sideDockTrigger = e.target.closest('#side-dock-trigger');
-        if (sideDockTrigger) {
-            document.getElementById('side-dock-container')?.classList.toggle('active');
-            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
-            return; // Klick verarbeitet, keine weitere Aktion nötig
-        }
+        // HINWEIS: Der Klick auf den Trigger wird jetzt in initializeSideDock() direkt behandelt.
         if (e.target.id === 'nav-wheel-overlay') {
             e.target.classList.remove('active');
             document.getElementById('side-dock-container')?.classList.remove('active');
@@ -268,7 +263,16 @@ function initializeSideDock() {
     if (!dockContainer || dockContainer.hasAttribute('data-initialized')) return;
     dockContainer.setAttribute('data-initialized', 'true');
 
+    // KORRIGIERT: Direkter Event-Listener am Trigger für Zuverlässigkeit
+    const trigger = document.getElementById('side-dock-trigger');
     const overlay = document.getElementById('nav-wheel-overlay');
+    if (trigger) {
+        trigger.addEventListener('click', () => {
+            dockContainer.classList.toggle('active');
+            overlay?.classList.toggle('active');
+        });
+    }
+
     const wheelContainer = document.getElementById('wheel-container');
     const searchModal = document.getElementById('global-search-modal');
     const searchInput = document.getElementById('global-search-input');

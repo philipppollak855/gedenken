@@ -261,6 +261,13 @@ function initializeSideDock() {
     const iframe = document.getElementById('content-iframe');
     const iframeTitle = document.getElementById('iframe-modal-title');
     
+    // KORREKTUR: Variablen für die Suche werden hier oben deklariert.
+    const searchModal = document.getElementById('global-search-modal');
+    const searchInput = document.getElementById('global-search-input');
+    const searchResults = document.getElementById('global-search-results');
+    const allAdminLinks = Array.from(document.querySelectorAll('.sidebar-wrapper a'));
+
+
     const navData = {
         id: 'main',
         items: [

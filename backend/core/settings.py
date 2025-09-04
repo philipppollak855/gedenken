@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# BEREINIGT: Die fehlerhafte SIDEBAR-Konfiguration wurde vollständig entfernt.
+# BEREINIGT: Die fehlerhafte SIDEBAR-Konfiguration wurde vollstÃ¤ndig entfernt.
 # Unfold wird nun die stabile Standard-Sidebar generieren.
 
 import os
@@ -110,27 +110,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.User'
 
+# NEU: Erlaubt das Einbetten von Admin-Seiten in IFrames auf derselben Domain
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
-}
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join('/var/media', 'media'))
-
-UNFOLD = {
-    "SITE_TITLE": "Vorsorge-Plattform Admin",
-    "SITE_HEADER": "Vorsorge-Plattform",
-    "SITE_BRAND": "Verwaltung",
-    "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
-    "COPYRIGHT": "Ihre Bestattung GmbH",
-    "THEME": "dark",
-    "STYLES": [
-        "/static/admin/css/custom_admin.css",
-    ],
-    "SCRIPTS": [
-        "/static/admin/js/custom_admin.js",
-    ],
-    # Die "SIDEBAR"-Konfiguration wurde entfernt. Unfold generiert jetzt das Standard-Menü.
 }
 
 MEDIA_URL = '/media/'
@@ -151,3 +135,4 @@ UNFOLD = {
     ],
     # Die "SIDEBAR"-Konfiguration wurde entfernt. Unfold generiert jetzt das Standard-Menü.
 }
+

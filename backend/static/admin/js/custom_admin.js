@@ -231,6 +231,7 @@ function initializeSideDock() {
     };
     
     function createWheel(items, parentId = null, parentData = null) {
+        if (!wheelContainer) return;
         const wheel = document.createElement('div');
         const wheelId = parentId ? `wheel-${parentId}` : 'main-wheel';
         wheel.id = wheelId;
@@ -293,24 +294,24 @@ function initializeSideDock() {
         document.getElementById('nav-wheel-overlay')?.classList.remove('active');
         document.getElementById('side-dock-container')?.classList.remove('active');
     }
-
-    wheelContainer.innerHTML = '';
-    createWheel(navData.items, null, navData);
-    showWheel('main-wheel');
+    
+    if (wheelContainer) {
+        wheelContainer.innerHTML = '';
+        createWheel(navData.items, null, navData);
+        showWheel('main-wheel');
+    }
 
      if (searchInput && !searchInput.hasAttribute('data-listener')) {
          searchInput.setAttribute('data-listener', 'true');
          searchInput.addEventListener('input', (e) => {
              const query = e.target.value.toLowerCase();
-             searchResults.innerHTML = '';
+             if (searchResults) searchResults.innerHTML = '';
              if (query.length < 2) return;
-             // KORRIGIERT: Holt die Admin-Basis-URL dynamisch, falls sie sich ändert.
-             const adminBaseUrl = window.location.origin + '/admin/';
-
+             
              fetch(`/api/global-search/?q=${query}`)
                  .then(res => res.json())
                  .then(data => {
-                     searchResults.innerHTML = ''; // Ergebnisse leeren vor dem Hinzufügen
+                     if (searchResults) searchResults.innerHTML = ''; // Ergebnisse leeren vor dem Hinzufügen
                      data.forEach(item => {
                          const li = document.createElement('li');
                          const link = document.createElement('a');
@@ -322,7 +323,7 @@ function initializeSideDock() {
                              if(searchModal) searchModal.style.display = 'none';
                          };
                          li.appendChild(link);
-                         searchResults.appendChild(li);
+                         if (searchResults) searchResults.appendChild(li);
                      });
                  })
                  .catch(err => console.error("Fehler bei der globalen Suche:", err));
@@ -335,7 +336,7 @@ function initializeSideDock() {
 // #####################################################################
 
 /**
- * NEU: Richtet spezifische Klick-Listener für Dashboard-Elemente ein,
+ * Richtet spezifische Klick-Listener für Dashboard-Elemente ein,
  * um die Zuverlässigkeit zu erhöhen.
  */
 function setupDashboardInteractions() {
@@ -374,7 +375,6 @@ function setupGlobalEventListeners() {
     document.body.setAttribute('data-global-listeners-attached', 'true');
 
     document.body.addEventListener('click', function(e) {
-        // Logik für sideDockTrigger und calendarIcon wurde in setupDashboardInteractions() verschoben.
         const navWheelOverlay = e.target.id === 'nav-wheel-overlay' ? e.target : null;
         const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
         const widgetToggleIcon = e.target.closest('.toggle-widget-icon');
@@ -436,7 +436,7 @@ function initializePageFeatures() {
     initializeCalendar();
     addDashboardButton();
     updateTime();
-    setupDashboardInteractions(); // NEUER AUFRUF
+    setupDashboardInteractions();
 }
 
 // Haupt-Event-Listener für das initiale Laden und die Turbo-Navigation.

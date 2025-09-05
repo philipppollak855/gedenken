@@ -7,105 +7,71 @@
  */
 
 // #####################################################################
-// # Event Listeners Setup
+// # 1. Funktionsdefinitionen
 // #####################################################################
 
-// Initialisiert alles beim ersten Laden der Seite.
-document.addEventListener('DOMContentLoaded', () => {
-    moveModalsToBody();
-    setupGlobalEventListeners();
-    initializePageFeatures();
-});
-
-// Initialisiert die seiten-spezifischen Features bei jeder Turbo-Navigation neu.
-document.addEventListener("turbo:load", initializePageFeatures);
-
 /**
- * Richtet einmalige, globale Event-Listener ein, die durch Event-Delegation
- * robust auf Klicks im gesamten Dokument reagieren.
+ * Öffnet eine gegebene URL in einem IFrame-Modal.
  */
-function setupGlobalEventListeners() {
-    if (document.body.hasAttribute('data-global-listeners-attached')) return;
-    document.body.setAttribute('data-global-listeners-attached', 'true');
-
-    document.body.addEventListener('click', function(e) {
-        handleGlobalClicks(e);
-    });
-
-    initializeFilters();
+function openInIframeModal(url, title) {
+    const iframeModal = document.getElementById('iframe-modal');
+    const iframe = document.getElementById('content-iframe');
+    const iframeTitle = document.getElementById('iframe-modal-title');
+    if (iframe && iframeModal && iframeTitle) {
+        const cleanUrl = url.split('?')[0];
+        iframe.src = cleanUrl;
+        iframeTitle.textContent = title;
+        iframeModal.style.display = 'flex';
+    } else {
+        window.location.href = url;
+    }
 }
 
 /**
- * Initialisiert Funktionen, die bei jedem (Neu-)Aufbau der Seite ausgeführt werden müssen.
+ * Fügt den "Zum Dashboard" Button auf Unterseiten hinzu.
  */
-function initializePageFeatures() {
-    initializeSideDock();
-    initializeCalendar();
-    initializeWidgetModals();
-    initializeModalLinks();
-    addDashboardButton();
-    updateTime();
+function addDashboardButton() {
+    if (window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) {
+        const existingBtn = document.querySelector('.dashboard-btn');
+        if (existingBtn) existingBtn.remove();
+        return;
+    }
+    const breadcrumbs = document.querySelector('.breadcrumbs');
+    if (breadcrumbs && !breadcrumbs.querySelector('.dashboard-btn')) {
+        const dashboardBtn = document.createElement('a');
+        dashboardBtn.href = '/admin/';
+        dashboardBtn.textContent = 'Zum Dashboard';
+        dashboardBtn.classList.add('dashboard-btn');
+        breadcrumbs.appendChild(dashboardBtn);
+    }
 }
 
-
-// #####################################################################
-// # Zentrale Klick-Verarbeitung (Event Delegation)
-// #####################################################################
-
-function handleGlobalClicks(e) {
-    const sideDockTrigger = e.target.closest('#side-dock-trigger');
-    const navWheelOverlay = e.target.id === 'nav-wheel-overlay' ? e.target : null;
-    const modal = e.target.closest('.modal');
-    const closeModalButton = e.target.closest('.close-modal');
-
-    // 1. Navigationsrad öffnen/schließen
-    if (sideDockTrigger) {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('side-dock-container')?.classList.toggle('active');
-        document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
-        return;
-    }
-
-    // 2. Navigationsrad durch Klick auf Overlay schließen
-    if (navWheelOverlay) {
-        navWheelOverlay.classList.remove('active');
-        document.getElementById('side-dock-container')?.classList.remove('active');
-        return;
-    }
-
-    // 3. Jedes Modal schließen (Klick auf 'X' oder außerhalb des Inhalts)
-    if (closeModalButton || e.target === modal) {
-        if (modal) {
-            modal.style.display = 'none';
-            if (modal.id === 'iframe-modal') {
-                const iframe = document.getElementById('content-iframe');
-                if (iframe) iframe.src = 'about:blank';
-            }
+/**
+ * Verschiebt alle Modal-Elemente direkt in den Body, um z-index Probleme zu vermeiden.
+ */
+function moveModalsToBody() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
         }
-    }
+    });
 }
 
-
-// #####################################################################
-// # Initialisierungsfunktionen für spezifische Features
-// #####################################################################
-
 /**
- * Bindet Klick-Events an alle Links, die in einem Modal geöffnet werden sollen.
- * Überprüft, ob der Listener bereits existiert, um Duplikate zu vermeiden.
+ * Initialisiert und aktualisiert die Live-Uhr im Dashboard.
  */
-function initializeModalLinks() {
-    document.querySelectorAll('.quick-links a, .stat-item-link, .event-card-link').forEach(link => {
-        if (link.hasAttribute('data-modal-listener')) return;
-        link.setAttribute('data-modal-listener', 'true');
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const url = this.href;
-            const title = this.dataset.modalTitle || this.textContent.trim() || 'Eintrag ansehen';
-            openInIframeModal(url, title);
-        });
-    });
+function updateTime() {
+    const timeElement = document.getElementById('current-datetime');
+    if (timeElement && !timeElement.hasAttribute('data-interval-id')) {
+        const update = () => {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            timeElement.textContent = now.toLocaleString('de-AT', options);
+        };
+        const intervalId = setInterval(update, 1000);
+        timeElement.setAttribute('data-interval-id', intervalId);
+        update(); // Sofort ausführen
+    }
 }
 
 /**
@@ -113,19 +79,8 @@ function initializeModalLinks() {
  */
 function initializeCalendar() {
     const calendarModal = document.getElementById('calendar-modal');
-    const calendarIcon = document.getElementById('open-calendar-modal');
-    if (!calendarModal || !calendarIcon) return;
+    if (!calendarModal) return;
 
-    // Direkter Klick-Listener für das Icon
-    if (!calendarIcon.hasAttribute('data-click-listener')) {
-        calendarIcon.setAttribute('data-click-listener', 'true');
-        calendarIcon.addEventListener('click', () => {
-            calendarModal.style.display = 'flex'; // Zentriert das Modal
-            if (window.renderCalendar) window.renderCalendar();
-        });
-    }
-    
-    // ... (Restlicher Kalender-Code bleibt gleich, da er intern funktioniert) ...
     const events = window.calendarEvents || [];
     const calendarBody = document.getElementById('calendar-body');
     const monthYearEl = document.getElementById('calendar-month-year');
@@ -143,9 +98,11 @@ function initializeCalendar() {
         const firstDayOfMonth = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+
         for (let i = 0; i < dayOffset; i++) {
             calendarBody.innerHTML += `<div></div>`;
         }
+
         for (let day = 1; day <= daysInMonth; day++) {
             const dayEl = document.createElement('div');
             dayEl.textContent = day;
@@ -165,7 +122,8 @@ function initializeCalendar() {
             }
             calendarBody.appendChild(dayEl);
         }
-    }
+    };
+    
     function showEventsForDay(dayEvents, dayEl) {
         document.querySelectorAll('#event-list-popup').forEach(p => p.style.display = 'none');
         eventListPopup.innerHTML = '<ul></ul>';
@@ -184,49 +142,21 @@ function initializeCalendar() {
         eventListPopup.style.top = `${rect.top - calendarRect.top}px`;
         if ((rect.left + rect.width + eventListPopup.offsetWidth) < calendarRect.right) {
             eventListPopup.style.left = `${rect.left - calendarRect.left + rect.width + 10}px`;
-             if (eventListPopup.querySelector('::before')) eventListPopup.querySelector('::before').style.right = '100%';
+            if (eventListPopup.querySelector('::before')) eventListPopup.querySelector('::before').style.right = '100%';
         } else {
             eventListPopup.style.left = `${rect.left - calendarRect.left - eventListPopup.offsetWidth - 10}px`;
-             if (eventListPopup.querySelector('::before')) eventListPopup.querySelector('::before').style.left = '100%';
+            if (eventListPopup.querySelector('::before')) eventListPopup.querySelector('::before').style.left = '100%';
         }
     }
-     if (prevMonthBtn && !prevMonthBtn.hasAttribute('data-listener')) {
-         prevMonthBtn.setAttribute('data-listener', 'true');
-         prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); window.renderCalendar(); };
+    
+    if (prevMonthBtn && !prevMonthBtn.hasAttribute('data-listener')) {
+        prevMonthBtn.setAttribute('data-listener', 'true');
+        prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); window.renderCalendar(); };
     }
     if (nextMonthBtn && !nextMonthBtn.hasAttribute('data-listener')) {
         nextMonthBtn.setAttribute('data-listener', 'true');
         nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); window.renderCalendar(); };
     }
-}
-
-
-/**
- * Bindet Klick-Events an die Vergrößerungs-Icons der Widgets.
- */
-function initializeWidgetModals() {
-    document.querySelectorAll('.toggle-widget-icon').forEach(icon => {
-        if (icon.hasAttribute('data-click-listener')) return;
-        icon.setAttribute('data-click-listener', 'true');
-
-        icon.addEventListener('click', function() {
-            const widgetModal = document.getElementById('widget-modal');
-            const widgetModalTitle = document.getElementById('widget-modal-title');
-            const widgetModalBody = document.getElementById('widget-modal-body');
-            const widget = this.closest('.dashboard-widget');
-            const title = widget.querySelector('h2').textContent;
-            const contentSource = widget.querySelector('.widget-content-source');
-            
-            if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
-                widgetModalTitle.textContent = title;
-                widgetModalBody.innerHTML = ''; 
-                const clonedContent = contentSource.cloneNode(true);
-                clonedContent.style.display = 'flex';
-                widgetModalBody.appendChild(clonedContent);
-                widgetModal.style.display = 'flex'; // WICHTIG: flex für Zentrierung
-            }
-        });
-    });
 }
 
 /**
@@ -256,8 +186,7 @@ function initializeSideDock() {
     const dockContainer = document.getElementById('side-dock-container');
     if (!dockContainer || dockContainer.hasAttribute('data-initialized')) return;
     dockContainer.setAttribute('data-initialized', 'true');
-
-    // ... (restlicher Code für das Navigationsrad bleibt identisch) ...
+    
     const wheelContainer = document.getElementById('wheel-container');
     const searchModal = document.getElementById('global-search-modal');
     const searchInput = document.getElementById('global-search-input');
@@ -302,7 +231,6 @@ function initializeSideDock() {
     };
     
     function createWheel(items, parentId = null, parentData = null) {
-        // ... Logik zum Erstellen des Rads bleibt unverändert ...
         const wheel = document.createElement('div');
         const wheelId = parentId ? `wheel-${parentId}` : 'main-wheel';
         wheel.id = wheelId;
@@ -373,12 +301,67 @@ function initializeSideDock() {
      if (searchInput && !searchInput.hasAttribute('data-listener')) {
          searchInput.setAttribute('data-listener', 'true');
          searchInput.addEventListener('input', (e) => {
-             // ... Suchlogik bleibt unverändert ...
+             const query = e.target.value.toLowerCase();
+             searchResults.innerHTML = '';
+             if (query.length < 2) return;
+             fetch(`/api/global-search/?q=${query}`)
+                 .then(res => res.json())
+                 .then(data => {
+                     const allAdminLinks = Array.from(document.querySelectorAll('.sidebar-wrapper a'));
+                     allAdminLinks.forEach(link => {
+                         if (link.textContent.toLowerCase().includes(query)) {
+                             const li = document.createElement('li');
+                             li.innerHTML = `<a href="${link.href}"><span class="search-result-title">${link.textContent.trim()}</span> <span class="search-result-category">Navigation</span></a>`;
+                             li.querySelector('a').onclick = (e) => {
+                                 e.preventDefault();
+                                 openInIframeModal(link.href, link.textContent.trim());
+                                 searchModal.style.display = 'none';
+                             }
+                             searchResults.appendChild(li);
+                         }
+                     });
+                     Object.keys(data).forEach(category => {
+                         data[category].forEach(item => {
+                             const li = document.createElement('li');
+                             li.innerHTML = `<a href="${item.url}"><span class="search-result-title">${item.name}</span> <span class="search-result-category">${item.type}</span></a>`;
+                              li.querySelector('a').onclick = (e) => {
+                                 e.preventDefault();
+                                 openInIframeModal(item.url, item.name);
+                                 searchModal.style.display = 'none';
+                             }
+                             searchResults.appendChild(li);
+                         });
+                     });
+                 });
          });
      }
 }
 
-// --- Hilfsfunktionen ---
-function updateTime() { /* ... unverändert ... */ }
-function moveModalsToBody() { /* ... unverändert ... */ }
+// #####################################################################
+// # 2. Haupt-Event-Listener (werden einmalig gesetzt)
+// #####################################################################
+document.addEventListener('DOMContentLoaded', () => {
+    moveModalsToBody();
+    setupGlobalEventListeners();
+    initializePageFeatures();
+});
+
+document.addEventListener("turbo:load", initializePageFeatures);
+
+function initializePageFeatures() {
+    initializeSideDock();
+    initializeCalendar();
+    addDashboardButton();
+    updateTime();
+}
+
+/**
+ * Initialisiert Funktionen, die bei jedem (Neu-)Aufbau der Seite ausgeführt werden müssen.
+ */
+function initializePageFeatures() {
+    initializeSideDock();
+    initializeCalendar();
+    addDashboardButton();
+    updateTime();
+}
 

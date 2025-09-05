@@ -384,8 +384,7 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    /* KORREKTUR: Diese drei Zeilen zentrieren den Modal-Inhalt */
-    display: flex;
+    /* WICHTIG: display: flex wird per JS gesetzt, um Zentrierung zu aktivieren */
     align-items: center;
     justify-content: center;
 }
@@ -595,6 +594,7 @@
     backdrop-filter: blur(5px);
     opacity: 0;
     visibility: hidden;
+    pointer-events: none; /* HINZUGEFÜGT: Klicks ignorieren, wenn inaktiv */
     transition: opacity 0.4s ease, visibility 0s 0.4s;
     display: flex;
     align-items: center;
@@ -604,6 +604,7 @@
 #nav-wheel-overlay.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto; /* HINZUGEFÜGT: Klicks zulassen, wenn aktiv */
     transition: opacity 0.4s ease;
 }
 
@@ -782,3 +783,4 @@
     height: 100%;
     border: none;
 }
+

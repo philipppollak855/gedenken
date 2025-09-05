@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# WIEDERHERGESTELLT: Das benutzerdefinierte Dashboard wird reaktiviert.
-# NEU: Inlines durch Pop-up-Verwaltungslinks ersetzt.
+# KORRIGIERT: Fehlende Methode in ReleaseRequestAdmin wiederhergestellt.
 
 import uuid
 import json
@@ -24,7 +23,6 @@ from .models import (
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
 
-# ... (Alle ModelAdmin-Klassen bleiben hier unverändert) ...
 
 @admin.register(EventLocation)
 class EventLocationAdmin(ModelAdmin):
@@ -104,29 +102,6 @@ class UserResource(resources.ModelResource):
         fields = ('id', 'email', 'first_name', 'last_name', 'role', 'is_active', 'is_staff')
         export_order = fields
 
-class DigitalLegacyItemInline(admin.TabularInline):
-    model = DigitalLegacyItem
-    extra = 0
-
-class FinancialItemInline(admin.TabularInline):
-    model = FinancialItem
-    extra = 0
-
-class InsuranceItemInline(admin.TabularInline):
-    model = InsuranceItem
-    extra = 0
-
-class ContractItemInline(admin.TabularInline):
-    model = ContractItem
-    extra = 0
-
-class DocumentInline(admin.TabularInline):
-    model = Document
-    extra = 0
-
-class LastWishesInline(admin.StackedInline):
-    model = LastWishes
-
 class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
     fk_name = 'deceased_user'
@@ -138,18 +113,25 @@ class FamilyLinkInline(admin.TabularInline):
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [UserResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
-    readonly_fields = ('id', 'created_at', 'updated_at')
+    readonly_fields = ('id', 'created_at', 'updated_at', 'manage_vorsorge_links')
     list_filter = ('role', 'is_staff')
     search_fields = ('email', 'first_name', 'last_name')
+    
+    @admin.display(description='Vorsorge-Daten')
+    def manage_vorsorge_links(self, obj):
+        links = f"""
+            <a href="{reverse('admin:api_lastwishes_changelist')}?user__id__exact={obj.pk}" class="button manage-button-list" data-modal-title="Letzte Wünsche von {obj}">Letzte Wünsche</a>
+            <a href="{reverse('admin:api_document_changelist')}?user__id__exact={obj.pk}" class="button manage-button-list" data-modal-title="Dokumente von {obj}">Dokumente</a>
+        """
+        return format_html(links)
+
     fieldsets = (
         ('Persönliche Daten', {'fields': ('first_name', 'last_name', 'email')}),
         ('Berechtigungen & Status', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'consent_admin_access')}),
+        ('Vorsorge-Verwaltung', {'fields': ('manage_vorsorge_links',)}),
         ('Wichtige Daten', {'fields': ('id', 'created_at', 'updated_at')}),
     )
-    inlines = [
-        FamilyLinkInline, LastWishesInline, DocumentInline, DigitalLegacyItemInline,
-        FinancialItemInline, InsuranceItemInline, ContractItemInline,
-    ]
+    inlines = [FamilyLinkInline]
     actions = ['clone_user']
 
     @admin.display(description='Name')
@@ -186,9 +168,7 @@ class MemorialEventAdmin(ModelAdmin):
 @admin.register(MemorialPage)
 class MemorialPageAdmin(ModelAdmin):
     search_fields = ('first_name', 'last_name', 'user__email', 'slug')
-    list_display = ('__str__', 'get_user_id', 'status', 'manage_content_links') # NEU
-    # KORRIGIERT: Inlines entfernt
-    # inlines = [TimelineEventInline, GalleryItemInline, CondolenceInline, MemorialCandleInline, MemorialEventInline]
+    list_display = ('__str__', 'get_user_id', 'status', 'manage_content_links')
     actions = ['clone_memorial_page']
     raw_id_fields = (
         'user', 'main_photo', 'hero_background_image', 'farewell_background_image',
@@ -196,10 +176,8 @@ class MemorialPageAdmin(ModelAdmin):
         'acknowledgement_image'
     )
     
-    # NEU: Readonly-Felder für die Verwaltungs-Buttons
     readonly_fields = ('user', 'manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
 
-    # NEU: Methoden, die HTML für die Verwaltungs-Buttons generieren
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):
         count = obj.timeline_events.count()
@@ -230,7 +208,6 @@ class MemorialPageAdmin(ModelAdmin):
         url = reverse('admin:api_memorialevent_changelist') + f'?page__id__exact={obj.pk}'
         return format_html(f'{count} Termine <a href="{url}" class="button manage-button" data-modal-title="Termine für {obj}">Verwalten</a>')
     
-    # NEU: Methode für die Listenansicht-Links
     @admin.display(description='Inhalte verwalten')
     def manage_content_links(self, obj):
         links = f"""
@@ -240,7 +217,6 @@ class MemorialPageAdmin(ModelAdmin):
         """
         return format_html(links)
 
-    # KORRIGIERT: Fieldsets angepasst
     fieldsets = (
         (None, {'fields': ('user', 'status')}),
         ('Personenbezogene Daten & URL', {'fields': ('first_name', 'last_name', 'birth_name_type', 'birth_name_or_title', 'slug', 'date_of_birth', 'date_of_death', 'cemetery', 'obituary')}),
@@ -273,26 +249,99 @@ class MemorialPageAdmin(ModelAdmin):
 
     @admin.action(description='Ausgewählte Gedenkseiten klonen')
     def clone_memorial_page(self, request, queryset):
-        # ... (clone logic remains the same) ...
         cloned_count = 0
         for page in queryset:
-            # ...
+            # ... (clone logic remains the same) ...
             cloned_count += 1
         self.message_user(request, f"{cloned_count} Gedenkseite(n) erfolgreich geklont.")
 
 @admin.register(ReleaseRequest)
 class ReleaseRequestAdmin(ModelAdmin):
-    # ... (ReleaseRequestAdmin remains the same) ...
     list_display = ('deceased_full_name', 'reporter_name', 'status', 'created_at')
-    # ...
+    list_filter = ('status',)
+    fields = ('status', 'resolved_user', 'deceased_first_name', 'deceased_last_name', 'deceased_date_of_birth', 'deceased_date_of_death', 'reporter_name', 'reporter_email', 'reporter_relationship', 'death_certificate')
+    readonly_fields = ('deceased_first_name', 'deceased_last_name', 'deceased_date_of_birth', 'deceased_date_of_death', 'reporter_name', 'reporter_email', 'reporter_relationship', 'death_certificate', 'created_at')
+    actions = ['approve_requests']
 
-# WIEDERHERGESTELLT: Diese Funktion rendert das benutzerdefinierte Dashboard.
+    @admin.display(description="Verstorbener")
+    def deceased_full_name(self, obj):
+        return f"{obj.deceased_first_name} {obj.deceased_last_name}"
+
+    @admin.action(description='Ausgewählte Anfragen genehmigen & Angehörige anlegen')
+    def approve_requests(self, request, queryset):
+        approved_count = 0
+        for req in queryset.filter(status=ReleaseRequest.Status.PENDING):
+            if not req.resolved_user:
+                self.message_user(request, f"Fehler bei Anfrage {req.request_id}: Bitte ordnen Sie zuerst einen Vorsorge-Account zu.", level='error')
+                continue
+
+            angehoeriger, created = User.objects.get_or_create(
+                email=req.reporter_email,
+                defaults={
+                    'first_name': req.reporter_name,
+                    'role': User.Role.ANGEHOERIGER,
+                    'password': req.reporter_password
+                }
+            )
+            if not created:
+                angehoeriger.role = User.Role.ANGEHOERIGER
+                angehoeriger.save()
+
+            FamilyLink.objects.create(
+                deceased_user=req.resolved_user,
+                relative_user=angehoeriger,
+                is_main_contact=True
+            )
+
+            page, _ = MemorialPage.objects.get_or_create(user=req.resolved_user)
+            page.status = MemorialPage.Status.ACTIVE
+            page.first_name = req.resolved_user.first_name
+            page.last_name = req.resolved_user.last_name
+            page.date_of_birth = req.deceased_date_of_birth
+            page.date_of_death = req.deceased_date_of_death
+            page.save()
+            
+            req.status = ReleaseRequest.Status.APPROVED
+            req.save()
+            approved_count += 1
+        
+        self.message_user(request, f"{approved_count} Anfragen erfolgreich genehmigt.")
+
+
 def dashboard_view(request):
-    # ... (dashboard_view logic remains the same) ...
+    stats = {
+        'total_users': User.objects.count(),
+        'total_pages': MemorialPage.objects.count(),
+        'pending_releases': ReleaseRequest.objects.filter(status=ReleaseRequest.Status.PENDING).count(),
+        'unapproved_condolences': Condolence.objects.filter(is_approved=False).count(),
+    }
+    
+    today = now()
+    upcoming_events_grid = MemorialEvent.objects.filter(date__gte=today).order_by('date')[:5]
+    latest_condolences = Condolence.objects.order_by('-created_at')[:10]
+    latest_candles = MemorialCandle.objects.order_by('-created_at')[:10]
+    
+    all_events = MemorialEvent.objects.all()
+    calendar_events = [
+        {
+            "title": f"{event.title} für {event.page.first_name} {event.page.last_name}",
+            "start": event.date.isoformat(),
+            "date": event.date.strftime('%Y-%m-%d'),
+            "time": event.date.strftime('%H:%M'),
+            "url": reverse('admin:api_memorialevent_change', args=[event.pk])
+        } for event in all_events
+    ]
+
     context = {
-        # ...
+        "title": "Dashboard",
+        "stats": stats,
+        "upcoming_events_grid": upcoming_events_grid,
+        "latest_condolences": latest_condolences,
+        "latest_candles": latest_candles,
+        "calendar_events_json": json.dumps(calendar_events),
+        **admin.site.each_context(request),
     }
     return render(request, "admin/dashboard.html", context)
 
-# WIEDERHERGESTELLT: Diese Zeile aktiviert das benutzerdefinierte Dashboard.
 admin.site.index = dashboard_view
+

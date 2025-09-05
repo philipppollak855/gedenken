@@ -943,3 +943,60 @@
     font-weight: 500;
 }
 
+/* NEU: Stile für die Inhaltsverwaltung */
+.change-form .form-row[class*="manage_"] {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 0; /* Mehr vertikaler Abstand */
+    border-bottom: 1px solid #444;
+}
+
+.change-form .form-row[class*="manage_"]:last-child {
+    border-bottom: none;
+}
+
+.change-form .form-row[class*="manage_"] label {
+    font-weight: bold;
+    color: #e1e1e1;
+}
+
+.change-form .form-row[class*="manage_"] .readonly {
+    font-size: 1rem;
+    color: #ccc;
+}
+
+.manage-button {
+    background-color: #4a535c !important;
+    color: #f1f1f1 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    transition: all 0.2s !important;
+    border: 1px solid #5a636c !important;
+    margin-left: 1rem;
+}
+
+.manage-button:hover {
+    background-color: #8c8073 !important;
+    border-color: #a99a8c !important;
+    transform: translateY(-2px);
+}
+
+/* Stile für die Buttons in der Listenansicht */
+.manage-button-list {
+    display: inline-block;
+    background-color: #4a535c !important;
+    color: #f1f1f1 !important;
+    padding: 0.3rem 0.6rem !important;
+    border-radius: 4px !important;
+    margin: 2px !important;
+    font-size: 0.8rem !important;
+    text-decoration: none !important;
+}
+
+.manage-button-list:hover {
+    background-color: #8c8073 !important;
+}
+

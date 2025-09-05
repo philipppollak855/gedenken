@@ -338,21 +338,88 @@ function initializeSideDock() {
 }
 
 // #####################################################################
-// # 2. Haupt-Event-Listener (werden einmalig gesetzt)
+// # 2. Haupt-Event-Listener und Initialisierungs-Aufrufe
 // #####################################################################
-document.addEventListener('DOMContentLoaded', () => {
-    moveModalsToBody();
-    setupGlobalEventListeners();
-    initializePageFeatures();
-});
 
-document.addEventListener("turbo:load", initializePageFeatures);
+/**
+ * Einmalige Einrichtung der globalen Event-Listener.
+ */
+function setupGlobalEventListeners() {
+    if (document.body.hasAttribute('data-global-listeners-attached')) return;
+    document.body.setAttribute('data-global-listeners-attached', 'true');
 
-function initializePageFeatures() {
-    initializeSideDock();
-    initializeCalendar();
-    addDashboardButton();
-    updateTime();
+    document.body.addEventListener('click', function(e) {
+        // ... (Zentrale Klick-Verarbeitung bleibt hier) ...
+        const sideDockTrigger = e.target.closest('#side-dock-trigger');
+        const navWheelOverlay = e.target.id === 'nav-wheel-overlay' ? e.target : null;
+        const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
+        const calendarIcon = e.target.closest('.calendar-icon');
+        const widgetToggleIcon = e.target.closest('.toggle-widget-icon');
+        const modal = e.target.closest('.modal');
+        const closeModalButton = e.target.closest('.close-modal');
+
+        if (sideDockTrigger) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('side-dock-container')?.classList.toggle('active');
+            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
+            return;
+        }
+
+        if (navWheelOverlay) {
+            navWheelOverlay.classList.remove('active');
+            document.getElementById('side-dock-container')?.classList.remove('active');
+            return;
+        }
+
+        if (modalLink) {
+            e.preventDefault();
+            const url = modalLink.href;
+            const title = modalLink.dataset.modalTitle || modalLink.textContent.trim() || 'Eintrag ansehen';
+            openInIframeModal(url, title);
+            return;
+        }
+
+        if (calendarIcon) {
+            const calendarModal = document.getElementById('calendar-modal');
+            if (calendarModal) {
+                calendarModal.style.display = 'flex';
+                if (window.renderCalendar) window.renderCalendar();
+            }
+            return;
+        }
+
+        if (widgetToggleIcon) {
+            const widgetModal = document.getElementById('widget-modal');
+            const widgetModalTitle = document.getElementById('widget-modal-title');
+            const widgetModalBody = document.getElementById('widget-modal-body');
+            const widget = widgetToggleIcon.closest('.dashboard-widget');
+            const title = widget.querySelector('h2').textContent;
+            const contentSource = widget.querySelector('.widget-content-source');
+            
+            if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
+                widgetModalTitle.textContent = title;
+                widgetModalBody.innerHTML = ''; 
+                const clonedContent = contentSource.cloneNode(true);
+                clonedContent.style.display = 'flex';
+                widgetModalBody.appendChild(clonedContent);
+                widgetModal.style.display = 'flex';
+            }
+            return;
+        }
+
+        if (closeModalButton || e.target === modal) {
+            if (modal) {
+                modal.style.display = 'none';
+                if (modal.id === 'iframe-modal') {
+                    const iframe = document.getElementById('content-iframe');
+                    if(iframe) iframe.src = 'about:blank';
+                }
+            }
+        }
+    });
+
+    initializeFilters();
 }
 
 /**
@@ -364,4 +431,13 @@ function initializePageFeatures() {
     addDashboardButton();
     updateTime();
 }
+
+// Haupt-Event-Listener für das initiale Laden und die Turbo-Navigation.
+document.addEventListener('DOMContentLoaded', () => {
+    moveModalsToBody();
+    setupGlobalEventListeners();
+    initializePageFeatures();
+});
+
+document.addEventListener("turbo:load", initializePageFeatures);
 

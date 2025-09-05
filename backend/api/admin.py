@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Fehlende Methode in ReleaseRequestAdmin wiederhergestellt.
+# KORRIGIERT: Fehlende ModelAdmin-Registrierungen hinzugefügt, um 500-Fehler zu beheben.
 
 import uuid
 import json
@@ -23,6 +23,46 @@ from .models import (
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
 
+# NEU: Basis-Admin-Klassen für Vorsorge-Modelle, um sie registrierbar zu machen
+@admin.register(LastWishes)
+class LastWishesAdmin(ModelAdmin):
+    pass
+
+@admin.register(Document)
+class DocumentAdmin(ModelAdmin):
+    list_display = ('title', 'document_type', 'user')
+    list_filter = ('user',)
+
+@admin.register(ContractItem)
+class ContractItemAdmin(ModelAdmin):
+    list_display = ('contract_type', 'provider', 'user')
+    list_filter = ('user',)
+
+@admin.register(InsuranceItem)
+class InsuranceItemAdmin(ModelAdmin):
+    list_display = ('insurance_type', 'company', 'user')
+    list_filter = ('user',)
+
+@admin.register(FinancialItem)
+class FinancialItemAdmin(ModelAdmin):
+    list_display = ('product_type', 'institute', 'user')
+    list_filter = ('user',)
+
+@admin.register(DigitalLegacyItem)
+class DigitalLegacyItemAdmin(ModelAdmin):
+    list_display = ('provider', 'category', 'user')
+    list_filter = ('user',)
+
+# NEU: Admin-Klassen für Gedenkseiten-Inhalte
+@admin.register(TimelineEvent)
+class TimelineEventAdmin(ModelAdmin):
+    list_display = ('title', 'date', 'page')
+    list_filter = ('page',)
+
+@admin.register(GalleryItem)
+class GalleryItemAdmin(ModelAdmin):
+    list_display = ('caption', 'page')
+    list_filter = ('page',)
 
 @admin.register(EventLocation)
 class EventLocationAdmin(ModelAdmin):
@@ -59,7 +99,7 @@ class CondolenceTemplateAdmin(ModelAdmin):
 @admin.register(Condolence)
 class CondolenceAdmin(ModelAdmin):
     list_display = ('guest_name', 'page', 'is_approved', 'created_at')
-    list_filter = ('is_approved',)
+    list_filter = ('is_approved','page')
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
     list_editable = ('is_approved',)
     fields = ('page', 'guest_name', 'message', 'is_approved', 'author', 'created_at')
@@ -68,7 +108,7 @@ class CondolenceAdmin(ModelAdmin):
 @admin.register(MemorialCandle)
 class MemorialCandleAdmin(ModelAdmin):
     list_display = ('guest_name', 'page', 'is_private', 'created_at')
-    list_filter = ('is_private',)
+    list_filter = ('is_private','page')
     search_fields = ('guest_name', 'message', 'page__first_name', 'page__last_name')
     list_editable = ('is_private',)
     fields = ('page', 'guest_name', 'message', 'is_private', 'candle_image', 'author', 'created_at')

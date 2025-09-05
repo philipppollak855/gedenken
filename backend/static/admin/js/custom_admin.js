@@ -11,6 +11,24 @@
 // #####################################################################
 
 /**
+ * Blendet zu Beginn alle Modals und Overlays aus, um ein fehlerhaftes Anzeigen beim Laden zu verhindern.
+ */
+function hideAllModals() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.style.display = 'none';
+    });
+    const overlay = document.getElementById('nav-wheel-overlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+    const dock = document.getElementById('side-dock-container');
+    if (dock) {
+        dock.classList.remove('active');
+    }
+}
+
+
+/**
  * Öffnet eine gegebene URL in einem IFrame-Modal.
  */
 function openInIframeModal(url, title) {
@@ -125,7 +143,7 @@ function initializeCalendar() {
     };
     
     function showEventsForDay(dayEvents, dayEl) {
-        document.querySelectorAll('#event-list-popup').forEach(p => p.style.display = 'none');
+        if (!eventListPopup) return;
         eventListPopup.innerHTML = '<ul></ul>';
         const list = eventListPopup.querySelector('ul');
         dayEvents.forEach(event => {
@@ -142,10 +160,10 @@ function initializeCalendar() {
         eventListPopup.style.top = `${rect.top - calendarRect.top}px`;
         if ((rect.left + rect.width + eventListPopup.offsetWidth) < calendarRect.right) {
             eventListPopup.style.left = `${rect.left - calendarRect.left + rect.width + 10}px`;
-            if (eventListPopup.querySelector('::before')) eventListPopup.querySelector('::before').style.right = '100%';
+            eventListPopup.style.setProperty('--arrow-direction', 'border-right');
         } else {
             eventListPopup.style.left = `${rect.left - calendarRect.left - eventListPopup.offsetWidth - 10}px`;
-            if (eventListPopup.querySelector('::before')) eventListPopup.querySelector('::before').style.left = '100%';
+            eventListPopup.style.setProperty('--arrow-direction', 'border-left');
         }
     }
     
@@ -157,26 +175,6 @@ function initializeCalendar() {
         nextMonthBtn.setAttribute('data-listener', 'true');
         nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); window.renderCalendar(); };
     }
-}
-
-/**
- * Richtet den Filter-Input ein. Funktioniert global über Delegation.
- */
-function initializeFilters() {
-    if (document.body.hasAttribute('data-filter-listener')) return;
-    document.body.setAttribute('data-filter-listener', 'true');
-
-    document.body.addEventListener('input', function(event) {
-        if (event.target.matches('.filter-input')) {
-            const filterValue = event.target.value.toLowerCase();
-            const list = event.target.closest('.widget-content-source, #widget-modal-body').querySelector('.activity-list');
-            if (list) {
-                list.querySelectorAll('li, .activity-item').forEach(item => {
-                    item.style.display = item.textContent.toLowerCase().includes(filterValue) ? '' : 'none';
-                });
-            }
-        }
-    });
 }
 
 /**
@@ -311,7 +309,7 @@ function initializeSideDock() {
              fetch(`/api/global-search/?q=${query}`)
                  .then(res => res.json())
                  .then(data => {
-                     if (searchResults) searchResults.innerHTML = ''; // Ergebnisse leeren vor dem Hinzufügen
+                     if (searchResults) searchResults.innerHTML = '';
                      data.forEach(item => {
                          const li = document.createElement('li');
                          const link = document.createElement('a');
@@ -336,113 +334,133 @@ function initializeSideDock() {
 // #####################################################################
 
 /**
- * Richtet spezifische Klick-Listener für Dashboard-Elemente ein,
- * um die Zuverlässigkeit zu erhöhen.
+ * Richtet alle interaktiven Event-Listener für das Dashboard ein.
+ * Wird bei jedem Laden der Seite aufgerufen, um sicherzustellen, dass alles funktioniert.
  */
-function setupDashboardInteractions() {
-    // Klick-Listener für Kalender-Icon
-    const calendarIcon = document.querySelector('.calendar-icon');
-    if (calendarIcon && !calendarIcon.hasAttribute('data-click-listener')) {
-        calendarIcon.setAttribute('data-click-listener', 'true');
-        calendarIcon.addEventListener('click', () => {
-            const calendarModal = document.getElementById('calendar-modal');
-            if (calendarModal) {
-                calendarModal.style.display = 'flex';
-                if (window.renderCalendar) window.renderCalendar();
-            }
-        });
-    }
-
-    // Klick-Listener für seitlichen Dock-Auslöser
-    const sideDockTrigger = document.getElementById('side-dock-trigger');
-    if (sideDockTrigger && !sideDockTrigger.hasAttribute('data-click-listener')) {
-        sideDockTrigger.setAttribute('data-click-listener', 'true');
-        sideDockTrigger.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            document.getElementById('side-dock-container')?.classList.toggle('active');
-            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
-        });
-    }
-}
-
-
-/**
- * Einmalige Einrichtung der globalen Event-Listener für delegierte Events.
- */
-function setupGlobalEventListeners() {
-    if (document.body.hasAttribute('data-global-listeners-attached')) return;
-    document.body.setAttribute('data-global-listeners-attached', 'true');
-
-    document.body.addEventListener('click', function(e) {
-        const navWheelOverlay = e.target.id === 'nav-wheel-overlay' ? e.target : null;
-        const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
-        const widgetToggleIcon = e.target.closest('.toggle-widget-icon');
-        const modal = e.target.closest('.modal');
-        const closeModalButton = e.target.closest('.close-modal');
-
-        if (navWheelOverlay) {
-            navWheelOverlay.classList.remove('active');
-            document.getElementById('side-dock-container')?.classList.remove('active');
-            return;
-        }
-
-        if (modalLink) {
-            e.preventDefault();
-            const url = modalLink.href;
-            const title = modalLink.dataset.modalTitle || modalLink.textContent.trim() || 'Eintrag ansehen';
-            openInIframeModal(url, title);
-            return;
-        }
-
-        if (widgetToggleIcon) {
-            const widgetModal = document.getElementById('widget-modal');
-            const widgetModalTitle = document.getElementById('widget-modal-title');
-            const widgetModalBody = document.getElementById('widget-modal-body');
-            const widget = widgetToggleIcon.closest('.dashboard-widget');
-            const title = widget.querySelector('h2').textContent;
-            const contentSource = widget.querySelector('.widget-content-source');
-            
-            if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
-                widgetModalTitle.textContent = title;
-                widgetModalBody.innerHTML = ''; 
-                const clonedContent = contentSource.cloneNode(true);
-                clonedContent.style.display = 'flex';
-                widgetModalBody.appendChild(clonedContent);
-                widgetModal.style.display = 'flex';
-            }
-            return;
-        }
-
-        if (closeModalButton || e.target === modal) {
-            if (modal) {
-                modal.style.display = 'none';
-                if (modal.id === 'iframe-modal') {
-                    const iframe = document.getElementById('content-iframe');
-                    if(iframe) iframe.src = 'about:blank';
-                }
-            }
-        }
+function setupAllEventListeners() {
+    // --- Logik zum Schließen von Modals ---
+    document.querySelectorAll('.close-modal, .modal').forEach(el => {
+        // Entferne alte Listener, um Duplikate zu vermeiden
+        el.removeEventListener('click', closeModalHandler);
+        el.addEventListener('click', closeModalHandler);
     });
 
-    initializeFilters();
+    // --- Logik zum Öffnen von Modals und anderen Interaktionen ---
+    
+    // Kalender-Icon
+    const calendarIcon = document.querySelector('.calendar-icon');
+    if (calendarIcon) {
+        calendarIcon.removeEventListener('click', openCalendarModal);
+        calendarIcon.addEventListener('click', openCalendarModal);
+    }
+
+    // Side Dock Trigger
+    const sideDockTrigger = document.getElementById('side-dock-trigger');
+    if (sideDockTrigger) {
+        sideDockTrigger.removeEventListener('click', toggleSideDock);
+        sideDockTrigger.addEventListener('click', toggleSideDock);
+    }
+    
+    // Nav Wheel Overlay (schließt das Rad bei Klick daneben)
+    const navWheelOverlay = document.getElementById('nav-wheel-overlay');
+    if (navWheelOverlay) {
+        navWheelOverlay.removeEventListener('click', closeSideDock);
+        navWheelOverlay.addEventListener('click', closeSideDock);
+    }
+
+    // "Widget vergrößern"-Icons
+    document.querySelectorAll('.toggle-widget-icon').forEach(icon => {
+        icon.removeEventListener('click', openWidgetModal);
+        icon.addEventListener('click', openWidgetModal);
+    });
+
+    // Klicks auf Dashboard-Kacheln (Statistiken, Events etc.)
+    document.querySelectorAll('.quick-links a, .stat-item-link, .event-card-link').forEach(link => {
+        link.removeEventListener('click', openLinkInIframe);
+        link.addEventListener('click', openLinkInIframe);
+    });
 }
 
+// --- Handler-Funktionen für Event-Listener (außerhalb von setupAllEventListeners definiert) ---
+
+function closeModalHandler(e) {
+    // Schließt nur, wenn auf das Schließen-Kreuz oder den äußeren Modal-Bereich geklickt wird
+    if (e.target.classList.contains('close-modal') || e.target.classList.contains('modal')) {
+        const modal = e.target.closest('.modal');
+        if (modal) {
+            modal.style.display = 'none';
+            if (modal.id === 'iframe-modal') {
+                const iframe = document.getElementById('content-iframe');
+                if(iframe) iframe.src = 'about:blank';
+            }
+        }
+    }
+}
+
+function openCalendarModal() {
+    const calendarModal = document.getElementById('calendar-modal');
+    if (calendarModal) {
+        calendarModal.style.display = 'flex';
+        if (window.renderCalendar) window.renderCalendar();
+    }
+}
+
+function toggleSideDock(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('side-dock-container')?.classList.toggle('active');
+    document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
+}
+
+function closeSideDock(e) {
+    if (e.target.id === 'nav-wheel-overlay') {
+        e.currentTarget.classList.remove('active');
+        document.getElementById('side-dock-container')?.classList.remove('active');
+    }
+}
+
+function openWidgetModal(e) {
+    const widgetModal = document.getElementById('widget-modal');
+    const widgetModalTitle = document.getElementById('widget-modal-title');
+    const widgetModalBody = document.getElementById('widget-modal-body');
+    const widget = e.target.closest('.dashboard-widget');
+    const title = widget.querySelector('h2').textContent;
+    const contentSource = widget.querySelector('.widget-content-source');
+    
+    if (contentSource && widgetModal && widgetModalTitle && widgetModalBody) {
+        widgetModalTitle.textContent = title;
+        widgetModalBody.innerHTML = ''; 
+        const clonedContent = contentSource.cloneNode(true);
+        clonedContent.style.display = 'flex';
+        widgetModalBody.appendChild(clonedContent);
+        widgetModal.style.display = 'flex';
+    }
+}
+
+function openLinkInIframe(e) {
+    e.preventDefault();
+    const link = e.currentTarget;
+    const url = link.href;
+    const title = link.dataset.modalTitle || link.textContent.trim() || 'Eintrag ansehen';
+    openInIframeModal(url, title);
+}
+
+
 /**
- * Initialisiert Funktionen, die bei jedem (Neu-)Aufbau der Seite ausgeführt werden müssen.
+ * Initialisiert alle Funktionen, die bei jedem Seitenaufbau benötigt werden.
  */
 function initializePageFeatures() {
+    hideAllModals(); // WICHTIG: Zuerst alles ausblenden
     initializeSideDock();
     initializeCalendar();
     addDashboardButton();
     updateTime();
-    setupDashboardInteractions();
+    setupAllEventListeners(); // Neue, zentrale Funktion zum Binden der Events
 }
 
 // Haupt-Event-Listener für das initiale Laden und die Turbo-Navigation.
 document.addEventListener('DOMContentLoaded', () => {
     moveModalsToBody();
-    setupGlobalEventListeners();
     initializePageFeatures();
 });
 

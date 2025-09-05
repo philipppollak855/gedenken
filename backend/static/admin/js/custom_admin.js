@@ -304,35 +304,28 @@ function initializeSideDock() {
              const query = e.target.value.toLowerCase();
              searchResults.innerHTML = '';
              if (query.length < 2) return;
+             // KORRIGIERT: Holt die Admin-Basis-URL dynamisch, falls sie sich ändert.
+             const adminBaseUrl = window.location.origin + '/admin/';
+
              fetch(`/api/global-search/?q=${query}`)
                  .then(res => res.json())
                  .then(data => {
-                     const allAdminLinks = Array.from(document.querySelectorAll('.sidebar-wrapper a'));
-                     allAdminLinks.forEach(link => {
-                         if (link.textContent.toLowerCase().includes(query)) {
-                             const li = document.createElement('li');
-                             li.innerHTML = `<a href="${link.href}"><span class="search-result-title">${link.textContent.trim()}</span> <span class="search-result-category">Navigation</span></a>`;
-                             li.querySelector('a').onclick = (e) => {
-                                 e.preventDefault();
-                                 openInIframeModal(link.href, link.textContent.trim());
-                                 searchModal.style.display = 'none';
-                             }
-                             searchResults.appendChild(li);
-                         }
+                     searchResults.innerHTML = ''; // Ergebnisse leeren vor dem Hinzufügen
+                     data.forEach(item => {
+                         const li = document.createElement('li');
+                         const link = document.createElement('a');
+                         link.href = item.url;
+                         link.innerHTML = `<span class="search-result-title">${item.title}</span> <span class="search-result-category">${item.type}</span>`;
+                         link.onclick = (e) => {
+                             e.preventDefault();
+                             openInIframeModal(item.url, item.title);
+                             if(searchModal) searchModal.style.display = 'none';
+                         };
+                         li.appendChild(link);
+                         searchResults.appendChild(li);
                      });
-                     Object.keys(data).forEach(category => {
-                         data[category].forEach(item => {
-                             const li = document.createElement('li');
-                             li.innerHTML = `<a href="${item.url}"><span class="search-result-title">${item.name}</span> <span class="search-result-category">${item.type}</span></a>`;
-                              li.querySelector('a').onclick = (e) => {
-                                 e.preventDefault();
-                                 openInIframeModal(item.url, item.name);
-                                 searchModal.style.display = 'none';
-                             }
-                             searchResults.appendChild(li);
-                         });
-                     });
-                 });
+                 })
+                 .catch(err => console.error("Fehler bei der globalen Suche:", err));
          });
      }
 }
@@ -349,7 +342,6 @@ function setupGlobalEventListeners() {
     document.body.setAttribute('data-global-listeners-attached', 'true');
 
     document.body.addEventListener('click', function(e) {
-        // ... (Zentrale Klick-Verarbeitung bleibt hier) ...
         const sideDockTrigger = e.target.closest('#side-dock-trigger');
         const navWheelOverlay = e.target.id === 'nav-wheel-overlay' ? e.target : null;
         const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
@@ -383,6 +375,7 @@ function setupGlobalEventListeners() {
         if (calendarIcon) {
             const calendarModal = document.getElementById('calendar-modal');
             if (calendarModal) {
+                // KORREKTUR: Display-Eigenschaft ändern, anstatt flex-direction hinzuzufügen
                 calendarModal.style.display = 'flex';
                 if (window.renderCalendar) window.renderCalendar();
             }
@@ -440,4 +433,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("turbo:load", initializePageFeatures);
-

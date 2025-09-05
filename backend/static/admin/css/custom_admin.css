@@ -384,7 +384,10 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    /* WICHTIG: display: flex wird per JS gesetzt, um Zentrierung zu aktivieren */
+    /* KORREKTUR: Diese drei Zeilen zentrieren den Modal-Inhalt */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
@@ -779,4 +782,3 @@
     height: 100%;
     border: none;
 }
-

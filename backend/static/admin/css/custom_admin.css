@@ -635,9 +635,6 @@
     transition: opacity 0.3s ease-out, transform 0.3s ease-out;
     transform: scale(0.8);
     transform-origin: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .nav-wheel.active {
@@ -672,7 +669,6 @@
     border: 3px solid #8c8073;
     font-size: 2rem;
     z-index: 10;
-    /* KORREKTUR: Button exakt zentrieren */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -681,7 +677,7 @@
 .wheel-item:hover {
     background-color: #a99a8c;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    transform: scale(1.1); /* Ersetzt die alte Animation */
+    transform: translate(-50%, -50%) scale(1.1); /* KORREKTUR: transform beibehalten */
 }
 
 .wheel-item-label {

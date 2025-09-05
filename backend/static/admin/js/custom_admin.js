@@ -248,20 +248,24 @@ function initializeSideDock() {
         } else {
              const centerLogo = document.createElement('div');
              centerLogo.className = 'wheel-center-button';
-             centerLogo.innerHTML = `<i class="fas fa-star"></i>`;
-             centerLogo.onclick = closeSideDockAndWheel; // HINZUGEFÜGT: Schließ-Funktion
+             centerLogo.innerHTML = `<i class="fas fa-times"></i>`; // Geändert von fa-star zu fa-times
+             centerLogo.onclick = closeSideDockAndWheel; // Schließ-Funktion
              wheel.appendChild(centerLogo);
         }
 
         const angleStep = (2 * Math.PI) / effectiveItems.length;
         effectiveItems.forEach((item, index) => {
             const angle = index * angleStep - (Math.PI / 2);
-            const x = Math.cos(angle) * radius + 170;
-            const y = Math.sin(angle) * radius + 170;
+            // KORREKTUR: Die x- und y-Koordinaten werden nun von der Mitte des 500x500 Containers berechnet
+            const x = Math.cos(angle) * radius + 250; 
+            const y = Math.sin(angle) * radius + 250;
             const wheelItem = document.createElement('a');
             wheelItem.className = 'wheel-item';
+            // Wir benutzen transform, um es relativ zur eigenen Mitte zu zentrieren
             wheelItem.style.left = `${x}px`;
             wheelItem.style.top = `${y}px`;
+            wheelItem.style.transform = 'translate(-50%, -50%)';
+
             wheelItem.innerHTML = `<i class="fas ${item.icon}"></i><span class="wheel-item-label">${item.label}</span>`;
             if (item.action === 'openSearch') {
                 wheelItem.onclick = openSearchModal;
@@ -271,6 +275,7 @@ function initializeSideDock() {
                      wheelItem.addEventListener('click', function(e) {
                          e.preventDefault();
                          openInIframeModal(this.href, item.label);
+                         closeSideDockAndWheel(); // Rad nach Klick schließen
                      });
                  }
             } else if (item.children) {

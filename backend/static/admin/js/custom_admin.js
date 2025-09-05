@@ -351,9 +351,11 @@ function initializeSideDock() {
     }
 
     // Initialisiert das Rad
-    wheelContainer.innerHTML = '';
-    createWheel(navData.items, null, navData);
-    showWheel('main-wheel');
+    if(wheelContainer) {
+        wheelContainer.innerHTML = '';
+        createWheel(navData.items, null, navData);
+        showWheel('main-wheel');
+    }
 
     // Listener für das Such-Input-Feld (nur einmal binden)
      if (searchInput && !searchInput.hasAttribute('data-listener')) {
@@ -435,28 +437,32 @@ function initializePageFeatures() {
 
     // Bindet Klick-Events an spezifische Elemente, falls sie existieren
     const sideDockTrigger = document.getElementById('side-dock-trigger');
-    if (sideDockTrigger) {
-        sideDockTrigger.onclick = (e) => {
+    if (sideDockTrigger && !sideDockTrigger.hasAttribute('data-click-listener')) {
+        sideDockTrigger.setAttribute('data-click-listener', 'true');
+        sideDockTrigger.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             document.getElementById('side-dock-container')?.classList.toggle('active');
             document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
-        };
+        });
     }
     
     const calendarIcon = document.getElementById('open-calendar-modal');
-    if(calendarIcon) {
-        calendarIcon.onclick = () => {
+    if(calendarIcon && !calendarIcon.hasAttribute('data-click-listener')) {
+        calendarIcon.setAttribute('data-click-listener', 'true');
+        calendarIcon.addEventListener('click', () => {
              const calendarModal = document.getElementById('calendar-modal');
              if (calendarModal) {
                 calendarModal.style.display = 'flex';
                 if (window.renderCalendar) window.renderCalendar();
              }
-        };
+        });
     }
 
     document.querySelectorAll('.toggle-widget-icon').forEach(icon => {
-        icon.onclick = () => {
+        if (icon.hasAttribute('data-click-listener')) return;
+        icon.setAttribute('data-click-listener', 'true');
+        icon.addEventListener('click', () => {
             const widgetModal = document.getElementById('widget-modal');
             const widgetModalTitle = document.getElementById('widget-modal-title');
             const widgetModalBody = document.getElementById('widget-modal-body');
@@ -473,16 +479,18 @@ function initializePageFeatures() {
                 widgetModalBody.appendChild(clonedContent);
                 widgetModal.style.display = 'flex';
             }
-        };
+        });
     });
 
     document.querySelectorAll('.quick-links a, .stat-item-link, .event-card-link').forEach(link => {
-        link.onclick = (e) => {
+        if (link.hasAttribute('data-click-listener')) return;
+        link.setAttribute('data-click-listener', 'true');
+        link.addEventListener('click', (e) => {
             e.preventDefault();
             const url = link.href;
             const title = link.dataset.modalTitle || link.textContent.trim() || 'Eintrag ansehen';
             openInIframeModal(url, title);
-        };
+        });
     });
     
     // Blendet alle Modals und Overlays standardmäßig aus, um ein Aufblitzen zu verhindern.

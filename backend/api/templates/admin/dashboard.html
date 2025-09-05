@@ -187,14 +187,16 @@
 <!-- Seitliches Dock für Navigationsrad -->
 <div id="side-dock-container">
     <div id="side-dock-trigger"><i class="fas fa-angle-left"></i></div>
-    <div id="nav-wheel-overlay">
-        <div id="wheel-container-wrapper">
-            <div id="wheel-container">
-                <!-- Navigationsräder werden hier per JS eingefügt -->
-            </div>
+</div>
+<!-- KORREKTUR: Overlay aus dem Container herausgenommen, um Z-Index-Probleme zu vermeiden -->
+<div id="nav-wheel-overlay">
+    <div id="wheel-container-wrapper">
+        <div id="wheel-container">
+            <!-- Navigationsräder werden hier per JS eingefügt -->
         </div>
     </div>
 </div>
+
 
 <!-- Globales Such-Modal -->
 <div id="global-search-modal" class="modal">

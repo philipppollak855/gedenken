@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Fügt den Gedenkseiten-Assistenten (Wizard) hinzu.
+# ZURÜCKGESETZT: Der Wizard wurde entfernt. Die "Verwalten"-Buttons in Pop-ups sind wieder aktiv.
 
 import uuid
 import json
@@ -23,115 +23,9 @@ from .models import (
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
     CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
 )
-from .forms import UserWizardForm, PageDataWizardForm, PageImagesWizardForm, PageTextsWizardForm, PageEventWizardForm
-
-# --- Wizard Views (NEU) ---
-class MemorialPageWizardView:
-    def __init__(self, model_admin):
-        self.model_admin = model_admin
-        self.steps = [
-            ('user', UserWizardForm),
-            ('pagedata', PageDataWizardForm),
-            ('images', PageImagesWizardForm),
-            ('texts', PageTextsWizardForm),
-            ('event', PageEventWizardForm),
-        ]
-        self.template_names = {
-            'user': 'admin/wizards/step_1_user.html',
-            'pagedata': 'admin/wizards/step_2_pagedata.html',
-            'images': 'admin/wizards/step_3_images.html',
-            'texts': 'admin/wizards/step_4_texts.html',
-            'event': 'admin/wizards/step_5_event.html',
-        }
-
-    def get_form_data(self, request, step_name):
-        return request.session.get('wizard_data', {}).get(step_name, {})
-
-    def view(self, request, step):
-        step_index = [s[0] for s in self.steps].index(step)
-        form_class = self.steps[step_index][1]
-
-        if request.method == 'POST':
-            form = form_class(request.POST, request.FILES)
-            if form.is_valid():
-                # Store form data in session
-                wizard_data = request.session.get('wizard_data', {})
-                wizard_data[step] = form.cleaned_data
-                request.session['wizard_data'] = wizard_data
-
-                # Logic for Step 1: User creation/selection
-                if step == 'user':
-                    email = form.cleaned_data['email']
-                    user, created = User.objects.get_or_create(
-                        email=email,
-                        defaults={
-                            'first_name': form.cleaned_data.get('first_name', ''),
-                            'last_name': form.cleaned_data.get('last_name', ''),
-                        }
-                    )
-                    wizard_data['user_id'] = user.id
-                    wizard_data.setdefault('pagedata', {})['first_name'] = user.first_name
-                    wizard_data.setdefault('pagedata', {})['last_name'] = user.last_name
-                    request.session['wizard_data'] = wizard_data
-                
-                # Logic for Final Step: Object creation
-                if step_index == len(self.steps) - 1:
-                    user = User.objects.get(pk=wizard_data['user_id'])
-                    
-                    # Create MemorialPage
-                    page_data = wizard_data.get('pagedata', {})
-                    page, created = MemorialPage.objects.update_or_create(
-                        user=user,
-                        defaults={
-                            'first_name': page_data.get('first_name'),
-                            'last_name': page_data.get('last_name'),
-                            'date_of_birth': page_data.get('date_of_birth'),
-                            'date_of_death': page_data.get('date_of_death'),
-                            'cemetery': page_data.get('cemetery'),
-                        }
-                    )
-                    
-                    # Add images, texts, etc.
-                    images_data = wizard_data.get('images', {})
-                    if images_data.get('main_photo'): page.main_photo = images_data['main_photo']
-                    if images_data.get('hero_background_image'): page.hero_background_image = images_data['hero_background_image']
-                    
-                    texts_data = wizard_data.get('texts', {})
-                    page.obituary = texts_data.get('obituary', '')
-
-                    page.status = wizard_data.get('event', {}).get('status', 'inactive')
-                    page.save()
-
-                    # Create MemorialEvent
-                    event_data = wizard_data.get('event', {})
-                    if event_data.get('title') and event_data.get('date') and event_data.get('location'):
-                        MemorialEvent.objects.create(
-                            page=page,
-                            title=event_data.get('title'),
-                            date=event_data.get('date'),
-                            location=event_data.get('location'),
-                        )
-
-                    del request.session['wizard_data']
-                    messages.success(request, f'Gedenkseite für {page.first_name} {page.last_name} erfolgreich erstellt.')
-                    return HttpResponseRedirect(reverse('admin:api_memorialpage_change', args=(page.pk,)))
-
-                # Redirect to next step
-                next_step = self.steps[step_index + 1][0]
-                return HttpResponseRedirect(reverse(f'admin:memorialpage_wizard_{next_step}'))
-        else:
-            form = form_class(initial=self.get_form_data(request, step))
-
-        context = self.model_admin.admin_site.each_context(request)
-        context['form'] = form
-        context['title'] = f'Gedenkseite erstellen: Schritt {step_index + 1} von {len(self.steps)}'
-        context['current_step'] = step
-        
-        return render(request, self.template_names[step], context)
 
 # --- Admin Classes ---
 
-# (Other ModelAdmins remain unchanged, but are included for completeness)
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)
@@ -174,7 +68,6 @@ class FamilyLinkInline(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
-    # ... (UserAdmin content remains the same)
     resource_classes = [resources.ModelResource] # Placeholder
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     readonly_fields = ('id', 'created_at', 'updated_at')
@@ -204,22 +97,6 @@ class MemorialPageAdmin(ModelAdmin):
     actions = ['clone_memorial_page']
     raw_id_fields = ('user', 'main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
     readonly_fields = ('user', 'manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
-
-    def get_urls(self):
-        urls = super().get_urls()
-        wizard_view = MemorialPageWizardView(self)
-        custom_urls = [
-            path('add/user/', self.admin_site.admin_view(wizard_view.view), {'step': 'user'}, name='memorialpage_wizard_user'),
-            path('add/pagedata/', self.admin_site.admin_view(wizard_view.view), {'step': 'pagedata'}, name='memorialpage_wizard_pagedata'),
-            path('add/images/', self.admin_site.admin_view(wizard_view.view), {'step': 'images'}, name='memorialpage_wizard_images'),
-            path('add/texts/', self.admin_site.admin_view(wizard_view.view), {'step': 'texts'}, name='memorialpage_wizard_texts'),
-            path('add/event/', self.admin_site.admin_view(wizard_view.view), {'step': 'event'}, name='memorialpage_wizard_event'),
-        ]
-        return custom_urls + urls
-
-    def add_view(self, request, form_url="", extra_context=None):
-        # Redirect to the first step of the wizard
-        return redirect('admin:memorialpage_wizard_user')
 
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):

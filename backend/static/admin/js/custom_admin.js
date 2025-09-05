@@ -335,28 +335,51 @@ function initializeSideDock() {
 // #####################################################################
 
 /**
- * Einmalige Einrichtung der globalen Event-Listener.
+ * NEU: Richtet spezifische Klick-Listener für Dashboard-Elemente ein,
+ * um die Zuverlässigkeit zu erhöhen.
+ */
+function setupDashboardInteractions() {
+    // Klick-Listener für Kalender-Icon
+    const calendarIcon = document.querySelector('.calendar-icon');
+    if (calendarIcon && !calendarIcon.hasAttribute('data-click-listener')) {
+        calendarIcon.setAttribute('data-click-listener', 'true');
+        calendarIcon.addEventListener('click', () => {
+            const calendarModal = document.getElementById('calendar-modal');
+            if (calendarModal) {
+                calendarModal.style.display = 'flex';
+                if (window.renderCalendar) window.renderCalendar();
+            }
+        });
+    }
+
+    // Klick-Listener für seitlichen Dock-Auslöser
+    const sideDockTrigger = document.getElementById('side-dock-trigger');
+    if (sideDockTrigger && !sideDockTrigger.hasAttribute('data-click-listener')) {
+        sideDockTrigger.setAttribute('data-click-listener', 'true');
+        sideDockTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('side-dock-container')?.classList.toggle('active');
+            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
+        });
+    }
+}
+
+
+/**
+ * Einmalige Einrichtung der globalen Event-Listener für delegierte Events.
  */
 function setupGlobalEventListeners() {
     if (document.body.hasAttribute('data-global-listeners-attached')) return;
     document.body.setAttribute('data-global-listeners-attached', 'true');
 
     document.body.addEventListener('click', function(e) {
-        const sideDockTrigger = e.target.closest('#side-dock-trigger');
+        // Logik für sideDockTrigger und calendarIcon wurde in setupDashboardInteractions() verschoben.
         const navWheelOverlay = e.target.id === 'nav-wheel-overlay' ? e.target : null;
         const modalLink = e.target.closest('.quick-links a, .stat-item-link, .event-card-link');
-        const calendarIcon = e.target.closest('.calendar-icon');
         const widgetToggleIcon = e.target.closest('.toggle-widget-icon');
         const modal = e.target.closest('.modal');
         const closeModalButton = e.target.closest('.close-modal');
-
-        if (sideDockTrigger) {
-            e.preventDefault();
-            e.stopPropagation();
-            document.getElementById('side-dock-container')?.classList.toggle('active');
-            document.getElementById('nav-wheel-overlay')?.classList.toggle('active');
-            return;
-        }
 
         if (navWheelOverlay) {
             navWheelOverlay.classList.remove('active');
@@ -369,16 +392,6 @@ function setupGlobalEventListeners() {
             const url = modalLink.href;
             const title = modalLink.dataset.modalTitle || modalLink.textContent.trim() || 'Eintrag ansehen';
             openInIframeModal(url, title);
-            return;
-        }
-
-        if (calendarIcon) {
-            const calendarModal = document.getElementById('calendar-modal');
-            if (calendarModal) {
-                // KORREKTUR: Display-Eigenschaft ändern, anstatt flex-direction hinzuzufügen
-                calendarModal.style.display = 'flex';
-                if (window.renderCalendar) window.renderCalendar();
-            }
             return;
         }
 
@@ -423,6 +436,7 @@ function initializePageFeatures() {
     initializeCalendar();
     addDashboardButton();
     updateTime();
+    setupDashboardInteractions(); // NEUER AUFRUF
 }
 
 // Haupt-Event-Listener für das initiale Laden und die Turbo-Navigation.
@@ -433,3 +447,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("turbo:load", initializePageFeatures);
+

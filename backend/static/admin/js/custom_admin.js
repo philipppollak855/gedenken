@@ -493,8 +493,9 @@ function initializePageFeatures() {
         });
     });
     
-    // Blendet alle Modals und Overlays standardmäßig aus, um ein Aufblitzen zu verhindern.
-    document.querySelectorAll('.modal, #nav-wheel-overlay').forEach(el => {
+    // Blendet alle Modals standardmäßig aus, um ein Aufblitzen zu verhindern.
+    // KORRIGIERT: #nav-wheel-overlay aus dem Selektor entfernt
+    document.querySelectorAll('.modal').forEach(el => {
         // Ausnahme für den Fall, dass ein Modal absichtlich geöffnet bleiben soll (z.B. nach einer Formular-Validierung)
         if (el.style.display !== 'flex' && el.style.display !== 'block') {
              el.style.display = 'none';
@@ -509,4 +510,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("turbo:load", initializePageFeatures);
+
 

@@ -110,12 +110,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid #444; /* Visuelle Trennung */
+    padding-bottom: 1rem; /* Abstand nach unten */
 }
 
 #content-main .widget-header h2 {
     border-bottom: none;
     padding-bottom: 0;
-    margin-top: 0;
+    margin: 0; /* Margin entfernt */
     font-size: 1.1rem;
     font-weight: 600;
     color: #e1e1e1;
@@ -153,6 +155,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
+    padding-top: 1.5rem; /* KORRIGIERT: Abstand hinzugefügt */
 }
 
 #content-main .stat-item-link {
@@ -203,6 +206,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+    padding-top: 1.5rem; /* KORRIGIERT: Abstand hinzugefügt */
 }
 
 #content-main .quick-links a {
@@ -595,7 +599,6 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.4s ease, visibility 0s 0.4s;
-    /* KORRIGIERT: display: flex; entfernt und durch display: none; ersetzt */
     display: none; 
     align-items: center;
     justify-content: flex-end;
@@ -607,12 +610,12 @@
     visibility: visible;
     transition: opacity 0.4s ease;
     pointer-events: auto; /* Klicks erlauben, wenn aktiv */
-    display: flex; /* HINZUGEFÜGT: Macht das Overlay sichtbar */
+    display: flex; /* Macht das Overlay sichtbar */
 }
 
 #wheel-container-wrapper {
     position: absolute;
-    right: 40px; /* GEÄNDERT: Verschiebt das Rad nach links */
+    right: 50px; /* Weiter nach links verschoben */
     top: 50%;
     transform: translateY(-50%);
     width: 500px;
@@ -637,6 +640,9 @@
     transition: opacity 0.3s ease-out, transform 0.3s ease-out;
     transform: scale(0.8);
     transform-origin: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav-wheel.active {
@@ -648,6 +654,9 @@
 .wheel-item,
 .wheel-center-button {
     position: absolute;
+    top: 50%; /* Zentrierung */
+    left: 50%; /* Zentrierung */
+    transform: translate(-50%, -50%); /* Zentrierung */
     width: 60px;
     height: 60px;
     background-color: #8c8073;
@@ -671,15 +680,17 @@
     border: 3px solid #8c8073;
     font-size: 2rem;
     z-index: 10;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
 }
+
+.wheel-item {
+     /* Die transform-Eigenschaft für die Kreisposition wird per JS gesetzt */
+}
+
 
 .wheel-item:hover {
     background-color: #a99a8c;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    transform: translate(-50%, -50%) scale(1.1); /* KORREKTUR: transform beibehalten */
+    transform: translate(-50%, -50%) scale(1.1); /* Korrigierte Hover-Transformation */
 }
 
 .wheel-item-label {
@@ -715,35 +726,30 @@
     min-height: 0;
 }
 
-/* NEU: Stile für die Filter-Buttons */
+/* NEU: Filter-Buttons */
 #global-search-filters {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     margin-bottom: 1rem;
     flex-wrap: wrap;
 }
-
 .search-filter-btn {
     background-color: #4a535c;
+    color: #f1f1f1;
     border: 1px solid #5a636c;
-    color: #e1e1e1;
     padding: 0.5rem 1rem;
     border-radius: 20px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.9rem;
+    transition: all 0.2s;
 }
-
 .search-filter-btn:hover {
     background-color: #5a636c;
 }
-
 .search-filter-btn.active {
     background-color: #8c8073;
     color: white;
-    border-color: #a99a8c;
+    border-color: #8c8073;
 }
-
 
 #global-search-input {
     width: 100%;
@@ -815,5 +821,4 @@
     height: 100%;
     border: none;
 }
-
 

@@ -1,19 +1,19 @@
 {% extends "admin/base_site.html" %}
 {% load static settings_tags %}
 
-{# Dieser Block fügt zusätzlichen Inhalt in den <head> der Admin-Seite ein #}
+{# Dieser Block fÃ¼gt zusÃ¤tzlichen Inhalt in den <head> der Admin-Seite ein #}
 {% block extrahead %}
-    {# Lädt den ursprünglichen Inhalt dieses Blocks, inklusive der Unfold-Stylesheets #}
+    {# LÃ¤dt den ursprÃ¼nglichen Inhalt dieses Blocks, inklusive der Unfold-Stylesheets #}
     {{ block.super }}
 
-    {# Font Awesome für Dashboard-Icons #}
+    {# Font Awesome fÃ¼r Dashboard-Icons #}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
-    {# Lädt die globalen Einstellungen aus der Datenbank #}
+    {# LÃ¤dt die globalen Einstellungen aus der Datenbank #}
     {% get_site_settings as site_settings %}
     {% if site_settings %}
     
-    <!-- Google Fonts für die im Admin auswählbaren Schriftarten -->
+    <!-- Google Fonts fÃ¼r die im Admin auswÃ¤hlbaren Schriftarten -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato&family=Montserrat&family=Open+Sans&family=Roboto&family=Source+Sans+Pro&display=swap" rel="stylesheet">
@@ -27,15 +27,15 @@
     </style>
     {% endif %}
     
-    {# NEU: Lädt unsere benutzerdefinierte CSS-Datei NACH allen anderen Stylesheets #}
+    {# NEU: LÃ¤dt unsere benutzerdefinierte CSS-Datei NACH allen anderen Stylesheets #}
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}">
-    {# HINZUGEFÜGT: Direkte CSS-Regeln für das verschachtelte Sidebar-Menü #}
+    {# HINZUGEFÃœGT: Direkte CSS-Regeln fÃ¼r das verschachtelte Sidebar-MenÃ¼ #}
     <style>
-        /* Stil für das Untermenü-Panel */
+        /* Stil fÃ¼r das UntermenÃ¼-Panel */
         .main-sidebar .nav-sidebar .nav-treeview {
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 6px;
-            margin: 0.5rem 0.5rem 0.5rem 1rem; /* Leichte Einrückung links */
+            margin: 0.5rem 0.5rem 0.5rem 1rem; /* Leichte EinrÃ¼ckung links */
             padding: 0.5rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
@@ -47,9 +47,9 @@
             transition: all 0.3s ease-in-out;
         }
 
-        /* Wenn das Menü geöffnet ist (Klasse .menu-open am .nav-item) */
+        /* Wenn das MenÃ¼ geÃ¶ffnet ist (Klasse .menu-open am .nav-item) */
         .main-sidebar .nav-sidebar .nav-item.menu-open > .nav-treeview {
-            max-height: 500px; /* Genug Platz für die Items */
+            max-height: 500px; /* Genug Platz fÃ¼r die Items */
             opacity: 1;
             visibility: visible;
         }
@@ -64,6 +64,6 @@
         }
     </style>
     
-    {# Lädt den ursprünglichen Inhalt dieses Blocks #}
+    {# LÃ¤dt den ursprÃ¼nglichen Inhalt dieses Blocks #}
     {{ block.super }}
 {% endblock %}

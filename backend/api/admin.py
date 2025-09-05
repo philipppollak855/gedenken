@@ -36,54 +36,30 @@ class MemorialPageWizardView:
             ('texts', PageTextsWizardForm),
             ('event', PageEventWizardForm),
         ]
-        # NEU: Nur noch eine Template-Datei
-        self.template_name = 'admin/wizards/wizard_form.html'
-        
-        # NEU: Metadaten für jeden Schritt
-        self.steps_info = {
-            'user': {
-                'title': 'Benutzerkonto anlegen oder auswählen',
-                'help_text': 'Geben Sie die E-Mail-Adresse für den Vorsorge-Account ein. Wenn der Benutzer bereits existiert, werden seine Daten verwendet. Andernfalls wird ein neuer Benutzer angelegt.'
-            },
-            'pagedata': {
-                'title': 'Gedenkseite-Daten',
-                'help_text': 'Tragen Sie hier die Grunddaten der verstorbenen Person ein. Die Namen werden aus dem vorherigen Schritt übernommen, können aber hier angepasst werden.'
-            },
-            'images': {
-                'title': 'Bilder',
-                'help_text': 'Wählen Sie die wichtigsten Bilder für die Gedenkseite aus. Sie können aus bereits hochgeladenen Bildern wählen oder später neue in der Mediathek hinzufügen.'
-            },
-            'texts': {
-                'title': 'Texte',
-                'help_text': 'Verfassen Sie hier den Nachruf für die Gedenkseite. Weitere Texte können später direkt auf der Bearbeitungsseite der Gedenkseite hinzugefügt werden.'
-            },
-            'event': {
-                'title': 'Erster Termin & Abschluss',
-                'help_text': "Optional: Fügen Sie einen ersten Termin hinzu (z.B. die Trauerfeier). Legen Sie abschließend den Status der Gedenkseite fest. 'Inaktiv' bedeutet, sie ist noch nicht öffentlich sichtbar."
-            }
+        self.template_names = {
+            'user': 'admin/wizards/step_1_user.html',
+            'pagedata': 'admin/wizards/step_2_pagedata.html',
+            'images': 'admin/wizards/step_3_images.html',
+            'texts': 'admin/wizards/step_4_texts.html',
+            'event': 'admin/wizards/step_5_event.html',
         }
-
 
     def get_form_data(self, request, step_name):
         return request.session.get('wizard_data', {}).get(step_name, {})
 
     def view(self, request, step):
-        step_names = [s[0] for s in self.steps]
-        try:
-            step_index = step_names.index(step)
-        except ValueError:
-            return HttpResponseRedirect(reverse('admin:memorialpage_wizard_user'))
-
+        step_index = [s[0] for s in self.steps].index(step)
         form_class = self.steps[step_index][1]
-        is_last_step = step_index == len(self.steps) - 1
 
         if request.method == 'POST':
             form = form_class(request.POST, request.FILES)
             if form.is_valid():
+                # Store form data in session
                 wizard_data = request.session.get('wizard_data', {})
                 wizard_data[step] = form.cleaned_data
                 request.session['wizard_data'] = wizard_data
 
+                # Logic for Step 1: User creation/selection
                 if step == 'user':
                     email = form.cleaned_data['email']
                     user, created = User.objects.get_or_create(
@@ -98,14 +74,11 @@ class MemorialPageWizardView:
                     wizard_data.setdefault('pagedata', {})['last_name'] = user.last_name
                     request.session['wizard_data'] = wizard_data
                 
-                if is_last_step:
-                    user_id = wizard_data.get('user_id')
-                    if not user_id:
-                        messages.error(request, "Benutzer-ID nicht gefunden. Bitte starten Sie den Assistenten neu.")
-                        return HttpResponseRedirect(reverse('admin:memorialpage_wizard_user'))
-
-                    user = User.objects.get(pk=user_id)
+                # Logic for Final Step: Object creation
+                if step_index == len(self.steps) - 1:
+                    user = User.objects.get(pk=wizard_data['user_id'])
                     
+                    # Create MemorialPage
                     page_data = wizard_data.get('pagedata', {})
                     page, created = MemorialPage.objects.update_or_create(
                         user=user,
@@ -118,6 +91,7 @@ class MemorialPageWizardView:
                         }
                     )
                     
+                    # Add images, texts, etc.
                     images_data = wizard_data.get('images', {})
                     if images_data.get('main_photo'): page.main_photo = images_data['main_photo']
                     if images_data.get('hero_background_image'): page.hero_background_image = images_data['hero_background_image']
@@ -128,6 +102,7 @@ class MemorialPageWizardView:
                     page.status = wizard_data.get('event', {}).get('status', 'inactive')
                     page.save()
 
+                    # Create MemorialEvent
                     event_data = wizard_data.get('event', {})
                     if event_data.get('title') and event_data.get('date') and event_data.get('location'):
                         MemorialEvent.objects.create(
@@ -141,30 +116,18 @@ class MemorialPageWizardView:
                     messages.success(request, f'Gedenkseite für {page.first_name} {page.last_name} erfolgreich erstellt.')
                     return HttpResponseRedirect(reverse('admin:api_memorialpage_change', args=(page.pk,)))
 
+                # Redirect to next step
                 next_step = self.steps[step_index + 1][0]
                 return HttpResponseRedirect(reverse(f'admin:memorialpage_wizard_{next_step}'))
         else:
             form = form_class(initial=self.get_form_data(request, step))
 
-        previous_step_url = None
-        if step_index > 0:
-            previous_step_name = self.steps[step_index - 1][0]
-            previous_step_url = reverse(f'admin:memorialpage_wizard_{previous_step_name}')
-
         context = self.model_admin.admin_site.each_context(request)
-        context.update({
-            'form': form,
-            'title': f'Gedenkseite erstellen',
-            'step_title': self.steps_info[step]['title'],
-            'step_help_text': self.steps_info[step]['help_text'],
-            'current_step_number': step_index + 1,
-            'total_steps': len(self.steps),
-            'previous_step_url': previous_step_url,
-            'is_last_step': is_last_step,
-        })
+        context['form'] = form
+        context['title'] = f'Gedenkseite erstellen: Schritt {step_index + 1} von {len(self.steps)}'
+        context['current_step'] = step
         
-        return render(request, self.template_name, context)
-
+        return render(request, self.template_names[step], context)
 
 # --- Admin Classes ---
 

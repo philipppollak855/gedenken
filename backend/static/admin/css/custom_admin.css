@@ -672,6 +672,10 @@
     border: 3px solid #8c8073;
     font-size: 2rem;
     z-index: 10;
+    /* KORREKTUR: Button exakt zentrieren */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .wheel-item:hover {

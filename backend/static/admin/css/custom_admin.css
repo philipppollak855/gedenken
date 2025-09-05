@@ -610,7 +610,7 @@
 
 #wheel-container-wrapper {
     position: absolute;
-    right: -100px;
+    right: 40px; /* GEÄNDERT: Verschiebt das Rad nach links */
     top: 50%;
     transform: translateY(-50%);
     width: 500px;
@@ -712,6 +712,36 @@
     flex-grow: 1;
     min-height: 0;
 }
+
+/* NEU: Stile für die Filter-Buttons */
+#global-search-filters {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.search-filter-btn {
+    background-color: #4a535c;
+    border: 1px solid #5a636c;
+    color: #e1e1e1;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.search-filter-btn:hover {
+    background-color: #5a636c;
+}
+
+.search-filter-btn.active {
+    background-color: #8c8073;
+    color: white;
+    border-color: #a99a8c;
+}
+
 
 #global-search-input {
     width: 100%;

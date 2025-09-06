@@ -1,9 +1,10 @@
-<!-- WICHTIG: Erstellen Sie diese Datei unter dem angegebenen Pfad -->
+<!-- backend/api/templates/admin/api/mediaasset/explorer_changelist.html -->
 {% extends "admin/change_list.html" %}
 {% load static %}
 
 {% block extrahead %}
     {{ block.super }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/explorer.css' %}">
 {% endblock %}
 
@@ -17,42 +18,36 @@
                     <i class="fas fa-hdd"></i> Hauptverzeichnis
                 </a>
             </li>
-            {% with 'admin/api/mediaasset/folder_node.html' as template_name %}
-                {% include template_name with nodes=folder_tree %}
-            {% endwith %}
+            
+            <!-- Rekursive Einbindung der Ordnerstruktur -->
+            {% for node in folder_tree %}
+                {% include "admin/api/mediaasset/folder_node.html" with node=node %}
+            {% endfor %}
         </ul>
+         <a href="{% url 'admin:api_mediafolder_add' %}" class="addlink">
+            Neuen Ordner anlegen
+        </a>
     </div>
     <div class="explorer-main">
         {% if current_folder %}
             <div class="current-folder-header">
                 <h2>Inhalt von: {{ current_folder.name }}</h2>
-                <a href="{% url 'admin:api_mediafolder_change' current_folder.id %}" class="button">Ordner umbenennen</a>
+                <div>
+                    <a href="{% url 'admin:api_mediafolder_change' current_folder.id %}" class="button">Ordner umbenennen</a>
+                    <a href="{% url 'admin:api_mediafolder_add' %}?parent={{ current_folder.id }}" class="button">Unterordner erstellen</a>
+                </div>
             </div>
         {% endif %}
         
-        <!-- Standard Django ChangeList Inhalt -->
+        <!-- Standard Django ChangeList Inhalt (Tabelle mit Assets) -->
         {{ block.super }}
     </div>
 </div>
 
 <!-- Template fÃ¼r die rekursive Ordner-Darstellung -->
-{% ainclude "admin/api/mediaasset/folder_node.html" %}
-<script type="text/template" id="folder-node-template">
-    {% verbatim %}
-        {% for node in nodes %}
-            <li>
-                <a href="?folder_id={{ node.folder.id }}" class="{% if current_folder.id == node.folder.id %}active{% endif %}">
-                    <i class="fas fa-folder"></i> {{ node.folder.name }}
-                </a>
-                {% if node.children %}
-                    <ul>
-                        {% with nodes=node.children template_name="admin/api/mediaasset/folder_node.html" %}
-                            {% include template_name %}
-                        {% endwith %}
-                    </ul>
-                {% endif %}
-            </li>
-        {% endfor %}
-    {% endverbatim %}
-</script>
+{% comment %}
+    Dieses Template wird in sich selbst aufrufen, um die Baumstruktur zu erzeugen.
+    Es wird von oben in der Haupt-Liste includiert.
+{% endcomment %}
 {% endblock %}
+

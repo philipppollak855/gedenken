@@ -1,0 +1,147 @@
+/* frontend/src/modules/release/ReleaseRequestPage.css */
+/* This file contains the styles for the redesigned release request page. */
+
+.release-request-container {
+    padding-top: 80px; /* Space for the fixed header */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to the top */
+    min-height: 100vh;
+    background-color: #f4f1ee;
+    padding: 4rem 2rem;
+    box-sizing: border-box;
+}
+
+.release-form-wrapper {
+    background-color: #ffffff;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.form-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: #3a3a3a;
+    margin: 0 0 1rem 0;
+}
+
+.form-header p {
+    color: #6b7280;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.release-form fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+}
+
+.release-form legend {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3a3a3a;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    border-bottom: 1px solid #e5e0da;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.release-form input[type="text"],
+.release-form input[type="email"],
+.release-form input[type="password"],
+.release-form input[type="date"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.release-form input:focus {
+    outline: none;
+    border-color: #8c8073;
+    box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.2);
+}
+
+.release-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #3a3a3a;
+}
+
+.file-upload-field {
+    grid-column: 1 / -1;
+}
+
+.file-upload-field input[type="file"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.submit-button {
+    width: 100%;
+    background-color: #8c8073;
+    color: white;
+    padding: 1rem;
+    border-radius: 6px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+    background-color: #6d6d6d;
+}
+
+.submit-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #b91c1c;
+    font-size: 0.9rem;
+    margin-top: -0.75rem;
+    margin-bottom: 0.5rem;
+    grid-column: 1 / -1;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 2rem;
+    color: #6b7280;
+}
+
+.login-link a {
+    color: #8c8073;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}

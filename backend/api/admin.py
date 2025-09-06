@@ -1,6 +1,7 @@
 # backend/api/admin.py
 # WIEDERHERGESTELLT: Stabiler Zustand mit Pop-up-Verwaltung für Gedenkseiten und Benutzer.
 # KORRIGIERT: Benutzerauswahl beim Erstellen einer neuen Gedenkseite ist wieder möglich.
+# VERBESSERT: Standard-Benutzerauswahl durch ein modernes, durchsuchbares Feld (Autocomplete) ersetzt.
 
 import uuid
 import json
@@ -72,6 +73,8 @@ class FamilyLinkInline(admin.TabularInline):
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource] # Placeholder
     list_display = ('get_full_name', 'email', 'role', 'created_at')
+    # NEU: Suchfelder hinzugefügt, um die Autocomplete-Funktion zu ermöglichen
+    search_fields = ('first_name', 'last_name', 'email')
     inlines = [FamilyLinkInline]
     
     readonly_fields = (
@@ -150,14 +153,18 @@ class MemorialPageAdmin(ModelAdmin):
     search_fields = ('first_name', 'last_name', 'user__email', 'slug')
     list_display = ('__str__', 'get_user_id', 'status', 'manage_content_links')
     actions = ['clone_memorial_page']
-    raw_id_fields = ('user', 'main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
-    # HINWEIS: 'user' wurde aus der permanenten readonly_fields-Liste entfernt.
+    
+    # KORRIGIERT: 'user' aus raw_id_fields entfernt
+    raw_id_fields = ('main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
+    # NEU: Autocomplete-Feld für Benutzer hinzugefügt
+    autocomplete_fields = ['user']
+    
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
 
-    # NEU: Diese Methode steuert, wann das Benutzerfeld schreibgeschützt ist.
     def get_readonly_fields(self, request, obj=None):
         base_readonly = list(self.readonly_fields)
-        if obj:  # Wenn ein Objekt bearbeitet wird, 'user' hinzufügen.
+        if obj:
+            # Bei der Bearbeitung wird das Autocomplete-Feld durch eine schreibgeschützte Ansicht ersetzt
             base_readonly.append('user')
         return base_readonly
 

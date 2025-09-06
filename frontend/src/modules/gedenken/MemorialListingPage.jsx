@@ -2,7 +2,7 @@
 // KORRIGIERT: Stellt sicher, dass Hintergrundbilder nur angewendet werden, wenn eine URL vorhanden ist.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './MemorialListingPage.css';
 
 const MemorialCard = ({ page, animate }) => {
@@ -173,4 +173,5 @@ const MemorialListingPage = () => {
 };
 
 export default MemorialListingPage;
+
 

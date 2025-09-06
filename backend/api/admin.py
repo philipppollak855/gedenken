@@ -1,5 +1,6 @@
 # backend/api/admin.py
-# FINAL: Vollständiger Code mit allen Funktionen, inklusive der verbesserten Angehörigen-Verwaltung.
+# ERWEITERT: Die Anzeige der verwalteten Gedenkseiten wurde verbessert.
+# ERWEITERT: Das Layout für die Eingabe von Angehörigen wurde kompakter gestaltet.
 
 import uuid
 import json
@@ -218,7 +219,6 @@ class MemorialPageAdmin(ModelAdmin):
     
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
 
-    # KORRIGIERT: Spezifische Logik, um readonly nur bei Bearbeitung anzuwenden
     def get_readonly_fields(self, request, obj=None):
         if obj: # obj ist nicht None, d.h. wir bearbeiten eine bestehende Seite
             return self.readonly_fields + ('user',)
@@ -227,31 +227,31 @@ class MemorialPageAdmin(ModelAdmin):
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):
         count = obj.timeline_events.count()
-        url = reverse('admin:api_timelineevent_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_timelineevent_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Chronik für {obj}">Verwalten</a>')
 
     @admin.display(description='Galerie-Bilder')
     def manage_gallery(self, obj):
         count = obj.gallery_items.count()
-        url = reverse('admin:api_galleryitem_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_galleryitem_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Bilder <a href="{url}" class="button manage-button" data-modal-title="Galerie für {obj}">Verwalten</a>')
 
     @admin.display(description='Kondolenzen')
     def manage_condolences(self, obj):
         count = obj.condolences.count()
-        url = reverse('admin:api_condolence_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_condolence_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Kondolenzen für {obj}">Verwalten</a>')
 
     @admin.display(description='Gedenkkerzen')
     def manage_candles(self, obj):
         count = obj.candles.count()
-        url = reverse('admin:api_memorialcandle_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_memorialcandle_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Kerzen <a href="{url}" class="button manage-button" data-modal-title="Gedenkkerzen für {obj}">Verwalten</a>')
 
     @admin.display(description='Termine')
     def manage_events(self, obj):
         count = obj.events.count()
-        url = reverse('admin:api_memorialevent_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_memorialevent_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Termine <a href="{url}" class="button manage-button" data-modal-title="Termine für {obj}">Verwalten</a>')
 
     @admin.display(description='Inhalte verwalten')

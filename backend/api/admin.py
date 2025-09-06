@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Die Links in den "Verwalten"-Buttons wurden an die neue Datenbankstruktur (pk statt page_id) angepasst.
+# ERWEITERT: In der Benutzerverwaltung werden nun die zugehörigen und verwalteten Gedenkseiten angezeigt.
 
 import uuid
 import json
@@ -77,11 +77,16 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     readonly_fields = (
         'id', 'created_at', 'updated_at',
         'manage_last_wishes', 'manage_documents', 'manage_contracts',
-        'manage_insurances', 'manage_financials', 'manage_digital_legacy'
+        'manage_insurances', 'manage_financials', 'manage_digital_legacy',
+        'display_own_memorial_page', 'display_managed_memorial_pages' # NEU
     )
 
     fieldsets = (
         (None, {'fields': ('email', 'first_name', 'last_name', 'role')}),
+        # NEUE SEKTION
+        ('Gedenkseiten-Verwaltung', {
+            'fields': ('display_own_memorial_page', 'display_managed_memorial_pages'),
+        }),
         ('Vorsorge-Verwaltung (Pop-ups)', {
             'fields': (
                 'manage_last_wishes', 'manage_documents', 'manage_contracts',
@@ -133,6 +138,35 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
         url = reverse('admin:api_digitallegacyitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Digitaler Nachlass für {obj}">Verwalten</a>')
 
+    # --- NEUE DISPLAY-METHODEN ---
+    @admin.display(description='Eigene Gedenkseite')
+    def display_own_memorial_page(self, obj):
+        try:
+            page = obj.memorial_page
+            url = reverse('admin:api_memorialpage_change', args=[page.pk])
+            return format_html('<a href="{url}" data-modal-title="Gedenkseite für {obj} bearbeiten">{obj}</a>', url=url, obj=obj)
+        except MemorialPage.DoesNotExist:
+            return "Keine eigene Gedenkseite vorhanden."
+
+    @admin.display(description='Verwaltete Gedenkseiten (als Angehöriger)')
+    def display_managed_memorial_pages(self, obj):
+        links = FamilyLink.objects.filter(relative_user=obj)
+        if not links.exists():
+            return "Verwaltet keine Gedenkseiten für andere."
+        
+        html_links = []
+        for link in links:
+            try:
+                page = link.deceased_user.memorial_page
+                url = reverse('admin:api_memorialpage_change', args=[page.pk])
+                html_links.append(f'<a href="{url}" data-modal-title="Gedenkseite für {link.deceased_user} bearbeiten">{link.deceased_user}</a>')
+            except MemorialPage.DoesNotExist:
+                # Dieser Fall sollte nicht eintreten, ist aber eine gute Absicherung
+                html_links.append(f'Seite für {link.deceased_user} (nicht erstellt)')
+
+        return format_html('<br>'.join(html_links))
+
+
 class EventAttendanceInline(admin.TabularInline):
     model = EventAttendance
     extra = 0
@@ -156,8 +190,6 @@ class MemorialPageAdmin(ModelAdmin):
     raw_id_fields = ('main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
     
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
-
-    # Die fehlerhafte save_model-Methode wurde entfernt. Django kann dies nun selbst handhaben.
 
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):

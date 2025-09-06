@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Das Layout des "Angehörige verwalten"-Buttons wurde verbessert.
-# KORRIGIERT: Das leere Pop-up-Problem wurde behoben, indem die Benutzerauswahl robuster gestaltet wurde.
+# ERWEITERT: Die Anzeige von verknüpften Gedenkseiten und die Auswahl von Angehörigen in der Benutzerverwaltung wurde verbessert.
 
 import uuid
 import json
@@ -27,7 +26,6 @@ from .models import (
 
 # --- Admin Classes ---
 
-# Basis-Registrierungen, damit die Pop-ups funktionieren
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)
@@ -72,16 +70,15 @@ class FamilyLinkInline(admin.TabularInline):
     extra = 1
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
-    fields = ('relative_user', 'relationship', 'is_main_contact')
-    # KORREKTUR: raw_id_fields ist robuster in Modals als autocomplete_fields
-    raw_id_fields = ('relative_user',)
-
+    fields = ('relative_user', 'relationship', 'is_main_contact', 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data', 'power_of_attorney', 'is_validated_by_admin')
+    # KORRIGIERT: autocomplete_fields für eine intuitive Benutzerauswahl
+    autocomplete_fields = ('relative_user',)
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource] # Placeholder
     list_display = ('get_full_name', 'email', 'role', 'created_at')
-    search_fields = ('first_name', 'last_name', 'email')
+    search_fields = ('first_name', 'last_name', 'email') # Wichtig für autocomplete_fields
     inlines = [FamilyLinkInline]
     
     readonly_fields = (
@@ -164,14 +161,21 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
         
         html_links = []
         for link in links:
+            deceased_user = link.deceased_user
+            user_url = reverse('admin:api_user_change', args=[deceased_user.pk])
+            user_link = f'Verstorbener: <a href="{user_url}" data-modal-title="Benutzer {deceased_user.get_full_name()} ansehen">{deceased_user.get_full_name()}</a>'
+            
+            page_link = ""
             try:
-                page = link.deceased_user.memorial_page
-                url = reverse('admin:api_memorialpage_change', args=[page.pk])
-                html_links.append(f'<a href="{url}" data-modal-title="Gedenkseite für {link.deceased_user} bearbeiten">{link.deceased_user}</a>')
+                page = deceased_user.memorial_page
+                page_url = reverse('admin:api_memorialpage_change', args=[page.pk])
+                page_link = f' | <a href="{page_url}" data-modal-title="Gedenkseite für {deceased_user.get_full_name()} bearbeiten">Gedenkseite verwalten</a>'
             except MemorialPage.DoesNotExist:
-                html_links.append(f'Seite für {link.deceased_user} (nicht erstellt)')
+                page_link = ' (Keine Gedenkseite erstellt)'
 
-        return format_html('<br>'.join(html_links))
+            html_links.append(f'<li>{user_link}{page_link}</li>')
+
+        return format_html('<ul>{}</ul>', ''.join(html_links))
 
 
 class EventAttendanceInline(admin.TabularInline):
@@ -199,10 +203,8 @@ class MemorialPageAdmin(ModelAdmin):
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
 
     def get_readonly_fields(self, request, obj=None):
-        # Beim Bearbeiten einer bestehenden Seite ist das 'user' Feld schreibgeschützt.
         if obj:
-            return ['user', 'slug'] + self.readonly_fields
-        # Beim Erstellen einer neuen Seite ist 'user' auswählbar.
+            return ['user', 'slug'] + list(self.readonly_fields)
         return self.readonly_fields
 
     def save_model(self, request, obj, form, change):
@@ -221,31 +223,31 @@ class MemorialPageAdmin(ModelAdmin):
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):
         count = obj.timeline_events.count()
-        url = reverse('admin:api_timelineevent_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_timelineevent_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Chronik für {obj}">Verwalten</a>')
 
     @admin.display(description='Galerie-Bilder')
     def manage_gallery(self, obj):
         count = obj.gallery_items.count()
-        url = reverse('admin:api_galleryitem_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_galleryitem_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Bilder <a href="{url}" class="button manage-button" data-modal-title="Galerie für {obj}">Verwalten</a>')
 
     @admin.display(description='Kondolenzen')
     def manage_condolences(self, obj):
         count = obj.condolences.count()
-        url = reverse('admin:api_condolence_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_condolence_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Kondolenzen für {obj}">Verwalten</a>')
 
     @admin.display(description='Gedenkkerzen')
     def manage_candles(self, obj):
         count = obj.candles.count()
-        url = reverse('admin:api_memorialcandle_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_memorialcandle_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Kerzen <a href="{url}" class="button manage-button" data-modal-title="Gedenkkerzen für {obj}">Verwalten</a>')
 
     @admin.display(description='Termine')
     def manage_events(self, obj):
         count = obj.events.count()
-        url = reverse('admin:api_memorialevent_changelist') + f'?page__pk__exact={obj.pk}'
+        url = reverse('admin:api_memorialevent_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Termine <a href="{url}" class="button manage-button" data-modal-title="Termine für {obj}">Verwalten</a>')
 
     @admin.display(description='Inhalte verwalten')
@@ -274,9 +276,7 @@ class MemorialPageAdmin(ModelAdmin):
                 html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative} bearbeiten">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{main_contact_str}</li>'
         html_list += "</ul>"
 
-        # KORREKTUR: Der Link zeigt jetzt auf die Benutzerseite des Verstorbenen, um dort die Angehörigen im Inline-Formular zu verwalten.
         manage_url = reverse('admin:api_user_change', args=(user.pk,)) + '#familylink_set-group'
-        # KORREKTUR: Der Button wird in einem eigenen Div mit Abstand platziert, um Überlappungen zu vermeiden.
         html_button = f'<div style="margin-top: 1rem;"><a href="{manage_url}" class="button manage-button" data-modal-title="Angehörige für {user} verwalten">Angehörige verwalten</a></div>'
         
         return format_html(html_list + html_button)

@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Die Explorer-Ansicht wird nun korrekt im Pop-up-Modus des Admin-Bereichs gehandhabt.
+# FINALE KORREKTUR: Stellt eine stabile Trennung zwischen Pop-up und Explorer-Ansicht sicher.
 
 import uuid
 import json
@@ -8,7 +8,7 @@ from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.utils.text import slugify
 from django.utils.timezone import now
-from django.template.response import TemplateResponse # Hinzugefügt für die robuste Lösung
+from django.template.response import TemplateResponse
 from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
@@ -22,7 +22,7 @@ from .models import (
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
     TimelineEvent, GalleryItem, MemorialCandle, ReleaseRequest, FamilyLink,
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
-    CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance, MediaFolder
+    CandleMessageTemplate, MediaAsset, MediaFolder, EventLocation, EventAttendance
 )
 
 @admin.register(MediaFolder)
@@ -46,7 +46,6 @@ class MediaAssetAdmin(ModelAdmin):
         return "Keine Vorschau"
         
     def changelist_view(self, request, extra_context=None):
-        # FINALE LÖSUNG: Vollständige Trennung der Logik.
         # Wenn '_popup' im Request erkannt wird, wird die Standard-Ansicht der Elternklasse
         # ohne jegliche Modifikation aufgerufen. Dies ist der sicherste Weg.
         if '_popup' in request.GET:
@@ -54,7 +53,6 @@ class MediaAssetAdmin(ModelAdmin):
 
         # Für die reguläre Ansicht wird der Kontext manuell aufgebaut und unsere
         # benutzerdefinierte Vorlage direkt mit TemplateResponse gerendert.
-        # WICHTIG: Wir ändern NICHT mehr self.change_list_template.
         changelist = self.get_changelist_instance(request)
         
         context = {
@@ -88,13 +86,10 @@ class MediaAssetAdmin(ModelAdmin):
 
         return TemplateResponse(request, "admin/api/mediaasset/explorer_changelist.html", context)
 
-
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-
         if '_popup' in request.GET:
             return queryset
-
         try:
             current_folder_id = int(request.GET.get('folder_id', ''))
             return queryset.filter(folder_id=current_folder_id)

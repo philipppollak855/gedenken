@@ -1,60 +1,83 @@
-/* backend/static/admin/css/explorer.css */
-/* NEU: Diese Datei enthält das Styling für die zweispaltige Explorer-Ansicht. */
-
-.explorer-container {
+/* WICHTIG: Erstellen Sie diese Datei unter dem angegebenen Pfad */
+.media-explorer {
     display: flex;
-    gap: 20px;
+    gap: 1.5rem;
+    align-items: flex-start;
 }
 
 .explorer-sidebar {
-    flex: 0 0 280px; /* Breite der Seitenleiste festlegen */
-    background-color: #f8f8f8;
+    flex: 0 0 280px;
+    background-color: #3a424a;
     border-radius: 8px;
-    padding: 15px;
-    height: fit-content;
+    padding: 1rem;
+    border: 1px solid #444;
 }
 
-.explorer-sidebar h4 {
+.explorer-sidebar h3 {
     margin-top: 0;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
+    color: #e1e1e1;
+    border-bottom: 1px solid #555;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 
-.explorer-main {
-    flex: 1;
-}
-
-ul.folder-tree, ul.folder-tree ul {
-    list-style-type: none;
+.explorer-sidebar ul {
+    list-style: none;
     padding-left: 0;
-}
-ul.folder-tree ul {
-    padding-left: 20px; /* Einrückung für Unterordner */
+    margin: 0;
 }
 
-ul.folder-tree li a {
+.explorer-sidebar ul ul {
+    padding-left: 1.25rem; /* EinrÃ¼ckung fÃ¼r Unterordner */
+}
+
+.explorer-sidebar li a {
     display: block;
-    padding: 8px 10px;
+    padding: 0.5rem 0.75rem;
+    color: #ccc;
     text-decoration: none;
-    color: var(--navigation-link-color);
     border-radius: 4px;
-    transition: background-color 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-ul.folder-tree li a:hover {
-    background-color: #e7e7e7;
+.explorer-sidebar li a:hover {
+    background-color: #4a535c;
+    color: #fff;
 }
 
-ul.folder-tree li a.selected {
-    background-color: var(--navigation-link-background-color-active);
-    color: var(--navigation-link-color-active);
+.explorer-sidebar li a.active {
+    background-color: #8c8073;
+    color: #fff;
     font-weight: bold;
 }
 
-.folder-icon {
-    font-size: 1.2em;
+.explorer-sidebar .fas {
+    margin-right: 0.75rem;
+    width: 20px;
+    text-align: center;
+    color: #999;
 }
+
+.explorer-sidebar li a.active .fas {
+    color: #fff;
+}
+
+.explorer-main {
+    flex-grow: 1;
+    width: calc(100% - 300px);
+}
+
+.current-folder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.current-folder-header h2 {
+    margin: 0;
+}
+

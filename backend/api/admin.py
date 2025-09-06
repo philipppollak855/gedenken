@@ -1,7 +1,6 @@
 # backend/api/admin.py
-# WIEDERHERGESTELLT: Stabiler Zustand mit Pop-up-Verwaltung für Gedenkseiten und Benutzer.
-# KORRIGIERT: Benutzerauswahl beim Erstellen einer neuen Gedenkseite ist wieder möglich.
-# VERBESSERT: Standard-Benutzerauswahl durch ein modernes, durchsuchbares Feld (Autocomplete) ersetzt.
+# WIEDERHERGESTELLT: Die intuitive Autocomplete-Benutzerauswahl wurde wiederhergestellt.
+# KORRIGIERT: Der 500-Serverfehler beim Speichern einer neuen Gedenkseite mit einem ausgewählten Benutzer wurde behoben.
 
 import uuid
 import json
@@ -73,7 +72,6 @@ class FamilyLinkInline(admin.TabularInline):
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource] # Placeholder
     list_display = ('get_full_name', 'email', 'role', 'created_at')
-    # NEU: Suchfelder hinzugefügt, um die Autocomplete-Funktion und raw_id_fields zu ermöglichen
     search_fields = ('first_name', 'last_name', 'email')
     inlines = [FamilyLinkInline]
     
@@ -154,12 +152,19 @@ class MemorialPageAdmin(ModelAdmin):
     list_display = ('__str__', 'get_user_id', 'status', 'manage_content_links')
     actions = ['clone_memorial_page']
     
-    # KORRIGIERT: 'user' wird jetzt über raw_id_fields anstatt autocomplete_fields verwaltet
-    raw_id_fields = ('user', 'main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
+    # WIEDERHERGESTELLT: autocomplete_fields für die bevorzugte UI
+    autocomplete_fields = ['user']
+    raw_id_fields = ('main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
     
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
 
-    # Die Methode get_readonly_fields ist nicht mehr nötig, da raw_id_fields dies implizit handhabt.
+    # KORREKTUR: Eigene Speicher-Logik, um den 500-Fehler zu beheben
+    def save_model(self, request, obj, form, change):
+        # Beim Erstellen einer neuen Seite ist 'user' der Primärschlüssel und muss gesetzt werden.
+        # Das Autocomplete-Widget stellt ihn in form.cleaned_data bereit.
+        if not change:
+            obj.user = form.cleaned_data['user']
+        super().save_model(request, obj, form, change)
 
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):

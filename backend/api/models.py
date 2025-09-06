@@ -1,6 +1,5 @@
 # backend/api/models.py
-# KORRIGIERT: Die Beziehung zwischen MemorialPage und User wurde wieder auf ein sauberes OneToOneField umgestellt,
-# um die Migrationswarnung und potenzielle Datenbankprobleme zu beheben.
+# ERWEITERT: Das FamilyLink-Modell wurde um ein Feld "relationship" erweitert.
 
 import uuid
 from django.db import models
@@ -159,6 +158,9 @@ class User(AbstractBaseUser, PermissionsMixin):
             return f"{self.first_name} {self.last_name}"
         return self.email or f"Benutzer {self.id}"
 
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
 class MemorialPage(models.Model):
     class Meta:
         verbose_name = "Gedenkseite"
@@ -187,8 +189,6 @@ class MemorialPage(models.Model):
         ADMIN_MODERATED = 'admin_moderated', 'Von Admin moderiert'
         FAMILY_MODERATED = 'family_moderated', 'Von Familie moderiert'
     
-    # KORRIGIERT: Zurück zu einem sauberen OneToOneField, um Migrationsprobleme zu lösen.
-    # Der Primärschlüssel dieser Tabelle ist nun wieder das `user`-Feld.
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='memorial_page', verbose_name="Benutzer")
     
     slug = models.SlugField("URL-Alias", max_length=255, unique=True, blank=True, help_text="Wird automatisch aus dem Namen generiert, wenn leer gelassen.")
@@ -452,6 +452,7 @@ class FamilyLink(models.Model):
     link_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     deceased_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_deceased', verbose_name="Verstorbener")
     relative_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_relative', verbose_name="Angehöriger")
+    relationship = models.CharField("Verwandtschaftsbezeichnung", max_length=100, blank=True, help_text="z.B. Sohn, Ehefrau, Guter Freund")
     is_main_contact = models.BooleanField("Hauptansprechpartner", default=False)
     def __str__(self):
         return f"{self.relative_user} ist Angehöriger von {self.deceased_user}"

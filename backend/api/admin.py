@@ -198,6 +198,26 @@ class MemorialPageAdmin(ModelAdmin):
     
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
 
+    def get_readonly_fields(self, request, obj=None):
+        # Beim Bearbeiten einer bestehenden Seite ist das 'user' Feld schreibgeschützt.
+        if obj:
+            return ['user', 'slug'] + self.readonly_fields
+        # Beim Erstellen einer neuen Seite ist 'user' auswählbar.
+        return self.readonly_fields
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            selected_user = form.cleaned_data.get('user')
+            if not selected_user:
+                messages.error(request, "Fehler: Es wurde kein Benutzer ausgewählt.")
+                return
+            if MemorialPage.objects.filter(user=selected_user).exists():
+                messages.error(request, f"Fehler: Für den Benutzer '{selected_user}' existiert bereits eine Gedenkseite.")
+                return
+            obj.user = selected_user
+        
+        super().save_model(request, obj, form, change)
+
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):
         count = obj.timeline_events.count()

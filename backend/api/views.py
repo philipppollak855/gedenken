@@ -1,7 +1,5 @@
 # backend/api/views.py
-# ERWEITERT: Neuer ViewSet für EventAttendance hinzugefügt.
-# NEU: GlobalSearchView für die anwendungsweite Suche hinzugefügt.
-# KORRIGIERT: Authentifizierung und Fehlertoleranz in GlobalSearchView verbessert.
+# ERWEITERT: Neue, granulare Berechtigungs-Klassen wurden hinzugefügt, um die Zugriffsrechte von Angehörigen zu steuern.
 
 import os
 from django.core.management import call_command
@@ -175,72 +173,96 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
 
+# --- NEUE BERECHTIGUNGS-KLASSEN ---
+
+class CanViewVorsorgeDataPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # Jeder authentifizierte Benutzer darf die Liste seiner zugänglichen Daten abfragen.
+        return request.user and request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if not user.is_authenticated: return False
+        if user.is_staff or obj.user == user: return True
+        return FamilyLink.objects.filter(
+            deceased_user=obj.user, relative_user=user,
+            can_view_precaution_data=True, is_validated_by_admin=True
+        ).exists()
+
+class CanEditVorsorgeDataPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if not user.is_authenticated: return False
+        if user.is_staff or obj.user == user: return True
+        return FamilyLink.objects.filter(
+            deceased_user=obj.user, relative_user=user,
+            can_edit_precaution_data=True, is_validated_by_admin=True
+        ).exists()
+
+class CanEditMemorialPagePermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if not user.is_authenticated: return False
+        if user.is_staff or obj.user == user: return True
+        return FamilyLink.objects.filter(
+            deceased_user=obj.user, relative_user=user,
+            can_edit_memorial_page=True
+        ).exists()
+
+# --- ViewSets mit neuen Berechtigungen ---
+
 class DigitalLegacyItemViewSet(viewsets.ModelViewSet):
     serializer_class = DigitalLegacyItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return DigitalLegacyItem.objects.all()
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return DigitalLegacyItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def perform_create(self, serializer): serializer.save(user=self.request.user)
 
 class FinancialItemViewSet(viewsets.ModelViewSet):
     serializer_class = FinancialItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return FinancialItem.objects.all()
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return FinancialItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def perform_create(self, serializer): serializer.save(user=self.request.user)
 
 class InsuranceItemViewSet(viewsets.ModelViewSet):
     serializer_class = InsuranceItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return InsuranceItem.objects.all()
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return InsuranceItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def perform_create(self, serializer): serializer.save(user=self.request.user)
 
 class ContractItemViewSet(viewsets.ModelViewSet):
     serializer_class = ContractItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return ContractItem.objects.all()
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return ContractItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def perform_create(self, serializer): serializer.save(user=self.request.user)
 
 class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     parser_classes = [MultiPartParser, FormParser]
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return Document.objects.all()
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return Document.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def perform_create(self, serializer): serializer.save(user=self.request.user)
 
 class LastWishesView(generics.RetrieveUpdateAPIView):
     serializer_class = LastWishesSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_object(self):
         obj, created = LastWishes.objects.get_or_create(user=self.request.user)
+        self.check_object_permissions(self.request, obj)
         return obj
 
 class MemorialPageViewSet(viewsets.ReadOnlyModelViewSet):
@@ -248,85 +270,78 @@ class MemorialPageViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MemorialPageSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'slug'
-
     def get_serializer_context(self):
         return {'request': self.request}
-
     @action(detail=False, methods=['get'])
     def listing(self, request):
         queryset = self.get_queryset()
         serializer = MemorialPageListSerializer(queryset, many=True)
         return Response(serializer.data)
 
-class CondolenceViewSet(viewsets.ModelViewSet):
-    serializer_class = CondolenceSerializer
-    permission_classes = [AllowGuestPostIsOwnerOrReadOnly]
-
-    def get_queryset(self):
-        if 'page_slug' in self.kwargs:
-            return Condolence.objects.filter(page__slug=self.kwargs['page_slug'], is_approved=True)
-        return Condolence.objects.all()
-
-    def perform_create(self, serializer):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
-        author = self.request.user if self.request.user.is_authenticated else None
-        
-        is_approved_on_creation = (page.condolence_moderation == MemorialPage.ModerationStatus.NOT_MODERATED)
-
-        serializer.save(
-            page=page, 
-            author=author, 
-            is_approved=is_approved_on_creation
-        )
-
-class MemorialCandleViewSet(viewsets.ModelViewSet):
-    serializer_class = MemorialCandleSerializer
-    permission_classes = [AllowGuestPostIsOwnerOrReadOnly]
-
-    def get_queryset(self):
-        if 'page_slug' in self.kwargs:
-            return MemorialCandle.objects.filter(page__slug=self.kwargs['page_slug'])
-        return MemorialCandle.objects.all()
-
-    def perform_create(self, serializer):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
-        author = self.request.user if self.request.user.is_authenticated else None
-        serializer.save(page=page, author=author)
-
 class ManagedMemorialPageViewSet(viewsets.ModelViewSet):
     serializer_class = MemorialPageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission]
     lookup_field = 'slug'
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
             return MemorialPage.objects.all()
-        
         linked_deceased_ids = FamilyLink.objects.filter(
             relative_user=user, 
+            can_edit_memorial_page=True,
             deceased_user__role=User.Role.VERSTORBENER
         ).values_list('deceased_user_id', flat=True)
-
         return MemorialPage.objects.filter(
             Q(user=user) | Q(user_id__in=list(linked_deceased_ids))
         )
 
+class CondolenceViewSet(viewsets.ModelViewSet):
+    serializer_class = CondolenceSerializer
+    permission_classes = [AllowGuestPostIsOwnerOrReadOnly]
+    def get_queryset(self):
+        if 'page_slug' in self.kwargs:
+            return Condolence.objects.filter(page__slug=self.kwargs['page_slug'], is_approved=True)
+        return Condolence.objects.all()
+    def perform_create(self, serializer):
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        author = self.request.user if self.request.user.is_authenticated else None
+        is_approved_on_creation = (page.condolence_moderation == MemorialPage.ModerationStatus.NOT_MODERATED)
+        serializer.save(page=page, author=author, is_approved=is_approved_on_creation)
+
+class MemorialCandleViewSet(viewsets.ModelViewSet):
+    serializer_class = MemorialCandleSerializer
+    permission_classes = [AllowGuestPostIsOwnerOrReadOnly]
+    def get_queryset(self):
+        if 'page_slug' in self.kwargs:
+            return MemorialCandle.objects.filter(page__slug=self.kwargs['page_slug'])
+        return MemorialCandle.objects.all()
+    def perform_create(self, serializer):
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        author = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(page=page, author=author)
+
 class TimelineEventViewSet(viewsets.ModelViewSet):
     serializer_class = TimelineEventSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission] # Angepasst
     def get_queryset(self):
-        return TimelineEvent.objects.filter(page__user=self.request.user, page__slug=self.kwargs['page_slug'])
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        self.check_object_permissions(self.request, page)
+        return TimelineEvent.objects.filter(page=page)
     def perform_create(self, serializer):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'], user=self.request.user)
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        self.check_object_permissions(self.request, page)
         serializer.save(page=page)
 
 class GalleryItemViewSet(viewsets.ModelViewSet):
     serializer_class = GalleryItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission] # Angepasst
     def get_queryset(self):
-        return GalleryItem.objects.filter(page__user=self.request.user, page__slug=self.kwargs['page_slug'])
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        self.check_object_permissions(self.request, page)
+        return GalleryItem.objects.filter(page=page)
     def perform_create(self, serializer):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'], user=self.request.user)
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        self.check_object_permissions(self.request, page)
         serializer.save(page=page)
 
 class ReleaseRequestViewSet(viewsets.ModelViewSet):

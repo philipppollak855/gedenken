@@ -1,6 +1,6 @@
 # backend/api/admin.py
-# ERWEITERT: Die Anzeige der verwalteten Gedenkseiten wurde verbessert.
-# ERWEITERT: Das Layout für die Eingabe von Angehörigen wurde kompakter gestaltet.
+# KORRIGIERTE VERSION: Dein Originalcode wurde als Basis genommen und nur die 
+# notwendigen Änderungen für die Media-Ordner hinzugefügt.
 
 import uuid
 import json
@@ -22,12 +22,21 @@ from .models import (
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
     TimelineEvent, GalleryItem, MemorialCandle, ReleaseRequest, FamilyLink,
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
-    CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance
+    CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance,
+    MediaFolder  # MediaFolder hinzugefügt
 )
+
+# --- NEU: Admin-Klasse für Medien-Ordner ---
+@admin.register(MediaFolder)
+class MediaFolderAdmin(ModelAdmin):
+    list_display = ('name', 'parent')
+    search_fields = ('name',)
+    list_filter = ('parent',)
+    list_per_page = 25
 
 # --- Admin Classes ---
 
-# Basis-Registrierungen, damit die Pop-ups funktionieren und die Suche funktioniert
+# Basis-Registrierungen
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)
@@ -46,8 +55,22 @@ class TimelineEventAdmin(ModelAdmin): pass
 class GalleryItemAdmin(ModelAdmin): pass
 @admin.register(EventLocation)
 class EventLocationAdmin(ModelAdmin): pass
+
+# --- AKTUALISIERT: MediaAssetAdmin mit Ordner-Funktion ---
 @admin.register(MediaAsset)
-class MediaAssetAdmin(ModelAdmin): pass
+class MediaAssetAdmin(ModelAdmin):
+    list_display = ('title', 'asset_type', 'folder', 'thumbnail', 'uploaded_at')
+    list_filter = ('asset_type', 'folder')
+    search_fields = ('title',)
+    autocomplete_fields = ('folder',)
+    list_per_page = 20
+
+    @admin.display(description='Vorschau')
+    def thumbnail(self, obj):
+        if obj.asset_type == 'image' and obj.url:
+            return format_html('<img src="{}" style="max-width: 100px; max-height: 100px;" />', obj.url)
+        return "Keine Vorschau"
+
 @admin.register(CandleImage)
 class CandleImageAdmin(ModelAdmin): pass
 @admin.register(CandleMessageTemplate)
@@ -66,23 +89,20 @@ class FamilyLinkAdmin(ModelAdmin):
     search_fields = ('deceased_user__first_name', 'relative_user__first_name')
     autocomplete_fields = ('deceased_user', 'relative_user')
 
-# Inline-Formular für Angehörige, jetzt mit kompakterem Layout
+# Inline-Formular für Angehörige
 class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
     fk_name = 'deceased_user'
     extra = 1
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
-    # autocomplete_fields für eine moderne Such-Auswahl
     autocomplete_fields = ('relative_user',)
-
-    # Felder werden in Fieldsets gruppiert für ein sauberes, klappbares Layout
     fieldsets = (
         (None, {
             'fields': ('relative_user', 'relationship', 'is_main_contact')
         }),
         ('Berechtigungen (optional)', {
-            'classes': ('collapse',), # Macht diese Sektion einklappbar
+            'classes': ('collapse',),
             'fields': (
                 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data',
                 'power_of_attorney', 'is_validated_by_admin'
@@ -94,7 +114,6 @@ class FamilyLinkInline(admin.TabularInline):
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource] # Placeholder
     list_display = ('get_full_name', 'email', 'role', 'created_at')
-    # search_fields ist entscheidend für die autocomplete-Funktion
     search_fields = ('first_name', 'last_name', 'email')
     inlines = [FamilyLinkInline]
     
@@ -124,7 +143,6 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
 
-    # --- Manage Vorsorge Buttons ---
     @admin.display(description='Letzte Wünsche')
     def manage_last_wishes(self, obj):
         url = reverse('admin:api_lastwishes_change', args=(obj.pk,))
@@ -160,7 +178,6 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
         url = reverse('admin:api_digitallegacyitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Digitaler Nachlass für {obj}">Verwalten</a>')
 
-    # --- Display-Methoden für Gedenkseiten ---
     @admin.display(description='Eigene Gedenkseite')
     def display_own_memorial_page(self, obj):
         try:
@@ -220,7 +237,7 @@ class MemorialPageAdmin(ModelAdmin):
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
 
     def get_readonly_fields(self, request, obj=None):
-        if obj: # obj ist nicht None, d.h. wir bearbeiten eine bestehende Seite
+        if obj:
             return self.readonly_fields + ('user',)
         return self.readonly_fields
 
@@ -325,7 +342,6 @@ class ReleaseRequestAdmin(ModelAdmin):
 
 # --- Dashboard ---
 def dashboard_view(request):
-    # Die Logik für das Dashboard bleibt unverändert
     stats = {
         'total_users': User.objects.count(),
         'total_pages': MemorialPage.objects.count(),

@@ -1,5 +1,6 @@
 # backend/api/models.py
-# ERWEITERT: Das FamilyLink-Modell wurde um granulare Berechtigungen und Validierungsfelder erweitert.
+# HINZUGEFÜGT: MediaFolder-Modell für eine hierarchische Ordnerstruktur.
+# AKTUALISIERT: MediaAsset-Modell, um es mit den neuen Ordnern zu verknüpfen.
 
 import uuid
 from django.db import models
@@ -8,6 +9,24 @@ from django.utils.text import slugify
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.conf import settings
+
+class MediaFolder(models.Model):
+    """
+    Ermöglicht eine verschachtelbare Ordnerstruktur für die Mediathek.
+    """
+    name = models.CharField("Ordnername", max_length=100)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', verbose_name="Übergeordneter Ordner")
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Medien-Ordner"
+        verbose_name_plural = "Medien-Ordner"
+        ordering = ['name']
+
+    def __str__(self):
+        if self.parent:
+            return f"{self.parent} > {self.name}"
+        return self.name
 
 class MediaAsset(models.Model):
     class AssetType(models.TextChoices):
@@ -20,14 +39,16 @@ class MediaAsset(models.Model):
     file_url = models.URLField("Datei-URL (Extern)", max_length=1024, blank=True, null=True)
     asset_type = models.CharField("Dateityp", max_length=10, choices=AssetType.choices, default=AssetType.IMAGE)
     uploaded_at = models.DateTimeField("Hochgeladen am", auto_now_add=True)
+    folder = models.ForeignKey(MediaFolder, on_delete=models.SET_NULL, null=True, blank=True, related_name='assets', verbose_name="Ordner")
 
     @property
     def url(self):
         if self.file_url:
             return self.file_url
         if self.file_upload:
-            backend_url = getattr(settings, 'BACKEND_URL', '')
-            return f"{backend_url}{self.file_upload.url}"
+            backend_url = getattr(settings, 'BACKEND_URL', '').rstrip('/')
+            file_url = self.file_upload.url
+            return f"{backend_url}{file_url}"
         return None
 
     def clean(self):
@@ -74,15 +95,18 @@ class SiteSettings(models.Model):
     listing_card_color = models.CharField("Karten-Hintergrundfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
     listing_text_color = models.CharField("Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
     listing_arrow_color = models.CharField("Pfeilfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #8c8073", default="#8c8073")
+    
     search_title = models.CharField("Titel im Suchbereich", max_length=100, blank=True, default="Verstorbenen Suche")
     search_helper_text = models.TextField("Hilfstext im Suchbereich", blank=True, default="Bitte geben Sie einen oder mehrere Suchbegriffe in die obenstehenden Felder ein, um nach einem Verstorbenen zu suchen.")
     search_background_color = models.CharField("Hintergrundfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #e5e0da")
     search_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Suche")
     search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+
     expend_background_color = models.CharField("Hintergrundfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     expend_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Expand-Bereich")
     expend_card_color = models.CharField("Karten-Hintergrundfarbe Expand", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
     expend_text_color = models.CharField("Textfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+
     font_family = models.CharField("Schriftart", max_length=100, choices=FontChoices.choices, default=FontChoices.ROBOTO)
     font_size_base = models.CharField("Grundschriftgröße", max_length=10, blank=True, default="14px", help_text="CSS-Wert, z.B. 14px oder 0.9rem")
 
@@ -203,6 +227,7 @@ class MemorialPage(models.Model):
     main_photo = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Portraitbild Hero-Bereich")
     hero_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Hero-Bereich")
     hero_background_size = models.CharField("Anpassung Hintergrundbild Hero", max_length=10, choices=BackgroundSize.choices, default=BackgroundSize.COVER)
+    
     obituary = models.TextField("Nachruf", blank=True)
     donation_text = models.TextField("Angezeigter Spendenaufruf", blank=True)
     donation_link = models.URLField("Spenden-Link", max_length=255, blank=True)
@@ -214,13 +239,21 @@ class MemorialPage(models.Model):
     farewell_background_size = models.CharField("Anpassung Hintergrundbild Abschied", max_length=10, choices=BackgroundSize.choices, default=BackgroundSize.COVER)
     farewell_text_inverted = models.BooleanField("Textfarbe im Abschiedsbereich umkehren (für helle Hintergründe)", default=False)
     obituary_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Partezettel Bild")
+    
     show_memorial_picture = models.BooleanField("Gedenkbild anzeigen", default=True)
     memorial_picture = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild Vorderseite")
     memorial_picture_back = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild Rückseite")
+    
     acknowledgement_type = models.CharField("Art der Danksagung", max_length=5, choices=AcknowledgementType.choices, default=AcknowledgementType.NONE)
     acknowledgement_text = models.TextField("Danksagung (Text)", blank=True)
     acknowledgement_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Danksagung Bild")
-    condolence_moderation = models.CharField("Kondolenz-Moderation", max_length=20, choices=ModerationStatus.choices, default=ModerationStatus.NOT_MODERATED)
+    
+    condolence_moderation = models.CharField(
+        "Kondolenz-Moderation",
+        max_length=20,
+        choices=ModerationStatus.choices,
+        default=ModerationStatus.NOT_MODERATED
+    )
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -456,12 +489,10 @@ class FamilyLink(models.Model):
     relationship = models.CharField("Verwandtschaftsbezeichnung", max_length=100, blank=True, help_text="z.B. Sohn, Ehefrau, Guter Freund")
     is_main_contact = models.BooleanField("Hauptansprechpartner", default=False)
     
-    # Granulare Berechtigungen
     can_edit_memorial_page = models.BooleanField("Gedenkseite bearbeiten", default=False)
     can_view_precaution_data = models.BooleanField("Vorsorge einsehen", default=False)
     can_edit_precaution_data = models.BooleanField("Vorsorge bearbeiten", default=False)
     
-    # Validierung
     power_of_attorney = models.FileField("Vollmacht (PDF, JPG, PNG)", upload_to='power_of_attorney/%Y/%m/', blank=True, null=True)
     is_validated_by_admin = models.BooleanField("Vom Admin validiert", default=False, help_text="Admin bestätigt die Berechtigung (auch ohne Vollmacht-Upload).")
 

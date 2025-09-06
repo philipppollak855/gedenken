@@ -1,13 +1,12 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
 // ERWEITERT: Fügt die Logik und das Markup für die neuen Sektionen "Chronik", "Galerie" und "Geschichten" hinzu.
+// AKTUALISIERT: Bild-URLs werden jetzt aus der neuen, verschachtelten API-Struktur geladen (z.B. item.image.url).
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
 import AuthContext from '../../context/AuthContext';
 import EventCard from './EventCard';
 import './InlineExpandArea.css';
-
-// ... (bestehende ArrowIcon, CondolenceCard, CondolenceListItem, MemorialCandleDisplay und SearchPopup Komponenten bleiben unverändert) ...
 
 const ArrowIcon = ({ direction = 'right' }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ transform: direction === 'left' ? 'rotate(180deg)' : 'none' }}>
@@ -78,7 +77,7 @@ const MemorialCandleDisplay = ({ candle, onClick, isAnniversary, isBirthday }) =
         <div className="memorial-candle" onClick={onClick}>
             {specialDayText && <div className="special-day-banner">{specialDayText}</div>}
             <div className="memorial-candle-image-wrapper">
-                <img src={candle.candle_image_url || 'https://placehold.co/200x300/ffffff/3a3a3a?text=?'} alt="Gedenkkerze" />
+                <img src={candle.candle_image?.image?.url || 'https://placehold.co/200x300/ffffff/3a3a3a?text=?'} alt="Gedenkkerze" />
             </div>
             <div className="candle-info">
                 <strong>{candle.guest_name}</strong>
@@ -135,7 +134,6 @@ const SearchPopup = ({ onClose, pageData, onResultClick }) => {
     );
 };
 
-// NEU: Platzhalter für Chronik, Galerie und Geschichten
 const TimelineView = ({ timelineEvents, style }) => (
     <div className="inline-list-view" style={style}>
         {timelineEvents && timelineEvents.length > 0 ? (
@@ -158,7 +156,7 @@ const GalleryView = ({ galleryItems, style }) => (
         {galleryItems && galleryItems.length > 0 ? (
             galleryItems.map(item => (
                 <div key={item.item_id} className="gallery-image-container">
-                    <img src={item.image_url} alt={item.caption || 'Galeriebild'} />
+                    <img src={item.image?.url} alt={item.caption || 'Galeriebild'} />
                     {item.caption && <p>{item.caption}</p>}
                 </div>
             ))
@@ -173,7 +171,6 @@ const StoriesView = ({ style }) => (
         <div className="placeholder-content">
             <h3>Geschichten & Anekdoten</h3>
             <p>Hier könnten bald geteilte Geschichten und Erinnerungen erscheinen.</p>
-            {/* Hier könnte zukünftig ein Button zum Einreichen von Geschichten sein */}
         </div>
     </div>
 );
@@ -327,6 +324,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
     const isAnniversary = today.getDate() === new Date(pageData.date_of_death).getDate() && today.getMonth() === new Date(pageData.date_of_death).getMonth() && yearsSinceDeath > 0;
     
     const getAvailableCandles = () => {
+        if (!candleImages) return [];
         if (isBirthday) return candleImages.filter(c => c.type === 'birthday' || c.type === 'standard');
         if (isAnniversary) return candleImages.filter(c => c.type === 'anniversary' || c.type === 'standard');
         return candleImages.filter(c => c.type === 'standard');
@@ -334,7 +332,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
 
     const areaStyle = {
         backgroundColor: settings?.expend_background_color || '#f4f1ee',
-        backgroundImage: settings?.expend_background_image_url ? `url(${settings.expend_background_image_url})` : 'none',
+        backgroundImage: settings?.expend_background_image?.url ? `url(${settings.expend_background_image.url})` : 'none',
         color: settings?.expend_text_color || '#3a3a3a',
         '--bg-color': settings?.expend_background_color || '#f4f1ee'
     };
@@ -389,27 +387,27 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                         <div className="inline-cards-view">
                              <button onClick={() => handleCandlePageChange('prev')} className="inline-nav-arrow left" disabled={candlePageCount <= 1}><ArrowIcon direction="left" /></button>
                              <div className="inline-condolence-carousel" style={{ transform: `translateX(-${candleCurrentPage * 100}%)` }}>
-                                {Array.from({ length: candlePageCount || 1 }).map((_, pageIndex) => (
-                                    <div className="memorial-candle-page" key={pageIndex}>
-                                        {pageData.candles.slice(pageIndex * candlesPerPage, (pageIndex + 1) * candlesPerPage).map(candle => {
-                                            const candleDate = new Date(candle.created_at);
-                                            const candleIsBirthday = candleDate.getDate() === new Date(pageData.date_of_birth).getDate() && candleDate.getMonth() === new Date(pageData.date_of_birth).getMonth();
-                                            const candleYearsSinceDeath = candleDate.getFullYear() - new Date(pageData.date_of_death).getFullYear();
-                                            const candleIsAnniversary = candleDate.getDate() === new Date(pageData.date_of_death).getDate() && candleDate.getMonth() === new Date(pageData.date_of_death).getMonth() && candleYearsSinceDeath > 0;
+                                 {Array.from({ length: candlePageCount || 1 }).map((_, pageIndex) => (
+                                     <div className="memorial-candle-page" key={pageIndex}>
+                                         {pageData.candles.slice(pageIndex * candlesPerPage, (pageIndex + 1) * candlesPerPage).map(candle => {
+                                             const candleDate = new Date(candle.created_at);
+                                             const candleIsBirthday = candleDate.getDate() === new Date(pageData.date_of_birth).getDate() && candleDate.getMonth() === new Date(pageData.date_of_birth).getMonth();
+                                             const candleYearsSinceDeath = candleDate.getFullYear() - new Date(pageData.date_of_death).getFullYear();
+                                             const candleIsAnniversary = candleDate.getDate() === new Date(pageData.date_of_death).getDate() && candleDate.getMonth() === new Date(pageData.date_of_death).getMonth() && candleYearsSinceDeath > 0;
 
-                                            return (
-                                                <MemorialCandleDisplay 
-                                                    key={candle.candle_id} 
-                                                    candle={candle} 
-                                                    onClick={() => setSelectedCandle(candle)}
-                                                    isBirthday={candleIsBirthday}
-                                                    isAnniversary={candleIsAnniversary ? candleYearsSinceDeath : null}
-                                                />
-                                            );
-                                        })}
-                                    </div>
-                                ))}
-                             </div>
+                                             return (
+                                                 <MemorialCandleDisplay 
+                                                     key={candle.candle_id} 
+                                                     candle={candle} 
+                                                     onClick={() => setSelectedCandle(candle)}
+                                                     isBirthday={candleIsBirthday}
+                                                     isAnniversary={candleIsAnniversary ? candleYearsSinceDeath : null}
+                                                 />
+                                             );
+                                         })}
+                                     </div>
+                                 ))}
+                            </div>
                              <button onClick={() => handleCandlePageChange('next')} className="inline-nav-arrow right" disabled={candlePageCount <= 1}><ArrowIcon direction="right" /></button>
                         </div>
                         <div className="inline-action-button-container">
@@ -441,7 +439,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                         </div>
                     </>
                 );
-            // NEUE FÄLLE
             case 'chronik':
                 return (
                     <>
@@ -519,7 +516,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                         className={`candle-option ${selectedCandleImageId === candle.id ? 'selected' : ''}`}
                                         onClick={() => setSelectedCandleImageId(candle.id)}
                                     >
-                                        <img src={candle.image_url} alt={candle.name} />
+                                        <img src={candle.image?.url} alt={candle.name} />
                                         <span>{candle.name}</span>
                                     </div>
                                 ))}
@@ -559,7 +556,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                     <div className="lightbox-content candle-lightbox" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setSelectedCandle(null)} className="close-button lightbox-close">×</button>
                         <div className="candle-lightbox-image-wrapper">
-                            <img src={selectedCandle.candle_image_url} alt="Gedenkkerze" />
+                            <img src={selectedCandle.candle_image?.image?.url} alt="Gedenkkerze" />
                         </div>
                         <div className="lightbox-main">
                             <h3>{selectedCandle.guest_name}</h3>
@@ -582,3 +579,4 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
 };
 
 export default InlineExpandArea;
+

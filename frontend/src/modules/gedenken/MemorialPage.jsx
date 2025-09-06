@@ -1,6 +1,7 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
 // ERWEITERT: Fügt einen neuen Hauptbereich "Mein Leben" mit den Expand-Bereichen "Chronik", "Galerie" und "Geschichten" hinzu.
 // KORRIGIERT: Scroll-Verhalten zu den Sektionen zentriert und Timing-Problem beim Klick behoben.
+// AKTUALISIERT: Bild-URLs werden jetzt aus der neuen, verschachtelten API-Struktur geladen (z.B. pageData.main_photo.url).
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -39,8 +40,8 @@ const MemorialPage = () => {
         try {
             const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
             const [pageRes, settingsRes] = await Promise.all([
-                 fetch(`${apiUrl}/api/memorial-pages/${slug}/`),
-                 fetch(`${apiUrl}/api/settings/`)
+                fetch(`${apiUrl}/api/memorial-pages/${slug}/`),
+                fetch(`${apiUrl}/api/settings/`)
             ]);
             if (pageRes.ok) setPageData(await pageRes.json()); else setPageData(null);
             if (settingsRes.ok) setSettings(await settingsRes.json());
@@ -55,7 +56,6 @@ const MemorialPage = () => {
         if (slug) fetchPageData();
     }, [slug, fetchPageData]);
 
-    // KORREKTUR: Dieser useEffect sorgt dafür, dass das Scrollen NACH dem Rendern der Sektion passiert.
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
@@ -64,7 +64,6 @@ const MemorialPage = () => {
         const targetRef = activeMainView === 'abschied' ? farewellSectionRef : lifeSectionRef;
         targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, [activeMainView]);
-
 
     const displayedEvent = useMemo(() => {
         if (!pageData || !pageData.events || pageData.events.length === 0) return null;
@@ -112,6 +111,7 @@ const MemorialPage = () => {
         setSelectedEventForAttendance(event);
         setShowAttendancePopup(true);
     };
+
     const handleAttendanceSubmit = async (e) => {
         e.preventDefault();
         const guestName = e.target.guestName.value;
@@ -175,18 +175,18 @@ const MemorialPage = () => {
     if (isLoading) return <div className="loading-spinner"><div className="spinner"></div></div>;
     if (!pageData) return <h1 className="text-center text-2xl font-bold mt-10">Gedenkseite nicht gefunden</h1>;
     
-    const isParteVisible = pageData.obituary_card_image_url;
-    const isAcknowledgementVisible = pageData.acknowledgement_type !== 'none' && (pageData.acknowledgement_text || pageData.acknowledgement_image_url);
-    const isMemorialPictureVisible = pageData.show_memorial_picture && pageData.memorial_picture_url;
+    const isParteVisible = pageData.obituary_card_image?.url;
+    const isAcknowledgementVisible = pageData.acknowledgement_type !== 'none' && (pageData.acknowledgement_text || pageData.acknowledgement_image?.url);
+    const isMemorialPictureVisible = pageData.show_memorial_picture && pageData.memorial_picture?.url;
     const hasAnyMediaContent = isParteVisible || isAcknowledgementVisible || isMemorialPictureVisible || displayedEvent;
     
     const farewellStyle = {
         backgroundColor: pageData.farewell_background_color || '#6d6d6d',
-        backgroundImage: pageData.farewell_background_image_url ? `url(${pageData.farewell_background_image_url})` : 'none',
+        backgroundImage: pageData.farewell_background_image?.url ? `url(${pageData.farewell_background_image.url})` : 'none',
         backgroundSize: pageData.farewell_background_size || 'cover',
     };
     const heroStyle = {
-        backgroundImage: pageData.hero_background_image_url ? `url(${pageData.hero_background_image_url})` : `url(https://images.pexels.com/photos/1287145/pexels-photo-1287145.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)`,
+        backgroundImage: pageData.hero_background_image?.url ? `url(${pageData.hero_background_image.url})` : `url(https://images.pexels.com/photos/1287145/pexels-photo-1287145.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)`,
         backgroundSize: pageData.hero_background_size || 'cover',
     };
 
@@ -198,8 +198,8 @@ const MemorialPage = () => {
             {showSideBySideLightbox && (
                 <div className="lightbox" onClick={() => setShowSideBySideLightbox(false)}>
                     <div className="lightbox-side-by-side">
-                        <img src={pageData.memorial_picture_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Bild'} alt="Gedenkbild Vorderseite" />
-                        <img src={pageData.memorial_picture_back_url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Rückseite'} alt="Gedenkbild Rückseite" />
+                        <img src={pageData.memorial_picture?.url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Bild'} alt="Gedenkbild Vorderseite" />
+                        <img src={pageData.memorial_picture_back?.url || 'https://placehold.co/350x262/EFEFEF/AAAAAA&text=Rückseite'} alt="Gedenkbild Rückseite" />
                     </div>
                 </div>
             )}
@@ -220,7 +220,7 @@ const MemorialPage = () => {
                                 * {formatDate(pageData.date_of_birth)} &nbsp;&nbsp; † {formatDate(pageData.date_of_death)}
                             </p>
                         </div>
-                        <img className="profile-photo" src={pageData.main_photo_url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Profilbild von ${pageData.first_name}`} />
+                        <img className="profile-photo" src={pageData.main_photo?.url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Profilbild von ${pageData.first_name}`} />
                     </div>
                     <nav className="tab-navigation">
                         <button onClick={() => handleTabClick('abschied')} className={activeMainView === 'abschied' ? 'active' : ''}>Abschied nehmen</button>
@@ -240,7 +240,7 @@ const MemorialPage = () => {
                             <div className="farewell-main-content">
                                 {isParteVisible && (
                                     <div className="parte-container">
-                                        <img src={pageData.obituary_card_image_url} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image_url)} />
+                                        <img src={pageData.obituary_card_image.url} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image.url)} />
                                     </div>
                                 )}
                                 <div className="right-column">
@@ -250,7 +250,7 @@ const MemorialPage = () => {
                                                 {pageData.acknowledgement_type === 'text' ? (
                                                     <div className="acknowledgement-text-container"><p>{pageData.acknowledgement_text}</p></div>
                                                 ) : (
-                                                    <img src={pageData.acknowledgement_image_url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image_url)} />
+                                                    <img src={pageData.acknowledgement_image.url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image.url)} />
                                                 )}
                                             </div>
                                         )}
@@ -259,8 +259,8 @@ const MemorialPage = () => {
                                                 <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
                                                     <div className="zoom-button" onClick={openSideBySideLightbox}>🔍</div>
                                                     <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
-                                                        <div className="flip-card-front"><img src={pageData.memorial_picture_url} alt="Gedenkbild Vorderseite" /></div>
-                                                        <div className="flip-card-back"><img src={pageData.memorial_picture_back_url} alt="Gedenkbild Rückseite" /></div>
+                                                        <div className="flip-card-front"><img src={pageData.memorial_picture.url} alt="Gedenkbild Vorderseite" /></div>
+                                                        <div className="flip-card-back"><img src={pageData.memorial_picture_back.url} alt="Gedenkbild Rückseite" /></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -298,10 +298,10 @@ const MemorialPage = () => {
             {activeMainView === 'leben' && (
                 <section id="leben" ref={lifeSectionRef} className={farewellSectionClasses} style={farewellStyle}>
                      <div className="farewell-grid">
-                        <div className="farewell-title-area">
-                            <h2>Mein Leben</h2>
-                            <p>ERINNERUNGEN TEILEN</p>
-                        </div>
+                         <div className="farewell-title-area">
+                             <h2>Mein Leben</h2>
+                             <p>ERINNERUNGEN TEILEN</p>
+                         </div>
                          <div className="farewell-content-wrapper centered-large">
                              <div className="farewell-actions-area centered-large">
                                  <button onClick={() => toggleExpandedView('chronik')}>Chronik</button>
@@ -363,3 +363,4 @@ const MemorialPage = () => {
 };
 
 export default MemorialPage;
+

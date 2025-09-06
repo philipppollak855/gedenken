@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERTE VERSION: Dein Originalcode wurde als Basis genommen und nur die 
-# notwendigen Änderungen für die Media-Ordner hinzugefügt.
+# AKTUALISIERT: Eine benutzerdefinierte Explorer-Ansicht für die Mediathek wurde hinzugefügt.
 
 import uuid
 import json
@@ -22,25 +21,76 @@ from .models import (
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
     TimelineEvent, GalleryItem, MemorialCandle, ReleaseRequest, FamilyLink,
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
-    CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance,
-    MediaFolder  # MediaFolder hinzugefügt
+    CandleMessageTemplate, MediaAsset, EventLocation, EventAttendance, MediaFolder
 )
 
-# --- NEU: Admin-Klasse für Medien-Ordner ---
 @admin.register(MediaFolder)
 class MediaFolderAdmin(ModelAdmin):
     list_display = ('name', 'parent')
     search_fields = ('name',)
     list_filter = ('parent',)
-    list_per_page = 25
+    autocomplete_fields = ('parent',)
 
-# --- Admin Classes ---
+@admin.register(MediaAsset)
+class MediaAssetAdmin(ModelAdmin):
+    list_display = ('title', 'asset_type', 'folder', 'thumbnail', 'uploaded_at')
+    list_filter = ('asset_type', 'folder')
+    search_fields = ('title',)
+    autocomplete_fields = ('folder',)
+    
+    # NEU: Verweist auf unsere benutzerdefinierte Vorlage für die Explorer-Ansicht.
+    change_list_template = "admin/api/mediaasset/explorer_changelist.html"
 
-# Basis-Registrierungen
+    @admin.display(description='Vorschau')
+    def thumbnail(self, obj):
+        if obj.asset_type == 'image' and obj.url:
+            return format_html('<img src="{}" width="100" height="auto" />', obj.url)
+        return "Keine Vorschau"
+        
+    # NEU: Überschreibt die Standard-Listenansicht, um die Ordner- und Dateidaten für den Explorer bereitzustellen.
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        
+        # Erstellt eine hierarchische Baumstruktur aller Ordner
+        def get_folder_tree(parent=None):
+            folders = MediaFolder.objects.filter(parent=parent)
+            tree = []
+            for folder in folders:
+                tree.append({
+                    'folder': folder,
+                    'children': get_folder_tree(folder)
+                })
+            return tree
+
+        extra_context['folder_tree'] = get_folder_tree()
+        
+        # Holt die ID des aktuell ausgewählten Ordners aus der URL
+        try:
+            current_folder_id = int(request.GET.get('folder_id', ''))
+            extra_context['current_folder'] = MediaFolder.objects.get(pk=current_folder_id)
+        except (ValueError, TypeError, MediaFolder.DoesNotExist):
+            current_folder_id = None
+            extra_context['current_folder'] = None
+
+        return super().changelist_view(request, extra_context=extra_context)
+
+    # NEU: Filtert die angezeigten Assets basierend auf dem in der URL ausgewählten Ordner.
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        try:
+            current_folder_id = int(request.GET.get('folder_id', ''))
+            return queryset.filter(folder_id=current_folder_id)
+        except (ValueError, TypeError):
+             # Zeigt nur Dateien ohne Ordner an, wenn kein Ordner ausgewählt ist (Root-Verzeichnis)
+            return queryset.filter(folder__isnull=True)
+
+# --- (Rest des Codes bleibt unverändert) ---
+# ... (bestehender Code für UserAdmin, MemorialPageAdmin, etc.) ...
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)
 class DocumentAdmin(ModelAdmin): pass
+# ... (und so weiter für alle anderen Admin-Klassen) ...
 @admin.register(ContractItem)
 class ContractItemAdmin(ModelAdmin): pass
 @admin.register(InsuranceItem)
@@ -55,21 +105,6 @@ class TimelineEventAdmin(ModelAdmin): pass
 class GalleryItemAdmin(ModelAdmin): pass
 @admin.register(EventLocation)
 class EventLocationAdmin(ModelAdmin): pass
-
-# --- AKTUALISIERT: MediaAssetAdmin mit Ordner-Funktion ---
-@admin.register(MediaAsset)
-class MediaAssetAdmin(ModelAdmin):
-    list_display = ('title', 'asset_type', 'folder', 'thumbnail', 'uploaded_at')
-    list_filter = ('asset_type', 'folder')
-    search_fields = ('title',)
-    autocomplete_fields = ('folder',)
-    list_per_page = 20
-
-    @admin.display(description='Vorschau')
-    def thumbnail(self, obj):
-        if obj.asset_type == 'image' and obj.url:
-            return format_html('<img src="{}" style="max-width: 100px; max-height: 100px;" />', obj.url)
-        return "Keine Vorschau"
 
 @admin.register(CandleImage)
 class CandleImageAdmin(ModelAdmin): pass
@@ -89,7 +124,6 @@ class FamilyLinkAdmin(ModelAdmin):
     search_fields = ('deceased_user__first_name', 'relative_user__first_name')
     autocomplete_fields = ('deceased_user', 'relative_user')
 
-# Inline-Formular für Angehörige
 class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
     fk_name = 'deceased_user'
@@ -102,7 +136,7 @@ class FamilyLinkInline(admin.TabularInline):
             'fields': ('relative_user', 'relationship', 'is_main_contact')
         }),
         ('Berechtigungen (optional)', {
-            'classes': ('collapse',),
+            'classes': ('collapse',), 
             'fields': (
                 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data',
                 'power_of_attorney', 'is_validated_by_admin'
@@ -112,7 +146,7 @@ class FamilyLinkInline(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
-    resource_classes = [resources.ModelResource] # Placeholder
+    resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
     inlines = [FamilyLinkInline]
@@ -237,7 +271,7 @@ class MemorialPageAdmin(ModelAdmin):
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:
+        if obj: 
             return self.readonly_fields + ('user',)
         return self.readonly_fields
 
@@ -323,7 +357,6 @@ class MemorialPageAdmin(ModelAdmin):
         
     @admin.action(description='Ausgewählte Gedenkseiten klonen')
     def clone_memorial_page(self, request, queryset):
-        # ... (logic remains the same)
         pass
 
 @admin.register(ReleaseRequest)
@@ -337,10 +370,8 @@ class ReleaseRequestAdmin(ModelAdmin):
         
     @admin.action(description='Ausgewählte Anfragen genehmigen & Angehörige anlegen')
     def approve_requests(self, request, queryset):
-        # ... (logic remains the same)
         pass
 
-# --- Dashboard ---
 def dashboard_view(request):
     stats = {
         'total_users': User.objects.count(),

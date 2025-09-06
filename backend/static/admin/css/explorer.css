@@ -1,0 +1,60 @@
+/* backend/static/admin/css/explorer.css */
+/* NEU: Diese Datei enthält das Styling für die zweispaltige Explorer-Ansicht. */
+
+.explorer-container {
+    display: flex;
+    gap: 20px;
+}
+
+.explorer-sidebar {
+    flex: 0 0 280px; /* Breite der Seitenleiste festlegen */
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    padding: 15px;
+    height: fit-content;
+}
+
+.explorer-sidebar h4 {
+    margin-top: 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.explorer-main {
+    flex: 1;
+}
+
+ul.folder-tree, ul.folder-tree ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+ul.folder-tree ul {
+    padding-left: 20px; /* Einrückung für Unterordner */
+}
+
+ul.folder-tree li a {
+    display: block;
+    padding: 8px 10px;
+    text-decoration: none;
+    color: var(--navigation-link-color);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+ul.folder-tree li a:hover {
+    background-color: #e7e7e7;
+}
+
+ul.folder-tree li a.selected {
+    background-color: var(--navigation-link-background-color-active);
+    color: var(--navigation-link-color-active);
+    font-weight: bold;
+}
+
+.folder-icon {
+    font-size: 1.2em;
+}

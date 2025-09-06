@@ -38,7 +38,8 @@ class MediaAssetAdmin(ModelAdmin):
     search_fields = ('title',)
     autocomplete_fields = ('folder',)
     
-    change_list_template = "admin/api/mediaasset/explorer_changelist.html"
+    # Das Standard-Template wird hier entfernt und dynamisch in changelist_view gesetzt.
+    # change_list_template = "admin/api/mediaasset/explorer_changelist.html"
 
     @admin.display(description='Vorschau')
     def thumbnail(self, obj):
@@ -47,42 +48,40 @@ class MediaAssetAdmin(ModelAdmin):
         return "Keine Vorschau"
         
     def changelist_view(self, request, extra_context=None):
-        # NEUE KORREKTUR: Prüft, ob die Ansicht in einem Pop-up geöffnet wird.
-        # Wenn ja, wird die Standard-Ansicht anstelle des Explorers verwendet, um den Fehler zu vermeiden.
+        # ROBUSTE KORREKTUR: Die Vorlage wird jetzt dynamisch je nach Kontext gesetzt.
         if '_popup' in request.GET:
-            # Setzt die Vorlage auf die Standard-Vorlage für Pop-ups zurück.
+            # Für Pop-ups wird die Standard-Django-Vorlage verwendet.
             self.change_list_template = "admin/change_list.html"
-            return super().changelist_view(request, extra_context=extra_context)
-        
-        # Stellt sicher, dass die Explorer-Vorlage für die normale Ansicht verwendet wird.
-        self.change_list_template = "admin/api/mediaasset/explorer_changelist.html"
-        
-        extra_context = extra_context or {}
-        
-        def get_folder_tree(parent=None):
-            folders = MediaFolder.objects.filter(parent=parent)
-            tree = []
-            for folder in folders:
-                tree.append({
-                    'folder': folder,
-                    'children': get_folder_tree(folder)
-                })
-            return tree
+            extra_context = extra_context or {}
+        else:
+            # Für die normale Ansicht wird die Explorer-Vorlage verwendet.
+            self.change_list_template = "admin/api/mediaasset/explorer_changelist.html"
+            extra_context = extra_context or {}
+            
+            def get_folder_tree(parent=None):
+                folders = MediaFolder.objects.filter(parent=parent)
+                tree = []
+                for folder in folders:
+                    tree.append({
+                        'folder': folder,
+                        'children': get_folder_tree(folder)
+                    })
+                return tree
 
-        extra_context['folder_tree'] = get_folder_tree()
-        
-        try:
-            current_folder_id = int(request.GET.get('folder_id', ''))
-            extra_context['current_folder'] = MediaFolder.objects.get(pk=current_folder_id)
-        except (ValueError, TypeError, MediaFolder.DoesNotExist):
-            extra_context['current_folder'] = None
+            extra_context['folder_tree'] = get_folder_tree()
+            
+            try:
+                current_folder_id = int(request.GET.get('folder_id', ''))
+                extra_context['current_folder'] = MediaFolder.objects.get(pk=current_folder_id)
+            except (ValueError, TypeError, MediaFolder.DoesNotExist):
+                extra_context['current_folder'] = None
 
         return super().changelist_view(request, extra_context=extra_context)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
 
-        # NEUE KORREKTUR: Im Pop-up-Modus werden alle Dateien ohne Ordnerfilter angezeigt.
+        # KORREKTUR: Im Pop-up-Modus werden alle Dateien ohne Ordnerfilter angezeigt.
         if '_popup' in request.GET:
             return queryset
 

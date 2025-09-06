@@ -1,5 +1,6 @@
 # backend/api/admin.py
-# FINALE KORREKTUR: Stellt eine stabile Trennung zwischen Pop-up und Explorer-Ansicht sicher.
+# STABILITÄTS-UPDATE: Die changelist_view wurde optimiert, um robuster zu sein
+# und den Django-Konventionen besser zu entsprechen.
 
 import uuid
 import json
@@ -39,33 +40,27 @@ class MediaAssetAdmin(ModelAdmin):
     search_fields = ('title',)
     autocomplete_fields = ('folder',)
     
+    # KORRIGIERT: Das Template wird hier als Attribut definiert.
+    change_list_template = "admin/api/mediaasset/explorer_changelist.html"
+    
     @admin.display(description='Vorschau')
     def thumbnail(self, obj):
         if obj.asset_type == 'image' and obj.url:
             return format_html('<img src="{}" width="100" height="auto" />', obj.url)
         return "Keine Vorschau"
-        
+
+    # OPTIMIERT: Diese Methode ist jetzt sauberer und weniger fehleranfällig.
     def changelist_view(self, request, extra_context=None):
-        # Wenn '_popup' im Request erkannt wird, wird die Standard-Ansicht der Elternklasse
-        # ohne jegliche Modifikation aufgerufen. Dies ist der sicherste Weg.
         if '_popup' in request.GET:
+            # Für Popups wird die Standard-Ansicht ohne Explorer verwendet.
+            self.change_list_template = "admin/change_list.html"
             return super().changelist_view(request, extra_context)
 
-        # Für die reguläre Ansicht wird der Kontext manuell aufgebaut und unsere
-        # benutzerdefinierte Vorlage direkt mit TemplateResponse gerendert.
-        changelist = self.get_changelist_instance(request)
-        
-        context = {
-            **self.admin_site.each_context(request),
-            'module_name': self.model._meta.verbose_name_plural,
-            'title': 'Mediathek',
-            'opts': self.model._meta,
-            'app_label': self.model._meta.app_label,
-            'cl': changelist,
-            'media': self.media,
-            **(extra_context or {}),
-        }
-        
+        # Stellt sicher, dass für die normale Ansicht immer der Explorer verwendet wird.
+        self.change_list_template = "admin/api/mediaasset/explorer_changelist.html"
+
+        extra_context = extra_context or {}
+
         def get_folder_tree(parent=None):
             folders = MediaFolder.objects.filter(parent=parent).order_by('name')
             tree = []
@@ -76,15 +71,15 @@ class MediaAssetAdmin(ModelAdmin):
                 })
             return tree
 
-        context['folder_tree'] = get_folder_tree()
+        extra_context['folder_tree'] = get_folder_tree()
         
         try:
             current_folder_id = int(request.GET.get('folder_id', ''))
-            context['current_folder'] = MediaFolder.objects.get(pk=current_folder_id)
+            extra_context['current_folder'] = MediaFolder.objects.get(pk=current_folder_id)
         except (ValueError, TypeError, MediaFolder.DoesNotExist):
-            context['current_folder'] = None
+            extra_context['current_folder'] = None
 
-        return TemplateResponse(request, "admin/api/mediaasset/explorer_changelist.html", context)
+        return super().changelist_view(request, extra_context)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -96,7 +91,6 @@ class MediaAssetAdmin(ModelAdmin):
         except (ValueError, TypeError):
             return queryset.filter(folder__isnull=True)
 
-# --- (Rest des Codes bleibt unverändert) ---
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)
@@ -254,10 +248,15 @@ class MemorialEventAdmin(ModelAdmin):
     list_filter = ('page',)
     search_fields = ('title', 'page__first_name', 'page__last_name')
 
+class MemorialEventInline(admin.TabularInline):
+    model = MemorialEvent
+    extra = 1
+    raw_id_fields = ('location',)
+    
 @admin.register(MemorialPage)
 class MemorialPageAdmin(ModelAdmin):
     search_fields = ('first_name', 'last_name', 'user__email', 'slug')
-    list_display = ('__str__', 'get_user_id', 'status', 'manage_content_links')
+    list_display = ('__str__', 'get_user_id', 'status', 'condolence_moderation')
     actions = ['clone_memorial_page']
     
     autocomplete_fields = ['user']
@@ -333,7 +332,11 @@ class MemorialPageAdmin(ModelAdmin):
             'fields': ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events'),
         }),
         ('Design: Hero-Bereich', { 'classes': ('collapse',), 'fields': ('main_photo', 'hero_background_image', 'hero_background_size'), }),
-        ('Design: Abschied nehmen', { 'classes': ('collapse',), 'fields': ('farewell_background_color', 'farewell_background_image', 'farewell_background_size', 'farewell_text_inverted', 'obituary_card_image', 'show_memorial_picture', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_type', 'acknowledgement_text', 'acknowledgement_image'), }),
+        ('Design: Abschied nehmen', { 'classes': ('collapse',), 'fields': ('farewell_background_color', 'farewell_background_image', 'farewell_background_size', 
+                'farewell_text_inverted',
+                'obituary_card_image', 
+                'show_memorial_picture', 'memorial_picture', 'memorial_picture_back',
+                'acknowledgement_type', 'acknowledgement_text', 'acknowledgement_image'), }),
         ('Spendenaufruf (optional)', { 'classes': ('collapse',), 'fields': ('donation_text', 'donation_link', 'donation_bank_details'), }),
     )
 
@@ -358,17 +361,23 @@ class ReleaseRequestAdmin(ModelAdmin):
     def approve_requests(self, request, queryset):
         pass
 
-def dashboard_view(request):
+def admin_dashboard_view(request):
+    """
+    Die Logik für unser neues Admin-Dashboard.
+    Sammelt Statistiken und die neuesten Aktivitäten.
+    """
     stats = {
         'total_users': User.objects.count(),
         'total_pages': MemorialPage.objects.count(),
         'pending_releases': ReleaseRequest.objects.filter(status=ReleaseRequest.Status.PENDING).count(),
         'unapproved_condolences': Condolence.objects.filter(is_approved=False).count(),
     }
+    
     today = now()
-    upcoming_events_grid = MemorialEvent.objects.filter(date__gte=today).order_by('date')[:5]
+    upcoming_events = MemorialEvent.objects.filter(date__gte=today).order_by('date')[:5]
     latest_condolences = Condolence.objects.order_by('-created_at')[:10]
     latest_candles = MemorialCandle.objects.order_by('-created_at')[:10]
+    
     all_events = MemorialEvent.objects.all()
     calendar_events = [
         {
@@ -379,16 +388,17 @@ def dashboard_view(request):
             "url": reverse('admin:api_memorialevent_change', args=[event.pk])
         } for event in all_events
     ]
+
     context = {
+        **admin.site.each_context(request),
         "title": "Dashboard",
         "stats": stats,
-        "upcoming_events_grid": upcoming_events_grid,
+        "upcoming_events_grid": upcoming_events,
         "latest_condolences": latest_condolences,
         "latest_candles": latest_candles,
         "calendar_events_json": json.dumps(calendar_events),
-        **admin.site.each_context(request),
     }
     return render(request, "admin/dashboard.html", context)
 
-admin.site.index = dashboard_view
+admin.site.index = admin_dashboard_view
 

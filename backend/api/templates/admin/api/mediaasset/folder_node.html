@@ -1,6 +1,7 @@
 <!-- backend/api/templates/admin/api/mediaasset/folder_node.html -->
 <li>
-    <a href="?folder_id={{ node.folder.id }}" class="{% if current_folder.id == node.folder.id %}active{% endif %}">
+    {# KORREKTUR: Prüft, ob 'current_folder' existiert, bevor auf .id zugegriffen wird #}
+    <a href="?folder_id={{ node.folder.id }}" class="{% if current_folder and current_folder.id == node.folder.id %}active{% endif %}">
         <i class="fas fa-folder"></i> {{ node.folder.name }}
     </a>
     {% if node.children %}
@@ -11,3 +12,4 @@
         </ul>
     {% endif %}
 </li>
+

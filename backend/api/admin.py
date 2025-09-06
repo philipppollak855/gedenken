@@ -14,7 +14,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse
 from django.shortcuts import render
-from django.db.models import Q, Count
+from django.db.models import Q, Count, ForeignKey
 from django.utils.safestring import mark_safe
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem,
@@ -48,23 +48,35 @@ class MediaAssetAdmin(ModelAdmin):
     @admin.display(description='Verwendung')
     def image_usage(self, obj):
         usages = []
-        # Find all ForeignKey fields in MemorialPage that point to MediaAsset
-        related_fields = [
-            f for f in MemorialPage._meta.get_fields()
-            if isinstance(f, models.ForeignKey) and f.related_model == MediaAsset
-        ]
         
-        for field in related_fields:
-            # Construct the query to find pages using this asset in the current field
-            query = {field.name: obj}
-            pages = MemorialPage.objects.filter(**query)
+        # Mapping von Feldnamen in MemorialPage zu benutzerfreundlichen Labels
+        field_map = {
+            'main_photo': "Portrait",
+            'hero_background_image': "Hintergrund Hero",
+            'farewell_background_image': "Hintergrund Abschied",
+            'obituary_card_image': "Partezettel",
+            'memorial_picture': "Gedenkbild (Vorderseite)",
+            'memorial_picture_back': "Gedenkbild (Rückseite)",
+            'acknowledgement_image': "Danksagung"
+        }
+
+        # Direkte Abfragen für Gedenkseiten
+        for field_name, label in field_map.items():
+            pages = MemorialPage.objects.filter(**{field_name: obj})
             if pages.exists():
-                page_links = [
-                    f'<a href="{reverse("admin:api_memorialpage_change", args=[page.pk])}">{str(page)}</a>'
-                    for page in pages
-                ]
-                usages.append(f"{field.verbose_name}: {', '.join(page_links)}")
+                page_links = [f'<a href="{reverse("admin:api_memorialpage_change", args=[p.pk])}">{str(p)}</a>' for p in pages]
+                usages.append(f"{label}: {', '.join(page_links)}")
         
+        # Abfrage für Galerie-Bilder
+        gallery_pages = GalleryItem.objects.filter(image=obj).select_related('page')
+        if gallery_pages.exists():
+            page_links = list(set([f'<a href="{reverse("admin:api_memorialpage_change", args=[g.page.pk])}">{str(g.page)}</a>' for g in gallery_pages]))
+            usages.append(f"Galerie: {', '.join(page_links)}")
+
+        # Abfrage für Kerzen-Bilder
+        if CandleImage.objects.filter(image=obj).exists():
+             usages.append("Kerzenbild (Stammdaten)")
+
         return mark_safe("<br>".join(usages)) if usages else "Nicht direkt verwendet"
 
     def save_model(self, request, obj, form, change):

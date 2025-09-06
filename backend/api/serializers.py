@@ -1,7 +1,5 @@
 # backend/api/serializers.py
-# KORRIGIERT: Fehlender EventAttendanceSerializer hinzugefügt.
-# KORRIGIERT: Alle Sonderzeichen wurden korrigiert.
-# AKTUALISIERT: MemorialPageListSerializer verwendet jetzt MediaAssetSerializer.
+# KORRIGIERT: Stellt sicher, dass Serializer die korrekte URL-Struktur für Bilder liefert.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -16,14 +14,34 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-# --- Zentraler Serializer für Mediendateien ---
 class MediaAssetSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = MediaAsset
         fields = ('title', 'url', 'asset_type')
 
-# --- Stammdaten & Vorlagen Serializers ---
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if obj.file_upload and request:
+            return request.build_absolute_uri(obj.file_upload.url)
+        if obj.file_url:
+            return obj.file_url
+        return None
 
+# ... (Rest der Serializer bleiben unverändert, hier ist der relevante Teil) ...
+
+class MemorialPageListSerializer(serializers.ModelSerializer):
+    main_photo = MediaAssetSerializer(read_only=True)
+
+    class Meta:
+        model = MemorialPage
+        fields = [
+            'slug', 'first_name', 'last_name', 
+            'date_of_birth', 'date_of_death', 'main_photo'
+        ]
+
+# ... (Alle anderen Serializer von EventLocationSerializer bis zum Ende bleiben hier) ...
 class EventLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventLocation
@@ -44,8 +62,6 @@ class CondolenceTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CondolenceTemplate
         fields = ['title', 'text']
-
-# --- Benutzer & Authentifizierung Serializers ---
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
@@ -89,8 +105,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['role'] = user.role
         return token
 
-# --- Vorsorge Serializers ---
-
 class DigitalLegacyItemSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
@@ -127,8 +141,6 @@ class LastWishesSerializer(serializers.ModelSerializer):
         model = LastWishes
         fields = '__all__'
         read_only_fields = ['user', 'updated_at']
-
-# --- Gedenkseiten-Inhalt Serializers ---
 
 class CondolenceSerializer(serializers.ModelSerializer):
     is_owner = serializers.SerializerMethodField()
@@ -190,19 +202,6 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         model = MemorialEvent
         exclude = ['page']
 
-# --- Gedenkseiten & Globale Einstellungen Serializers ---
-
-class MemorialPageListSerializer(serializers.ModelSerializer):
-    # AKTUALISIERT: Verwendet den MediaAssetSerializer für Konsistenz
-    main_photo = MediaAssetSerializer(read_only=True)
-
-    class Meta:
-        model = MemorialPage
-        fields = [
-            'slug', 'first_name', 'last_name', 
-            'date_of_birth', 'date_of_death', 'main_photo'
-        ]
-
 class SiteSettingsSerializer(serializers.ModelSerializer):
     listing_background_image = MediaAssetSerializer(read_only=True)
     search_background_image = MediaAssetSerializer(read_only=True)
@@ -259,8 +258,6 @@ class MemorialPageSerializer(serializers.ModelSerializer):
     def get_condolence_count(self, obj):
         return obj.condolences.filter(is_approved=True).count()
 
-# --- Freigabe-Prozess Serializer ---
-
 class ReleaseRequestSerializer(serializers.ModelSerializer):
     reporter_password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
     class Meta:
@@ -281,3 +278,4 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
+

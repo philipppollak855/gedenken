@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: SiteSettings-Modell um Schriftart- und Schriftgrößen-Optionen ergänzt.
+# ERWEITERT: Neue Benutzerrolle "Verstorbener" hinzugefügt und E-Mail optional gemacht.
 
 import uuid
 from django.db import models
@@ -9,7 +9,6 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
-# ... (MediaAsset, EventLocation bleiben unverändert) ...
 class MediaAsset(models.Model):
     class AssetType(models.TextChoices):
         IMAGE = 'image', 'Bild'
@@ -69,28 +68,21 @@ class SiteSettings(models.Model):
         verbose_name = "Globale Design-Einstellungen"
         verbose_name_plural = "Globale Design-Einstellungen"
 
-    # Design Gedenkseiten-Startseite
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir trauern um")
     listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     listing_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Startseite")
     listing_card_color = models.CharField("Karten-Hintergrundfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
     listing_text_color = models.CharField("Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
     listing_arrow_color = models.CharField("Pfeilfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #8c8073", default="#8c8073")
-    
-    # Design Suche
     search_title = models.CharField("Titel im Suchbereich", max_length=100, blank=True, default="Verstorbenen Suche")
     search_helper_text = models.TextField("Hilfstext im Suchbereich", blank=True, default="Bitte geben Sie einen oder mehrere Suchbegriffe in die obenstehenden Felder ein, um nach einem Verstorbenen zu suchen.")
     search_background_color = models.CharField("Hintergrundfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #e5e0da")
     search_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Suche")
     search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
-
-    # Design Expand-Bereich
     expend_background_color = models.CharField("Hintergrundfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     expend_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Expand-Bereich")
     expend_card_color = models.CharField("Karten-Hintergrundfarbe Expand", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
     expend_text_color = models.CharField("Textfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
-
-    # NEU: Typografie-Einstellungen
     font_family = models.CharField("Schriftart", max_length=100, choices=FontChoices.choices, default=FontChoices.ROBOTO)
     font_size_base = models.CharField("Grundschriftgröße", max_length=10, blank=True, default="14px", help_text="CSS-Wert, z.B. 14px oder 0.9rem")
 
@@ -101,11 +93,18 @@ class SiteSettings(models.Model):
         self.pk = 1
         super(SiteSettings, self).save(*args, **kwargs)
 
-# ... (Der Rest der Datei von UserManager bis zum Ende bleibt unverändert) ...
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email=None, password=None, **extra_fields):
+        # Wenn keine E-Mail angegeben ist, aber die Rolle 'verstorbener' ist,
+        # erzeugen wir eine eindeutige, nicht funktionale E-Mail.
+        if not email and extra_fields.get('role') == User.Role.VERSTORBENER:
+            user_id = extra_fields.get('id', uuid.uuid4())
+            email = f"{user_id}@verstorben.local"
+            extra_fields['id'] = user_id
+        
         if not email:
-            raise ValueError('The Email field must be set')
+            raise ValueError('Eine E-Mail-Adresse ist erforderlich (außer für die Rolle "Verstorbener").')
+            
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -122,15 +121,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = "Benutzer"
         verbose_name_plural = "Benutzer"
+        
     class Role(models.TextChoices):
         VORSORGENDER = 'vorsorgender', 'Vorsorgender'
         ANGEHOERIGER = 'angehoeriger', 'Angehöriger'
-        VERSTORBENER = 'verstorbener', 'Verstorbener' # NEU
+        VERSTORBENER = 'verstorbener', 'Verstorbener'
         GAST = 'gast', 'Gast'
         ADMINISTRATOR = 'administrator', 'Administrator'
 
     id = models.UUIDField("ID", primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField("E-Mail-Adresse", unique=True)
+    # E-Mail ist nun optional (blank=True, null=True)
+    email = models.EmailField("E-Mail-Adresse", unique=True, blank=True, null=True)
     first_name = models.CharField("Vorname", max_length=100, blank=True)
     last_name = models.CharField("Nachname", max_length=100, blank=True)
     role = models.CharField("Rolle", max_length=20, choices=Role.choices, default=Role.VORSORGENDER)
@@ -140,13 +141,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField("Mitarbeiter", default=False)
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
     updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
+    
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+    def save(self, *args, **kwargs):
+        if not self.email and self.role == self.Role.VERSTORBENER:
+            # Stellt sicher, dass auch bei bestehenden Objekten eine Dummy-E-Mail erzeugt wird
+            self.email = f"{self.id}@verstorben.local"
+        super().save(*args, **kwargs)
+
     def __str__(self):
         if self.first_name and self.last_name:
             return f"{self.first_name} {self.last_name}"
-        return self.email
+        return self.email or f"Benutzer {self.id}"
 
 class MemorialPage(models.Model):
     class Meta:
@@ -186,38 +195,27 @@ class MemorialPage(models.Model):
     date_of_birth = models.DateField("Geburtsdatum", null=True, blank=True)
     date_of_death = models.DateField("Sterbedatum", null=True, blank=True)
     cemetery = models.CharField("Friedhof", max_length=255, blank=True)
-    
     main_photo = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Portraitbild Hero-Bereich")
     hero_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Hero-Bereich")
     hero_background_size = models.CharField("Anpassung Hintergrundbild Hero", max_length=10, choices=BackgroundSize.choices, default=BackgroundSize.COVER)
-    
     obituary = models.TextField("Nachruf", blank=True)
     donation_text = models.TextField("Angezeigter Spendenaufruf", blank=True)
     donation_link = models.URLField("Spenden-Link", max_length=255, blank=True)
     donation_bank_details = models.TextField("Spenden-Bankverbindung", blank=True)
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
     updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
-
     farewell_background_color = models.CharField("Hintergrundfarbe Abschied", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     farewell_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Abschied")
     farewell_background_size = models.CharField("Anpassung Hintergrundbild Abschied", max_length=10, choices=BackgroundSize.choices, default=BackgroundSize.COVER)
     farewell_text_inverted = models.BooleanField("Textfarbe im Abschiedsbereich umkehren (für helle Hintergründe)", default=False)
     obituary_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Partezettel Bild")
-    
     show_memorial_picture = models.BooleanField("Gedenkbild anzeigen", default=True)
     memorial_picture = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild Vorderseite")
     memorial_picture_back = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild Rückseite")
-    
     acknowledgement_type = models.CharField("Art der Danksagung", max_length=5, choices=AcknowledgementType.choices, default=AcknowledgementType.NONE)
     acknowledgement_text = models.TextField("Danksagung (Text)", blank=True)
     acknowledgement_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Danksagung Bild")
-    
-    condolence_moderation = models.CharField(
-        "Kondolenz-Moderation",
-        max_length=20,
-        choices=ModerationStatus.choices,
-        default=ModerationStatus.NOT_MODERATED
-    )
+    condolence_moderation = models.CharField("Kondolenz-Moderation", max_length=20, choices=ModerationStatus.choices, default=ModerationStatus.NOT_MODERATED)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -229,7 +227,6 @@ class MemorialPage(models.Model):
                 counter += 1
             self.slug = slug
         
-        # NEU: Logik zur automatischen Rollenänderung
         if self.pk is not None:
             orig = MemorialPage.objects.get(pk=self.pk)
             if orig.status != self.Status.ACTIVE and self.status == self.Status.ACTIVE:
@@ -494,3 +491,4 @@ class EventAttendance(models.Model):
 
     def __str__(self):
         return f"{self.guest_name} nimmt an {self.event.title} teil"
+

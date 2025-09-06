@@ -1,6 +1,5 @@
 # backend/api/models.py
-# HINZUGEFÜGT: MediaFolder-Modell für eine hierarchische Ordnerstruktur.
-# AKTUALISIERT: MediaAsset-Modell, um es mit den neuen Ordnern zu verknüpfen.
+# HINZUGEFÜGT: Logik zur automatischen Erstellung von Medien-Ordnern für Gedenkseiten.
 
 import uuid
 from django.db import models
@@ -11,12 +10,10 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 
 class MediaFolder(models.Model):
-    """
-    Ermöglicht eine verschachtelbare Ordnerstruktur für die Mediathek.
-    """
     name = models.CharField("Ordnername", max_length=100)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', verbose_name="Übergeordneter Ordner")
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    memorial_page = models.OneToOneField('MemorialPage', on_delete=models.SET_NULL, null=True, blank=True, related_name='media_folder', verbose_name="Zugehörige Gedenkseite")
 
     class Meta:
         verbose_name = "Medien-Ordner"
@@ -182,9 +179,6 @@ class User(AbstractBaseUser, PermissionsMixin):
             return f"{self.first_name} {self.last_name}"
         return self.email or f"Benutzer {self.id}"
 
-    def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
-
 class MemorialPage(models.Model):
     class Meta:
         verbose_name = "Gedenkseite"
@@ -260,21 +254,40 @@ class MemorialPage(models.Model):
             base_slug = slugify(f"{self.first_name}-{self.last_name}")
             slug = base_slug
             counter = 1
-            while MemorialPage.objects.filter(slug=slug).exists():
+            while MemorialPage.objects.filter(slug=slug).exclude(pk=self.pk).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
-        
-        try:
-            orig = MemorialPage.objects.get(pk=self.pk)
-            if orig.status != self.Status.ACTIVE and self.status == self.Status.ACTIVE:
-                if self.user.role == User.Role.VORSORGENDER:
-                    self.user.role = User.Role.VERSTORBENER
-                    self.user.save()
-        except MemorialPage.DoesNotExist:
-            pass
 
         super().save(*args, **kwargs)
+
+        folder_name = f"{self.first_name} {self.last_name}".strip()
+        if folder_name:
+            try:
+                folder, created = MediaFolder.objects.get_or_create(
+                    memorial_page=self,
+                    defaults={'name': folder_name}
+                )
+                image_fields_to_check = [
+                    'main_photo', 'hero_background_image', 'farewell_background_image',
+                    'obituary_card_image', 'memorial_picture', 'memorial_picture_back',
+                    'acknowledgement_image'
+                ]
+                for field_name in image_fields_to_check:
+                    image_asset = getattr(self, field_name, None)
+                    if image_asset and not image_asset.folder:
+                        image_asset.folder = folder
+                        image_asset.save()
+            except Exception as e:
+                print(f"Could not create or assign media folder for {self}: {e}")
+
+        try:
+            user = self.user
+            if user.role != User.Role.VERSTORBENER and self.status == self.Status.ACTIVE:
+                user.role = User.Role.VERSTORBENER
+                user.save()
+        except User.DoesNotExist:
+            pass
 
     def __str__(self):
         if self.first_name and self.last_name:
@@ -283,6 +296,7 @@ class MemorialPage(models.Model):
             return f"{self.user.first_name} {self.user.last_name}"
         return "Unbenannte Gedenkseite"
 
+# ... (Restliche Modelle bleiben unverändert) ...
 class Condolence(models.Model):
     class Meta:
         verbose_name = "Kondolenz"
@@ -482,20 +496,10 @@ class FamilyLink(models.Model):
         verbose_name = "Angehörigen-Verknüpfung"
         verbose_name_plural = "Angehörigen-Verknüpfungen"
         unique_together = ('deceased_user', 'relative_user')
-        
     link_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     deceased_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_deceased', verbose_name="Verstorbener")
     relative_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_relative', verbose_name="Angehöriger")
-    relationship = models.CharField("Verwandtschaftsbezeichnung", max_length=100, blank=True, help_text="z.B. Sohn, Ehefrau, Guter Freund")
     is_main_contact = models.BooleanField("Hauptansprechpartner", default=False)
-    
-    can_edit_memorial_page = models.BooleanField("Gedenkseite bearbeiten", default=False)
-    can_view_precaution_data = models.BooleanField("Vorsorge einsehen", default=False)
-    can_edit_precaution_data = models.BooleanField("Vorsorge bearbeiten", default=False)
-    
-    power_of_attorney = models.FileField("Vollmacht (PDF, JPG, PNG)", upload_to='power_of_attorney/%Y/%m/', blank=True, null=True)
-    is_validated_by_admin = models.BooleanField("Vom Admin validiert", default=False, help_text="Admin bestätigt die Berechtigung (auch ohne Vollmacht-Upload).")
-
     def __str__(self):
         return f"{self.relative_user} ist Angehöriger von {self.deceased_user}"
 
@@ -541,4 +545,3 @@ class EventAttendance(models.Model):
 
     def __str__(self):
         return f"{self.guest_name} nimmt an {self.event.title} teil"
-

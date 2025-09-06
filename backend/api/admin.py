@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# STABILITÄTS-UPDATE: Die changelist_view wurde optimiert, um robuster zu sein
-# und den Django-Konventionen besser zu entsprechen.
+# Vollständige Konfigurationsdatei für das Django Admin Interface.
 
 import uuid
 import json
@@ -14,8 +13,7 @@ from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse
-from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
 from .models import (
@@ -39,8 +37,6 @@ class MediaAssetAdmin(ModelAdmin):
     list_filter = ('asset_type', 'folder')
     search_fields = ('title',)
     autocomplete_fields = ('folder',)
-    
-    # KORRIGIERT: Das Template wird hier als Attribut definiert.
     change_list_template = "admin/api/mediaasset/explorer_changelist.html"
     
     @admin.display(description='Vorschau')
@@ -49,16 +45,22 @@ class MediaAssetAdmin(ModelAdmin):
             return format_html('<img src="{}" width="100" height="auto" />', obj.url)
         return "Keine Vorschau"
 
-    # OPTIMIERT: Diese Methode ist jetzt sauberer und weniger fehleranfällig.
+    def save_model(self, request, obj, form, change):
+        if not change:
+            folder_id = request.GET.get('folder_id')
+            if folder_id:
+                try:
+                    obj.folder = MediaFolder.objects.get(pk=folder_id)
+                except (ValueError, MediaFolder.DoesNotExist):
+                    pass
+        super().save_model(request, obj, form, change)
+
     def changelist_view(self, request, extra_context=None):
         if '_popup' in request.GET:
-            # Für Popups wird die Standard-Ansicht ohne Explorer verwendet.
             self.change_list_template = "admin/change_list.html"
             return super().changelist_view(request, extra_context)
 
-        # Stellt sicher, dass für die normale Ansicht immer der Explorer verwendet wird.
         self.change_list_template = "admin/api/mediaasset/explorer_changelist.html"
-
         extra_context = extra_context or {}
 
         def get_folder_tree(parent=None):
@@ -121,6 +123,7 @@ class CondolenceAdmin(ModelAdmin): pass
 class MemorialCandleAdmin(ModelAdmin): pass
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin): pass
+
 @admin.register(FamilyLink)
 class FamilyLinkAdmin(ModelAdmin):
     list_display = ('deceased_user', 'relative_user', 'relationship', 'is_main_contact')
@@ -374,7 +377,7 @@ def admin_dashboard_view(request):
     }
     
     today = now()
-    upcoming_events = MemorialEvent.objects.filter(date__gte=today).order_by('date')[:5]
+    upcoming_events_grid = MemorialEvent.objects.filter(date__gte=today).order_by('date')[:5]
     latest_condolences = Condolence.objects.order_by('-created_at')[:10]
     latest_candles = MemorialCandle.objects.order_by('-created_at')[:10]
     
@@ -393,7 +396,7 @@ def admin_dashboard_view(request):
         **admin.site.each_context(request),
         "title": "Dashboard",
         "stats": stats,
-        "upcoming_events_grid": upcoming_events,
+        "upcoming_events_grid": upcoming_events_grid,
         "latest_condolences": latest_condolences,
         "latest_candles": latest_candles,
         "calendar_events_json": json.dumps(calendar_events),

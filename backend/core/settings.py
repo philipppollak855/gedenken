@@ -1,5 +1,5 @@
 # backend/core/settings.py
-# BEREINIGT: Die fehlerhafte SIDEBAR-Konfiguration wurde vollstÃ¤ndig entfernt.
+# BEREINIGT: Die fehlerhafte SIDEBAR-Konfiguration wurde vollständig entfernt.
 # Unfold wird nun die stabile Standard-Sidebar generieren.
 
 import os
@@ -68,6 +68,7 @@ if not IS_PRODUCTION:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Hinzugefügt
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

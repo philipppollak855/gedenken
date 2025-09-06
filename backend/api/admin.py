@@ -1,5 +1,6 @@
 # backend/api/admin.py
 # WIEDERHERGESTELLT: Stabiler Zustand mit Pop-up-Verwaltung für Gedenkseiten und Benutzer.
+# KORRIGIERT: Benutzerauswahl beim Erstellen einer neuen Gedenkseite ist wieder möglich.
 
 import uuid
 import json
@@ -150,7 +151,15 @@ class MemorialPageAdmin(ModelAdmin):
     list_display = ('__str__', 'get_user_id', 'status', 'manage_content_links')
     actions = ['clone_memorial_page']
     raw_id_fields = ('user', 'main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
-    readonly_fields = ('user', 'manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
+    # HINWEIS: 'user' wurde aus der permanenten readonly_fields-Liste entfernt.
+    readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
+
+    # NEU: Diese Methode steuert, wann das Benutzerfeld schreibgeschützt ist.
+    def get_readonly_fields(self, request, obj=None):
+        base_readonly = list(self.readonly_fields)
+        if obj:  # Wenn ein Objekt bearbeitet wird, 'user' hinzufügen.
+            base_readonly.append('user')
+        return base_readonly
 
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):

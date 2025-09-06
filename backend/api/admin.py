@@ -45,14 +45,15 @@ class MediaAssetAdmin(ModelAdmin):
         return "Keine Vorschau"
         
     def changelist_view(self, request, extra_context=None):
-        # ROBUSTE KORREKTUR: Wenn die Ansicht in einem Pop-up geöffnet wird, übergeben wir die Kontrolle
-        # direkt an die übergeordnete Klasse, ohne die Explorer-Logik anzuwenden.
-        # Dies stellt sicher, dass die Standard-Pop-up-Funktionalität verwendet wird.
+        # FINALE KORREKTUR V3: Explizites Setzen der Vorlage für den Pop-up-Fall.
+        # Dies verhindert, dass die Explorer-Vorlage fälschlicherweise im Pop-up-Kontext geladen wird.
         if '_popup' in request.GET:
+            self.change_list_template = 'admin/change_list.html'
             return super().changelist_view(request, extra_context=extra_context)
 
         # Nur wenn es sich NICHT um ein Pop-up handelt, wird unsere Explorer-Ansicht aktiviert.
         self.change_list_template = "admin/api/mediaasset/explorer_changelist.html"
+        
         extra_context = extra_context or {}
         
         def get_folder_tree(parent=None):

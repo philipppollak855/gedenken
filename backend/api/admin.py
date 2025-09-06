@@ -73,7 +73,7 @@ class FamilyLinkInline(admin.TabularInline):
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource] # Placeholder
     list_display = ('get_full_name', 'email', 'role', 'created_at')
-    # NEU: Suchfelder hinzugefügt, um die Autocomplete-Funktion zu ermöglichen
+    # NEU: Suchfelder hinzugefügt, um die Autocomplete-Funktion und raw_id_fields zu ermöglichen
     search_fields = ('first_name', 'last_name', 'email')
     inlines = [FamilyLinkInline]
     
@@ -154,19 +154,12 @@ class MemorialPageAdmin(ModelAdmin):
     list_display = ('__str__', 'get_user_id', 'status', 'manage_content_links')
     actions = ['clone_memorial_page']
     
-    # KORRIGIERT: 'user' aus raw_id_fields entfernt
-    raw_id_fields = ('main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
-    # NEU: Autocomplete-Feld für Benutzer hinzugefügt
-    autocomplete_fields = ['user']
+    # KORRIGIERT: 'user' wird jetzt über raw_id_fields anstatt autocomplete_fields verwaltet
+    raw_id_fields = ('user', 'main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
     
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
 
-    def get_readonly_fields(self, request, obj=None):
-        base_readonly = list(self.readonly_fields)
-        if obj:
-            # Bei der Bearbeitung wird das Autocomplete-Feld durch eine schreibgeschützte Ansicht ersetzt
-            base_readonly.append('user')
-        return base_readonly
+    # Die Methode get_readonly_fields ist nicht mehr nötig, da raw_id_fields dies implizit handhabt.
 
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):

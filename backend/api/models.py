@@ -146,6 +146,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def clean(self):
+        super().clean()
+        # Diese Validierung stellt sicher, dass eine E-Mail nur für die Rolle "Verstorbener" optional ist.
+        if self.role != self.Role.VERSTORBENER and not self.email:
+            raise ValidationError({'email': 'Eine E-Mail-Adresse ist für diese Benutzerrolle erforderlich.'})
+
     def save(self, *args, **kwargs):
         if not self.email and self.role == self.Role.VERSTORBENER:
             # Stellt sicher, dass auch bei bestehenden Objekten eine Dummy-E-Mail erzeugt wird

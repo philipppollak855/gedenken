@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0007_auto_20240514_2155'), # Bitte den Namen der vorherigen Migration anpassen
+        ('api', '00007_familylink_can_edit_memorial_page_and_more'), # Bitte den Namen der vorherigen Migration anpassen
     ]
 
     operations = [

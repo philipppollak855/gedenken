@@ -1,5 +1,5 @@
 # render.yaml
-# HINZUGEFÜGT: Ein persistenter Speicher ("Disk") für Media-Uploads.
+# KORRIGIERT: BACKEND_URL Umgebungsvariable hinzugefügt.
 
 databases:
   - name: vorsorge-db
@@ -15,7 +15,6 @@ services:
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
     startCommand: "gunicorn --chdir . core.wsgi"
     
-    # NEU: Dieser Abschnitt erstellt einen persistenten Speicherplatz
     disks:
       - name: media-storage
         mountPath: /var/media
@@ -30,6 +29,8 @@ services:
         generateValue: true
       - key: DJANGO_ENV
         value: production
+      - key: BACKEND_URL # NEU: Damit Django seine eigene Adresse kennt.
+        value: "https://vorsorge-backend.onrender.com"
       - key: DJANGO_SUPERUSER_EMAIL
         value: philipp.pollak855@gmail.com
       - key: DJANGO_SUPERUSER_PASSWORD

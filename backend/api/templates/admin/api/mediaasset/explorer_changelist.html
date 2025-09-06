@@ -12,14 +12,17 @@
 <div class="media-explorer">
     <div class="explorer-sidebar">
         <h3>Ordner</h3>
-        <ul class="folder-tree">
+        
+        <!-- NEU: Filter-Input für Ordner -->
+        <input type="text" id="folder-filter-input" placeholder="Ordner filtern..." style="width: 100%; box-sizing: border-box; padding: 6px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #555; background-color: #3a424a; color: #fff;">
+
+        <ul class="folder-tree" id="folder-tree-list">
             <li>
                 <a href="{% url 'admin:api_mediaasset_changelist' %}" class="{% if not current_folder %}active{% endif %}">
                     <i class="fas fa-hdd"></i> Hauptverzeichnis
                 </a>
             </li>
             
-            <!-- Rekursive Einbindung der Ordnerstruktur -->
             {% for node in folder_tree %}
                 {% include "admin/api/mediaasset/folder_node.html" with node=node %}
             {% endfor %}
@@ -39,11 +42,41 @@
             </div>
         {% endif %}
         
-        <!-- Standard Django ChangeList Inhalt (Tabelle mit Assets) -->
         {{ block.super }}
     </div>
 </div>
 
-<!-- KORREKTUR: Fehlerhafter 'ainclude' Tag wurde entfernt. -->
-{% endblock %}
+<!-- NEU: JavaScript für die Filterung -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterInput = document.getElementById('folder-filter-input');
+    const folderList = document.getElementById('folder-tree-list');
+    
+    if (filterInput && folderList) {
+        filterInput.addEventListener('keyup', function() {
+            const filterValue = this.value.toLowerCase();
+            const allLinks = folderList.getElementsByTagName('a');
 
+            for (let i = 0; i < allLinks.length; i++) {
+                const link = allLinks[i];
+                const text = link.textContent || link.innerText;
+                const li = link.closest('li');
+                
+                if (text.toLowerCase().indexOf(filterValue) > -1) {
+                    // Zeige das Element und alle seine übergeordneten Elemente an
+                    let parent = li;
+                    while (parent && parent !== folderList) {
+                        if (parent.tagName === 'LI') {
+                            parent.style.display = "";
+                        }
+                        parent = parent.parentNode;
+                    }
+                } else {
+                    li.style.display = "none";
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

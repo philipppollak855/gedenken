@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# Vollständige Konfigurationsdatei für das Django Admin Interface.
+# HINZUGEFÜGT: Anzeige der Bildverwendung und Ordner-Filterung.
 
 import uuid
 import json
@@ -33,9 +33,9 @@ class MediaFolderAdmin(ModelAdmin):
 
 @admin.register(MediaAsset)
 class MediaAssetAdmin(ModelAdmin):
-    list_display = ('title', 'asset_type', 'folder', 'thumbnail', 'uploaded_at')
+    list_display = ('title', 'asset_type', 'folder', 'thumbnail', 'image_usage', 'uploaded_at')
     list_filter = ('asset_type', 'folder')
-    search_fields = ('title',)
+    search_fields = ('title', 'folder__name')
     autocomplete_fields = ('folder',)
     change_list_template = "admin/api/mediaasset/explorer_changelist.html"
     
@@ -44,6 +44,28 @@ class MediaAssetAdmin(ModelAdmin):
         if obj.asset_type == 'image' and obj.url:
             return format_html('<img src="{}" width="100" height="auto" />', obj.url)
         return "Keine Vorschau"
+
+    @admin.display(description='Verwendung')
+    def image_usage(self, obj):
+        usages = []
+        # Find all ForeignKey fields in MemorialPage that point to MediaAsset
+        related_fields = [
+            f for f in MemorialPage._meta.get_fields()
+            if isinstance(f, models.ForeignKey) and f.related_model == MediaAsset
+        ]
+        
+        for field in related_fields:
+            # Construct the query to find pages using this asset in the current field
+            query = {field.name: obj}
+            pages = MemorialPage.objects.filter(**query)
+            if pages.exists():
+                page_links = [
+                    f'<a href="{reverse("admin:api_memorialpage_change", args=[page.pk])}">{str(page)}</a>'
+                    for page in pages
+                ]
+                usages.append(f"{field.verbose_name}: {', '.join(page_links)}")
+        
+        return mark_safe("<br>".join(usages)) if usages else "Nicht direkt verwendet"
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -93,6 +115,7 @@ class MediaAssetAdmin(ModelAdmin):
         except (ValueError, TypeError):
             return queryset.filter(folder__isnull=True)
 
+# ... (Rest der Datei bleibt unverändert) ...
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)

@@ -1,5 +1,7 @@
 # backend/api/serializers.py
-# FINALE VERSION: Kombiniert den vollständigen Originalcode mit dem zentralen MediaAssetSerializer.
+# KORRIGIERT: Fehlender EventAttendanceSerializer hinzugefügt.
+# KORRIGIERT: Alle Sonderzeichen wurden korrigiert.
+# AKTUALISIERT: MemorialPageListSerializer verwendet jetzt MediaAssetSerializer.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -8,14 +10,13 @@ from .models import (
     Document, LastWishes, MemorialPage, Condolence, TimelineEvent, 
     GalleryItem, MemorialCandle, ReleaseRequest, MemorialEvent, SiteSettings,
     CondolenceTemplate, CandleImage, CandleMessageTemplate, MediaAsset, EventLocation,
-    EventAttendance, MediaFolder
+    EventAttendance
 )
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # --- Zentraler Serializer für Mediendateien ---
-# Stellt sicher, dass immer die vollständige URL zurückgegeben wird.
 class MediaAssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaAsset
@@ -29,7 +30,6 @@ class EventLocationSerializer(serializers.ModelSerializer):
         fields = ['name', 'address']
 
 class CandleImageSerializer(serializers.ModelSerializer):
-    # Verwendung des zentralen MediaAssetSerializers
     image = MediaAssetSerializer(read_only=True)
     class Meta:
         model = CandleImage
@@ -193,6 +193,7 @@ class MemorialEventSerializer(serializers.ModelSerializer):
 # --- Gedenkseiten & Globale Einstellungen Serializers ---
 
 class MemorialPageListSerializer(serializers.ModelSerializer):
+    # AKTUALISIERT: Verwendet den MediaAssetSerializer für Konsistenz
     main_photo = MediaAssetSerializer(read_only=True)
 
     class Meta:
@@ -280,4 +281,3 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
-

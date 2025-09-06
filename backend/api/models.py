@@ -1,6 +1,6 @@
 # backend/api/models.py
-# ERWEITERT: Die Struktur von MemorialPage wurde angepasst, um den 500-Fehler zu beheben
-# und die korrekte Verknüpfung von Benutzern zu ermöglichen.
+# KORRIGIERT: Die Beziehung zwischen MemorialPage und User wurde wieder auf ein sauberes OneToOneField umgestellt,
+# um die Migrationswarnung und potenzielle Datenbankprobleme zu beheben.
 
 import uuid
 from django.db import models
@@ -187,9 +187,9 @@ class MemorialPage(models.Model):
         ADMIN_MODERATED = 'admin_moderated', 'Von Admin moderiert'
         FAMILY_MODERATED = 'family_moderated', 'Von Familie moderiert'
     
-    # KORRIGIERT: Die 1-zu-1-Beziehung wurde in eine flexiblere Fremdschlüssel-Beziehung geändert.
-    page_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='memorial_pages', verbose_name="Benutzer", unique=True, help_text="Der Benutzer, dem diese Gedenkseite gehört (normalerweise der Verstorbene selbst).")
+    # KORRIGIERT: Zurück zu einem sauberen OneToOneField, um Migrationsprobleme zu lösen.
+    # Der Primärschlüssel dieser Tabelle ist nun wieder das `user`-Feld.
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='memorial_page', verbose_name="Benutzer")
     
     slug = models.SlugField("URL-Alias", max_length=255, unique=True, blank=True, help_text="Wird automatisch aus dem Namen generiert, wenn leer gelassen.")
     status = models.CharField("Status", max_length=10, choices=Status.choices, default=Status.INACTIVE)
@@ -232,7 +232,6 @@ class MemorialPage(models.Model):
                 counter += 1
             self.slug = slug
         
-        # Holen des Original-Objekts aus der DB, falls es existiert
         try:
             orig = MemorialPage.objects.get(pk=self.pk)
             if orig.status != self.Status.ACTIVE and self.status == self.Status.ACTIVE:
@@ -240,7 +239,6 @@ class MemorialPage(models.Model):
                     self.user.role = User.Role.VERSTORBENER
                     self.user.save()
         except MemorialPage.DoesNotExist:
-            # Das ist ein neues Objekt, es gibt kein 'orig'
             pass
 
         super().save(*args, **kwargs)

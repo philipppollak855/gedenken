@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Die fehlerhafte save_model-Methode wurde entfernt, da die neue Datenbankstruktur
-# das Problem an der Wurzel löst.
+# KORRIGIERT: Die Links in den "Verwalten"-Buttons wurden an die neue Datenbankstruktur (pk statt page_id) angepasst.
 
 import uuid
 import json
@@ -163,39 +162,39 @@ class MemorialPageAdmin(ModelAdmin):
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):
         count = obj.timeline_events.count()
-        url = reverse('admin:api_timelineevent_changelist') + f'?page__page_id__exact={obj.page_id}'
+        url = reverse('admin:api_timelineevent_changelist') + f'?page__pk__exact={obj.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Chronik für {obj}">Verwalten</a>')
 
     @admin.display(description='Galerie-Bilder')
     def manage_gallery(self, obj):
         count = obj.gallery_items.count()
-        url = reverse('admin:api_galleryitem_changelist') + f'?page__page_id__exact={obj.page_id}'
+        url = reverse('admin:api_galleryitem_changelist') + f'?page__pk__exact={obj.pk}'
         return format_html(f'{count} Bilder <a href="{url}" class="button manage-button" data-modal-title="Galerie für {obj}">Verwalten</a>')
 
     @admin.display(description='Kondolenzen')
     def manage_condolences(self, obj):
         count = obj.condolences.count()
-        url = reverse('admin:api_condolence_changelist') + f'?page__page_id__exact={obj.page_id}'
+        url = reverse('admin:api_condolence_changelist') + f'?page__pk__exact={obj.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Kondolenzen für {obj}">Verwalten</a>')
 
     @admin.display(description='Gedenkkerzen')
     def manage_candles(self, obj):
         count = obj.candles.count()
-        url = reverse('admin:api_memorialcandle_changelist') + f'?page__page_id__exact={obj.page_id}'
+        url = reverse('admin:api_memorialcandle_changelist') + f'?page__pk__exact={obj.pk}'
         return format_html(f'{count} Kerzen <a href="{url}" class="button manage-button" data-modal-title="Gedenkkerzen für {obj}">Verwalten</a>')
 
     @admin.display(description='Termine')
     def manage_events(self, obj):
         count = obj.events.count()
-        url = reverse('admin:api_memorialevent_changelist') + f'?page__page_id__exact={obj.page_id}'
+        url = reverse('admin:api_memorialevent_changelist') + f'?page__pk__exact={obj.pk}'
         return format_html(f'{count} Termine <a href="{url}" class="button manage-button" data-modal-title="Termine für {obj}">Verwalten</a>')
 
     @admin.display(description='Inhalte verwalten')
     def manage_content_links(self, obj):
         links = f"""
-            <a href="{reverse('admin:api_timelineevent_changelist')}?page__page_id__exact={obj.page_id}" class="button manage-button-list" data-modal-title="Chronik für {obj}">Chronik</a>
-            <a href="{reverse('admin:api_galleryitem_changelist')}?page__page_id__exact={obj.page_id}" class="button manage-button-list" data-modal-title="Galerie für {obj}">Galerie</a>
-            <a href="{reverse('admin:api_condolence_changelist')}?page__page_id__exact={obj.page_id}" class="button manage-button-list" data-modal-title="Kondolenzen für {obj}">Kondolenzen</a>
+            <a href="{reverse('admin:api_timelineevent_changelist')}?page__pk__exact={obj.pk}" class="button manage-button-list" data-modal-title="Chronik für {obj}">Chronik</a>
+            <a href="{reverse('admin:api_galleryitem_changelist')}?page__pk__exact={obj.pk}" class="button manage-button-list" data-modal-title="Galerie für {obj}">Galerie</a>
+            <a href="{reverse('admin:api_condolence_changelist')}?page__pk__exact={obj.pk}" class="button manage-button-list" data-modal-title="Kondolenzen für {obj}">Kondolenzen</a>
         """
         return format_html(links)
 

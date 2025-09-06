@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Das FamilyLink-Modell wurde um ein Feld "relationship" erweitert.
+# ERWEITERT: Das FamilyLink-Modell wurde um granulare Berechtigungen und Validierungsfelder erweitert.
 
 import uuid
 from django.db import models
@@ -449,11 +449,22 @@ class FamilyLink(models.Model):
         verbose_name = "Angehörigen-Verknüpfung"
         verbose_name_plural = "Angehörigen-Verknüpfungen"
         unique_together = ('deceased_user', 'relative_user')
+        
     link_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     deceased_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_deceased', verbose_name="Verstorbener")
     relative_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_relative', verbose_name="Angehöriger")
     relationship = models.CharField("Verwandtschaftsbezeichnung", max_length=100, blank=True, help_text="z.B. Sohn, Ehefrau, Guter Freund")
     is_main_contact = models.BooleanField("Hauptansprechpartner", default=False)
+    
+    # Granulare Berechtigungen
+    can_edit_memorial_page = models.BooleanField("Gedenkseite bearbeiten", default=False)
+    can_view_precaution_data = models.BooleanField("Vorsorge einsehen", default=False)
+    can_edit_precaution_data = models.BooleanField("Vorsorge bearbeiten", default=False)
+    
+    # Validierung
+    power_of_attorney = models.FileField("Vollmacht (PDF, JPG, PNG)", upload_to='power_of_attorney/%Y/%m/', blank=True, null=True)
+    is_validated_by_admin = models.BooleanField("Vom Admin validiert", default=False, help_text="Admin bestätigt die Berechtigung (auch ohne Vollmacht-Upload).")
+
     def __str__(self):
         return f"{self.relative_user} ist Angehöriger von {self.deceased_user}"
 

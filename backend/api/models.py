@@ -1,5 +1,6 @@
 # backend/api/models.py
-# ERWEITERT: Neue Benutzerrolle "Verstorbener" hinzugefügt und E-Mail optional gemacht.
+# ERWEITERT: Die Struktur von MemorialPage wurde angepasst, um den 500-Fehler zu beheben
+# und die korrekte Verknüpfung von Benutzern zu ermöglichen.
 
 import uuid
 from django.db import models
@@ -95,8 +96,6 @@ class SiteSettings(models.Model):
 
 class UserManager(BaseUserManager):
     def create_user(self, email=None, password=None, **extra_fields):
-        # Wenn keine E-Mail angegeben ist, aber die Rolle 'verstorbener' ist,
-        # erzeugen wir eine eindeutige, nicht funktionale E-Mail.
         if not email and extra_fields.get('role') == User.Role.VERSTORBENER:
             user_id = extra_fields.get('id', uuid.uuid4())
             email = f"{user_id}@verstorben.local"
@@ -130,7 +129,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         ADMINISTRATOR = 'administrator', 'Administrator'
 
     id = models.UUIDField("ID", primary_key=True, default=uuid.uuid4, editable=False)
-    # E-Mail ist nun optional (blank=True, null=True)
     email = models.EmailField("E-Mail-Adresse", unique=True, blank=True, null=True)
     first_name = models.CharField("Vorname", max_length=100, blank=True)
     last_name = models.CharField("Nachname", max_length=100, blank=True)
@@ -148,13 +146,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def clean(self):
         super().clean()
-        # Diese Validierung stellt sicher, dass eine E-Mail nur für die Rolle "Verstorbener" optional ist.
         if self.role != self.Role.VERSTORBENER and not self.email:
             raise ValidationError({'email': 'Eine E-Mail-Adresse ist für diese Benutzerrolle erforderlich.'})
 
     def save(self, *args, **kwargs):
         if not self.email and self.role == self.Role.VERSTORBENER:
-            # Stellt sicher, dass auch bei bestehenden Objekten eine Dummy-E-Mail erzeugt wird
             self.email = f"{self.id}@verstorben.local"
         super().save(*args, **kwargs)
 
@@ -191,7 +187,10 @@ class MemorialPage(models.Model):
         ADMIN_MODERATED = 'admin_moderated', 'Von Admin moderiert'
         FAMILY_MODERATED = 'family_moderated', 'Von Familie moderiert'
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='memorial_page', verbose_name="Benutzer")
+    # KORRIGIERT: Die 1-zu-1-Beziehung wurde in eine flexiblere Fremdschlüssel-Beziehung geändert.
+    page_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='memorial_pages', verbose_name="Benutzer", unique=True, help_text="Der Benutzer, dem diese Gedenkseite gehört (normalerweise der Verstorbene selbst).")
+    
     slug = models.SlugField("URL-Alias", max_length=255, unique=True, blank=True, help_text="Wird automatisch aus dem Namen generiert, wenn leer gelassen.")
     status = models.CharField("Status", max_length=10, choices=Status.choices, default=Status.INACTIVE)
     first_name = models.CharField("Vorname", max_length=100, blank=True)
@@ -233,12 +232,16 @@ class MemorialPage(models.Model):
                 counter += 1
             self.slug = slug
         
-        if self.pk is not None:
+        # Holen des Original-Objekts aus der DB, falls es existiert
+        try:
             orig = MemorialPage.objects.get(pk=self.pk)
             if orig.status != self.Status.ACTIVE and self.status == self.Status.ACTIVE:
                 if self.user.role == User.Role.VORSORGENDER:
                     self.user.role = User.Role.VERSTORBENER
                     self.user.save()
+        except MemorialPage.DoesNotExist:
+            # Das ist ein neues Objekt, es gibt kein 'orig'
+            pass
 
         super().save(*args, **kwargs)
 

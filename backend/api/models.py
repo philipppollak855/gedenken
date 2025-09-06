@@ -264,10 +264,23 @@ class MemorialPage(models.Model):
         folder_name = f"{self.first_name} {self.last_name}".strip()
         if folder_name:
             try:
+                # Übergeordneten Ordner "Gedenkseiten" finden oder erstellen
+                parent_folder, _ = MediaFolder.objects.get_or_create(
+                    name="Gedenkseiten",
+                    parent=None # Stellt sicher, dass es ein Hauptordner ist
+                )
+
+                # Ordner für die Gedenkseite erstellen und dem übergeordneten Ordner zuweisen
                 folder, created = MediaFolder.objects.get_or_create(
                     memorial_page=self,
-                    defaults={'name': folder_name}
+                    defaults={'name': folder_name, 'parent': parent_folder}
                 )
+                
+                # Wenn der Ordner bereits existierte, aber kein Parent hatte, zuweisen
+                if not created and folder.parent != parent_folder:
+                    folder.parent = parent_folder
+                    folder.save()
+
                 image_fields_to_check = [
                     'main_photo', 'hero_background_image', 'farewell_background_image',
                     'obituary_card_image', 'memorial_picture', 'memorial_picture_back',

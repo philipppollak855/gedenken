@@ -125,8 +125,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         VORSORGENDER = 'vorsorgender', 'Vorsorgender'
         ANGEHOERIGER = 'angehoeriger', 'Angehöriger'
+        VERSTORBENER = 'verstorbener', 'Verstorbener' # NEU
         GAST = 'gast', 'Gast'
         ADMINISTRATOR = 'administrator', 'Administrator'
+
     id = models.UUIDField("ID", primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField("E-Mail-Adresse", unique=True)
     first_name = models.CharField("Vorname", max_length=100, blank=True)
@@ -226,6 +228,15 @@ class MemorialPage(models.Model):
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
+        
+        # NEU: Logik zur automatischen Rollenänderung
+        if self.pk is not None:
+            orig = MemorialPage.objects.get(pk=self.pk)
+            if orig.status != self.Status.ACTIVE and self.status == self.Status.ACTIVE:
+                if self.user.role == User.Role.VORSORGENDER:
+                    self.user.role = User.Role.VERSTORBENER
+                    self.user.save()
+
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -29,86 +29,83 @@ from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
     Document, LastWishes, MemorialPage, Condolence, MemorialCandle,
     TimelineEvent, GalleryItem, ReleaseRequest, SiteSettings, CondolenceTemplate,
-    CandleImage, CandleMessageTemplate, EventLocation, MemorialEvent, EventAttendance
+    CandleImage, CandleMessageTemplate, EventLocation, MemorialEvent, EventAttendance,
+    FamilyLink
 )
 
 class GlobalSearchView(APIView):
     """
     Stellt eine globale Suche über verschiedene Modelle im Admin-Backend bereit.
     """
-    authentication_classes = [SessionAuthentication] 
+    authentication_classes = [SessionAuthentication] # KORREKTUR: Erlaubt Authentifizierung aus dem Admin-Panel.
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         query = request.query_params.get('q', None)
-        search_type = request.query_params.get('type', 'Alle') # HINZUGEFÜGT
         results = []
 
         if query and len(query) > 2:
             # Benutzer durchsuchen
-            if search_type == 'Alle' or search_type == 'Benutzer':
-                try:
-                    users = User.objects.filter(
-                        Q(first_name__icontains=query) |
-                        Q(last_name__icontains=query) |
-                        Q(email__icontains=query)
-                    )[:10]
-                    for user in users:
-                        results.append({
-                            'type': 'Benutzer',
-                            'title': f"{user.first_name} {user.last_name} ({user.email})",
-                            'url': reverse('admin:api_user_change', args=[user.pk])
-                        })
-                except Exception as e:
-                    print(f"Fehler bei der Benutzersuche: {e}")
+            try:
+                users = User.objects.filter(
+                    Q(first_name__icontains=query) |
+                    Q(last_name__icontains=query) |
+                    Q(email__icontains=query)
+                )[:10]
+                for user in users:
+                    results.append({
+                        'type': 'Benutzer',
+                        'title': f"{user.first_name} {user.last_name} ({user.email})",
+                        'url': reverse('admin:api_user_change', args=[user.pk])
+                    })
+            except Exception as e:
+                print(f"Fehler bei der Benutzersuche: {e}")
 
             # Gedenkseiten durchsuchen
-            if search_type == 'Alle' or search_type == 'Gedenkseite':
-                try:
-                    pages = MemorialPage.objects.filter(
-                        Q(first_name__icontains=query) |
-                        Q(last_name__icontains=query)
-                    )[:10]
-                    for page in pages:
-                        results.append({
-                            'type': 'Gedenkseite',
-                            'title': f"Gedenkseite für {page.first_name} {page.last_name}",
-                            'url': reverse('admin:api_memorialpage_change', args=[page.pk])
-                        })
-                except Exception as e:
-                    print(f"Fehler bei der Gedenkseitensuche: {e}")
+            try:
+                pages = MemorialPage.objects.filter(
+                    Q(first_name__icontains=query) |
+                    Q(last_name__icontains=query)
+                )[:10]
+                for page in pages:
+                    results.append({
+                        'type': 'Gedenkseite',
+                        'title': f"Gedenkseite für {page.first_name} {page.last_name}",
+                        'url': reverse('admin:api_memorialpage_change', args=[page.pk])
+                    })
+            except Exception as e:
+                print(f"Fehler bei der Gedenkseitensuche: {e}")
 
             # Kondolenzen durchsuchen
-            if search_type == 'Alle' or search_type == 'Kondolenz':
-                try:
-                    condolences = Condolence.objects.filter(
-                         Q(guest_name__icontains=query) |
-                         Q(message__icontains=query)
-                    ).select_related('page')[:10]
-                    for condolence in condolences:
-                         results.append({
-                            'type': 'Kondolenz',
-                            'title': f"'{condolence.message[:30]}...' von {condolence.guest_name} für {condolence.page}",
-                            'url': reverse('admin:api_condolence_change', args=[condolence.condolence_id])
-                        })
-                except Exception as e:
-                    print(f"Fehler bei der Kondolenzsuche: {e}")
+            try:
+                condolences = Condolence.objects.filter(
+                     Q(guest_name__icontains=query) |
+                     Q(message__icontains=query)
+                ).select_related('page')[:10]
+                for condolence in condolences:
+                     results.append({
+                        'type': 'Kondolenz',
+                        'title': f"'{condolence.message[:30]}...' von {condolence.guest_name} für {condolence.page}",
+                        'url': reverse('admin:api_condolence_change', args=[condolence.condolence_id])
+                    })
+            except Exception as e:
+                print(f"Fehler bei der Kondolenzsuche: {e}")
+
 
             # Gedenkkerzen durchsuchen
-            if search_type == 'Alle' or search_type == 'Gedenkkerze':
-                try:
-                    candles = MemorialCandle.objects.filter(
-                         Q(guest_name__icontains=query) |
-                         Q(message__icontains=query)
-                    ).select_related('page')[:10]
-                    for candle in candles:
-                         results.append({
-                            'type': 'Gedenkkerze',
-                            'title': f"'{candle.message[:30]}...' von {candle.guest_name} für {candle.page}",
-                            'url': reverse('admin:api_memorialcandle_change', args=[candle.candle_id])
-                        })
-                except Exception as e:
-                    print(f"Fehler bei der Kerzensuche: {e}")
+            try:
+                candles = MemorialCandle.objects.filter(
+                     Q(guest_name__icontains=query) |
+                     Q(message__icontains=query)
+                ).select_related('page')[:10]
+                for candle in candles:
+                     results.append({
+                        'type': 'Gedenkkerze',
+                        'title': f"'{candle.message[:30]}...' von {candle.guest_name} für {candle.page}",
+                        'url': reverse('admin:api_memorialcandle_change', args=[candle.candle_id])
+                    })
+            except Exception as e:
+                print(f"Fehler bei der Kerzensuche: {e}")
 
         return Response(results)
 
@@ -182,7 +179,11 @@ class DigitalLegacyItemViewSet(viewsets.ModelViewSet):
     serializer_class = DigitalLegacyItemSerializer
     permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
-        return DigitalLegacyItem.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return DigitalLegacyItem.objects.all()
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        return DigitalLegacyItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -190,7 +191,11 @@ class FinancialItemViewSet(viewsets.ModelViewSet):
     serializer_class = FinancialItemSerializer
     permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
-        return FinancialItem.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return FinancialItem.objects.all()
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        return FinancialItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -198,7 +203,11 @@ class InsuranceItemViewSet(viewsets.ModelViewSet):
     serializer_class = InsuranceItemSerializer
     permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
-        return InsuranceItem.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return InsuranceItem.objects.all()
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        return InsuranceItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -206,7 +215,11 @@ class ContractItemViewSet(viewsets.ModelViewSet):
     serializer_class = ContractItemSerializer
     permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
-        return ContractItem.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return ContractItem.objects.all()
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        return ContractItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -215,7 +228,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
     def get_queryset(self):
-        return Document.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return Document.objects.all()
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, deceased_user__role=User.Role.VERSTORBENER).values_list('deceased_user_id', flat=True)
+        return Document.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -281,7 +298,18 @@ class ManagedMemorialPageViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'slug'
     def get_queryset(self):
-        return MemorialPage.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return MemorialPage.objects.all()
+        
+        linked_deceased_ids = FamilyLink.objects.filter(
+            relative_user=user, 
+            deceased_user__role=User.Role.VERSTORBENER
+        ).values_list('deceased_user_id', flat=True)
+
+        return MemorialPage.objects.filter(
+            Q(user=user) | Q(user_id__in=list(linked_deceased_ids))
+        )
 
 class TimelineEventViewSet(viewsets.ModelViewSet):
     serializer_class = TimelineEventSerializer

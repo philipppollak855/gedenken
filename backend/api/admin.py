@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Die Anzeige der verwalteten Gedenkseiten wurde verbessert.
-# ERWEITERT: Das Layout für die Eingabe von Angehörigen wurde kompakter gestaltet.
+# ÜBERARBEITET: Die Verwaltung von Angehörigen wurde auf ein Pop-up-System umgestellt.
 
 import uuid
 import json
@@ -27,7 +26,7 @@ from .models import (
 
 # --- Admin Classes ---
 
-# Basis-Registrierungen, damit die Pop-ups funktionieren und die Suche funktioniert
+# Basis-Registrierungen
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)
@@ -60,41 +59,52 @@ class CondolenceAdmin(ModelAdmin): pass
 class MemorialCandleAdmin(ModelAdmin): pass
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin): pass
+
+# NEU: Eigene Admin-Ansicht für die Bearbeitung von FamilyLinks im Pop-up
 @admin.register(FamilyLink)
 class FamilyLinkAdmin(ModelAdmin):
     list_display = ('deceased_user', 'relative_user', 'relationship', 'is_main_contact')
-    search_fields = ('deceased_user__first_name', 'relative_user__first_name')
+    search_fields = ('deceased_user__get_full_name', 'relative_user__get_full_name')
     autocomplete_fields = ('deceased_user', 'relative_user')
+    fieldsets = (
+        ('Verknüpfung', {
+            'fields': ('deceased_user', 'relative_user', 'relationship', 'is_main_contact')
+        }),
+        ('Berechtigungen', {
+            'fields': (
+                'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data',
+            ),
+        }),
+        ('Validierung', {
+             'fields': ('power_of_attorney', 'is_validated_by_admin'),
+        }),
+    )
 
-# Inline-Formular für Angehörige, jetzt mit kompakterem Layout
+# Überarbeitete Inline-Ansicht für Angehörige
 class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
     fk_name = 'deceased_user'
     extra = 1
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
-    # autocomplete_fields für eine moderne Such-Auswahl
+    
+    # Reduzierte Felder für eine saubere Übersicht
+    fields = ('relative_user', 'relationship', 'is_main_contact', 'manage_permissions')
+    readonly_fields = ('manage_permissions',)
     autocomplete_fields = ('relative_user',)
 
-    # Felder werden in Fieldsets gruppiert für ein sauberes, klappbares Layout
-    fieldsets = (
-        (None, {
-            'fields': ('relative_user', 'relationship', 'is_main_contact')
-        }),
-        ('Berechtigungen (optional)', {
-            'classes': ('collapse',), # Macht diese Sektion einklappbar
-            'fields': (
-                'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data',
-                'power_of_attorney', 'is_validated_by_admin'
-            ),
-        }),
-    )
+    @admin.display(description='Rechte verwalten')
+    def manage_permissions(self, obj):
+        if obj.pk: # Button wird nur angezeigt, wenn der Eintrag bereits gespeichert ist
+            url = reverse('admin:api_familylink_change', args=[obj.pk])
+            # Der Button erhält eine spezielle Klasse, um vom JavaScript erkannt zu werden
+            return format_html(f'<a href="{url}" class="button manage-permissions-btn" data-modal-title="Rechte für {obj.relative_user}">Rechte verwalten</a>')
+        return "Bitte zuerst speichern, um Rechte zu verwalten."
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource] # Placeholder
     list_display = ('get_full_name', 'email', 'role', 'created_at')
-    # search_fields ist entscheidend für die autocomplete-Funktion
     search_fields = ('first_name', 'last_name', 'email')
     inlines = [FamilyLinkInline]
     
@@ -127,35 +137,41 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     # --- Manage Vorsorge Buttons ---
     @admin.display(description='Letzte Wünsche')
     def manage_last_wishes(self, obj):
+        # ... (Funktion bleibt unverändert)
         url = reverse('admin:api_lastwishes_change', args=(obj.pk,))
         return format_html(f'<a href="{url}" class="button manage-button" data-modal-title="Letzte Wünsche für {obj}">Verwalten</a>')
 
     @admin.display(description='Dokumente')
     def manage_documents(self, obj):
+        # ... (Funktion bleibt unverändert)
         count = obj.documents.count()
         url = reverse('admin:api_document_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Dokumente <a href="{url}" class="button manage-button" data-modal-title="Dokumente für {obj}">Verwalten</a>')
         
     @admin.display(description='Verträge')
     def manage_contracts(self, obj):
+        # ... (Funktion bleibt unverändert)
         count = obj.contract_items.count()
         url = reverse('admin:api_contractitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Verträge <a href="{url}" class="button manage-button" data-modal-title="Verträge für {obj}">Verwalten</a>')
 
     @admin.display(description='Versicherungen')
     def manage_insurances(self, obj):
+        # ... (Funktion bleibt unverändert)
         count = obj.insurance_items.count()
         url = reverse('admin:api_insuranceitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Versicherungen <a href="{url}" class="button manage-button" data-modal-title="Versicherungen für {obj}">Verwalten</a>')
 
     @admin.display(description='Finanzen')
     def manage_financials(self, obj):
+        # ... (Funktion bleibt unverändert)
         count = obj.financial_items.count()
         url = reverse('admin:api_financialitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Finanzen für {obj}">Verwalten</a>')
 
     @admin.display(description='Digitaler Nachlass')
     def manage_digital_legacy(self, obj):
+        # ... (Funktion bleibt unverändert)
         count = obj.legacy_items.count()
         url = reverse('admin:api_digitallegacyitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Digitaler Nachlass für {obj}">Verwalten</a>')
@@ -220,7 +236,7 @@ class MemorialPageAdmin(ModelAdmin):
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
 
     def get_readonly_fields(self, request, obj=None):
-        if obj: # obj ist nicht None, d.h. wir bearbeiten eine bestehende Seite
+        if obj: 
             return self.readonly_fields + ('user',)
         return self.readonly_fields
 

@@ -31,11 +31,8 @@
 .section-content h1, .section-content h2 {
     font-family: 'Playfair Display', serif;
     font-size: 3.5rem;
-    margin-bottom: 2rem;
-}
-
-.section-content h2 {
-    font-size: 3rem;
+    margin-top: 0;
+    margin-bottom: 1.5rem; /* Reduced from 2rem to bring cards up */
 }
 
 /* Hero Section Specifics */
@@ -91,6 +88,10 @@
 }
 
 /* Search Section Specifics */
+.search-listing-section {
+    background-color: #e5e0da; /* Fallback color */
+}
+
 .search-input {
     width: 100%;
     max-width: 600px;
@@ -133,7 +134,7 @@
 }
 
 .card-image-wrapper {
-    height: 280px;
+    height: 260px; /* Reduced from 280px to make card more compact */
     background-color: #f0f0f0;
 }
 
@@ -144,7 +145,7 @@
 }
 
 .card-info {
-    padding: 1rem 1.5rem;
+    padding: 1rem 1.5rem; /* Reduced vertical padding */
     text-align: center;
     flex-grow: 1;
     display: flex;
@@ -153,7 +154,7 @@
 }
 
 .card-info h3 {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.25rem 0; /* Reduced margin */
     font-size: 1.25rem;
     font-family: 'Playfair Display', serif;
 }
@@ -192,3 +193,4 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+

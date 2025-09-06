@@ -1,6 +1,6 @@
 # backend/api/admin.py
-# ERWEITERT: In der Benutzerverwaltung werden nun die zugehörigen und verwalteten Gedenkseiten angezeigt.
-# ERWEITERT: In der Gedenkseiten-Bearbeitung werden nun die verknüpften Angehörigen angezeigt.
+# KORRIGIERT: Das Layout des "Angehörige verwalten"-Buttons wurde verbessert.
+# KORRIGIERT: Das leere Pop-up-Problem wurde behoben, indem die Benutzerauswahl robuster gestaltet wurde.
 
 import uuid
 import json
@@ -60,6 +60,11 @@ class CondolenceAdmin(ModelAdmin): pass
 class MemorialCandleAdmin(ModelAdmin): pass
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin): pass
+@admin.register(FamilyLink)
+class FamilyLinkAdmin(ModelAdmin):
+    list_display = ('deceased_user', 'relative_user', 'relationship', 'is_main_contact')
+    search_fields = ('deceased_user__first_name', 'relative_user__first_name')
+    autocomplete_fields = ('deceased_user', 'relative_user')
 
 class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
@@ -67,9 +72,9 @@ class FamilyLinkInline(admin.TabularInline):
     extra = 1
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
-    # NEU: Felder definiert und Benutzerauswahl verbessert
     fields = ('relative_user', 'relationship', 'is_main_contact')
-    autocomplete_fields = ['relative_user']
+    # KORREKTUR: raw_id_fields ist robuster in Modals als autocomplete_fields
+    raw_id_fields = ('relative_user',)
 
 
 @admin.register(User)
@@ -88,7 +93,6 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'first_name', 'last_name', 'role')}),
-        # NEUE SEKTION
         ('Gedenkseiten-Verwaltung', {
             'fields': ('display_own_memorial_page', 'display_managed_memorial_pages'),
         }),
@@ -233,7 +237,6 @@ class MemorialPageAdmin(ModelAdmin):
         """
         return format_html(links)
     
-    # NEUE METHODE
     @admin.display(description='Angehörige & Berechtigungen')
     def display_family_links(self, obj):
         user = obj.user
@@ -251,14 +254,16 @@ class MemorialPageAdmin(ModelAdmin):
                 html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative} bearbeiten">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{main_contact_str}</li>'
         html_list += "</ul>"
 
+        # KORREKTUR: Der Link zeigt jetzt auf die Benutzerseite des Verstorbenen, um dort die Angehörigen im Inline-Formular zu verwalten.
         manage_url = reverse('admin:api_user_change', args=(user.pk,)) + '#familylink_set-group'
-        html_button = f'<a href="{manage_url}" class="button manage-button" data-modal-title="Angehörige für {user} verwalten">Angehörige verwalten</a>'
+        # KORREKTUR: Der Button wird in einem eigenen Div mit Abstand platziert, um Überlappungen zu vermeiden.
+        html_button = f'<div style="margin-top: 1rem;"><a href="{manage_url}" class="button manage-button" data-modal-title="Angehörige für {user} verwalten">Angehörige verwalten</a></div>'
         
         return format_html(html_list + html_button)
 
+
     fieldsets = (
         (None, {'fields': ('user', 'status')}),
-        # NEUE SEKTION
         ('Angehörige & Berechtigungen', {
             'fields': ('display_family_links',),
         }),

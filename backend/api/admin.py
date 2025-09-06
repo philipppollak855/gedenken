@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# AKTUALISIERT: Eine benutzerdefinierte Explorer-Ansicht für die Mediathek wurde hinzugefügt.
+# KORRIGIERT: Die Explorer-Ansicht wird nun korrekt im Pop-up-Modus des Admin-Bereichs gehandhabt.
 
 import uuid
 import json
@@ -38,7 +38,6 @@ class MediaAssetAdmin(ModelAdmin):
     search_fields = ('title',)
     autocomplete_fields = ('folder',)
     
-    # NEU: Verweist auf unsere benutzerdefinierte Vorlage für die Explorer-Ansicht.
     change_list_template = "admin/api/mediaasset/explorer_changelist.html"
 
     @admin.display(description='Vorschau')
@@ -47,11 +46,19 @@ class MediaAssetAdmin(ModelAdmin):
             return format_html('<img src="{}" width="100" height="auto" />', obj.url)
         return "Keine Vorschau"
         
-    # NEU: Überschreibt die Standard-Listenansicht, um die Ordner- und Dateidaten für den Explorer bereitzustellen.
     def changelist_view(self, request, extra_context=None):
+        # NEUE KORREKTUR: Prüft, ob die Ansicht in einem Pop-up geöffnet wird.
+        # Wenn ja, wird die Standard-Ansicht anstelle des Explorers verwendet, um den Fehler zu vermeiden.
+        if '_popup' in request.GET:
+            # Setzt die Vorlage auf die Standard-Vorlage für Pop-ups zurück.
+            self.change_list_template = "admin/change_list.html"
+            return super().changelist_view(request, extra_context=extra_context)
+        
+        # Stellt sicher, dass die Explorer-Vorlage für die normale Ansicht verwendet wird.
+        self.change_list_template = "admin/api/mediaasset/explorer_changelist.html"
+        
         extra_context = extra_context or {}
         
-        # Erstellt eine hierarchische Baumstruktur aller Ordner
         def get_folder_tree(parent=None):
             folders = MediaFolder.objects.filter(parent=parent)
             tree = []
@@ -64,33 +71,32 @@ class MediaAssetAdmin(ModelAdmin):
 
         extra_context['folder_tree'] = get_folder_tree()
         
-        # Holt die ID des aktuell ausgewählten Ordners aus der URL
         try:
             current_folder_id = int(request.GET.get('folder_id', ''))
             extra_context['current_folder'] = MediaFolder.objects.get(pk=current_folder_id)
         except (ValueError, TypeError, MediaFolder.DoesNotExist):
-            current_folder_id = None
             extra_context['current_folder'] = None
 
         return super().changelist_view(request, extra_context=extra_context)
 
-    # NEU: Filtert die angezeigten Assets basierend auf dem in der URL ausgewählten Ordner.
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
+
+        # NEUE KORREKTUR: Im Pop-up-Modus werden alle Dateien ohne Ordnerfilter angezeigt.
+        if '_popup' in request.GET:
+            return queryset
+
         try:
             current_folder_id = int(request.GET.get('folder_id', ''))
             return queryset.filter(folder_id=current_folder_id)
         except (ValueError, TypeError):
-             # Zeigt nur Dateien ohne Ordner an, wenn kein Ordner ausgewählt ist (Root-Verzeichnis)
             return queryset.filter(folder__isnull=True)
 
 # --- (Rest des Codes bleibt unverändert) ---
-# ... (bestehender Code für UserAdmin, MemorialPageAdmin, etc.) ...
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)
 class DocumentAdmin(ModelAdmin): pass
-# ... (und so weiter für alle anderen Admin-Klassen) ...
 @admin.register(ContractItem)
 class ContractItemAdmin(ModelAdmin): pass
 @admin.register(InsuranceItem)
@@ -105,7 +111,6 @@ class TimelineEventAdmin(ModelAdmin): pass
 class GalleryItemAdmin(ModelAdmin): pass
 @admin.register(EventLocation)
 class EventLocationAdmin(ModelAdmin): pass
-
 @admin.register(CandleImage)
 class CandleImageAdmin(ModelAdmin): pass
 @admin.register(CandleMessageTemplate)
@@ -157,7 +162,6 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
         'manage_insurances', 'manage_financials', 'manage_digital_legacy',
         'display_own_memorial_page', 'display_managed_memorial_pages'
     )
-
     fieldsets = (
         (None, {'fields': ('email', 'first_name', 'last_name', 'role')}),
         ('Gedenkseiten-Verwaltung', {
@@ -172,46 +176,38 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
         ('Berechtigungen & Status', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
         ('Wichtige Daten', {'fields': ('id', 'created_at', 'updated_at')}),
     )
-
     @admin.display(description='Name')
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
-
     @admin.display(description='Letzte Wünsche')
     def manage_last_wishes(self, obj):
         url = reverse('admin:api_lastwishes_change', args=(obj.pk,))
         return format_html(f'<a href="{url}" class="button manage-button" data-modal-title="Letzte Wünsche für {obj}">Verwalten</a>')
-
     @admin.display(description='Dokumente')
     def manage_documents(self, obj):
         count = obj.documents.count()
         url = reverse('admin:api_document_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Dokumente <a href="{url}" class="button manage-button" data-modal-title="Dokumente für {obj}">Verwalten</a>')
-        
     @admin.display(description='Verträge')
     def manage_contracts(self, obj):
         count = obj.contract_items.count()
         url = reverse('admin:api_contractitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Verträge <a href="{url}" class="button manage-button" data-modal-title="Verträge für {obj}">Verwalten</a>')
-
     @admin.display(description='Versicherungen')
     def manage_insurances(self, obj):
         count = obj.insurance_items.count()
         url = reverse('admin:api_insuranceitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Versicherungen <a href="{url}" class="button manage-button" data-modal-title="Versicherungen für {obj}">Verwalten</a>')
-
     @admin.display(description='Finanzen')
     def manage_financials(self, obj):
         count = obj.financial_items.count()
         url = reverse('admin:api_financialitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Finanzen für {obj}">Verwalten</a>')
-
     @admin.display(description='Digitaler Nachlass')
     def manage_digital_legacy(self, obj):
         count = obj.legacy_items.count()
         url = reverse('admin:api_digitallegacyitem_changelist') + f'?user__pk__exact={obj.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Digitaler Nachlass für {obj}">Verwalten</a>')
-
     @admin.display(description='Eigene Gedenkseite')
     def display_own_memorial_page(self, obj):
         try:
@@ -220,7 +216,6 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
             return format_html('<a href="{url}" data-modal-title="Gedenkseite für {obj} bearbeiten">{obj}</a>', url=url, obj=obj)
         except MemorialPage.DoesNotExist:
             return "Keine eigene Gedenkseite vorhanden."
-
     @admin.display(description='Verwaltete Gedenkseiten (als Angehöriger)')
     def display_managed_memorial_pages(self, obj):
         links = FamilyLink.objects.filter(relative_user=obj)
@@ -231,7 +226,6 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
         for link in links:
             deceased_user_url = reverse('admin:api_user_change', args=[link.deceased_user.pk])
             deceased_user_link = f'<a href="{deceased_user_url}" data-modal-title="Benutzer {link.deceased_user.get_full_name()} ansehen">{link.deceased_user.get_full_name()}</a>'
-            
             page_info = '(Keine Gedenkseite erstellt)'
             try:
                 page = link.deceased_user.memorial_page
@@ -240,11 +234,8 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
                 page_info = f' &rarr; {page_link}'
             except MemorialPage.DoesNotExist:
                 pass
-
             html_links.append(f'<li>Für {deceased_user_link}{page_info}</li>')
-
         return format_html('<ul>' + ''.join(html_links) + '</ul>')
-
 
 class EventAttendanceInline(admin.TabularInline):
     model = EventAttendance
@@ -270,41 +261,35 @@ class MemorialPageAdmin(ModelAdmin):
     
     readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
 
-    def get_readonly_fields(self, request, obj=None):
+    def get_readonly_fields(self, request, obj=None): 
         if obj: 
             return self.readonly_fields + ('user',)
         return self.readonly_fields
-
     @admin.display(description='Chronik-Einträge')
     def manage_timeline(self, obj):
         count = obj.timeline_events.count()
         url = reverse('admin:api_timelineevent_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Chronik für {obj}">Verwalten</a>')
-
     @admin.display(description='Galerie-Bilder')
     def manage_gallery(self, obj):
         count = obj.gallery_items.count()
         url = reverse('admin:api_galleryitem_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Bilder <a href="{url}" class="button manage-button" data-modal-title="Galerie für {obj}">Verwalten</a>')
-
     @admin.display(description='Kondolenzen')
     def manage_condolences(self, obj):
         count = obj.condolences.count()
         url = reverse('admin:api_condolence_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Einträge <a href="{url}" class="button manage-button" data-modal-title="Kondolenzen für {obj}">Verwalten</a>')
-
     @admin.display(description='Gedenkkerzen')
     def manage_candles(self, obj):
         count = obj.candles.count()
         url = reverse('admin:api_memorialcandle_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Kerzen <a href="{url}" class="button manage-button" data-modal-title="Gedenkkerzen für {obj}">Verwalten</a>')
-
     @admin.display(description='Termine')
     def manage_events(self, obj):
         count = obj.events.count()
         url = reverse('admin:api_memorialevent_changelist') + f'?page__pk__exact={obj.user.pk}'
         return format_html(f'{count} Termine <a href="{url}" class="button manage-button" data-modal-title="Termine für {obj}">Verwalten</a>')
-
     @admin.display(description='Inhalte verwalten')
     def manage_content_links(self, obj):
         links = f"""
@@ -318,7 +303,6 @@ class MemorialPageAdmin(ModelAdmin):
     def display_family_links(self, obj):
         user = obj.user
         links = FamilyLink.objects.filter(deceased_user=user)
-
         html_list = "<ul>"
         if not links.exists():
             html_list += "<li>Keine Angehörigen verknüpft.</li>"
@@ -330,12 +314,10 @@ class MemorialPageAdmin(ModelAdmin):
                 relationship_str = f" - {link.relationship}" if link.relationship else ""
                 html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative.get_full_name()} bearbeiten">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{main_contact_str}</li>'
         html_list += "</ul>"
-
         manage_url = reverse('admin:api_user_change', args=(user.pk,)) + '#familylink_set-group'
         html_button = f'<div style="margin-top: 1rem;"><a href="{manage_url}" class="button manage-button" data-modal-title="Angehörige für {user.get_full_name()} verwalten">Angehörige verwalten</a></div>'
         
         return format_html(html_list + html_button)
-
 
     fieldsets = (
         (None, {'fields': ('user', 'status')}),

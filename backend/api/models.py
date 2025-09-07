@@ -1,5 +1,6 @@
 # backend/api/models.py
-# ERWEITERT: Das SiteSettings-Modell wurde um ein Feld zur Steuerung der Bildanpassung erweitert.
+# KORRIGIERT: Die Reihenfolge der Klassen wurde geändert, um den NameError zu beheben.
+# MemorialPage wird jetzt vor SiteSettings definiert.
 
 import uuid
 from django.db import models
@@ -72,73 +73,6 @@ class EventLocation(models.Model):
     class Meta:
         verbose_name = "Veranstaltungsort"
         verbose_name_plural = "Veranstaltungsorte (Stammdaten)"
-
-
-class SiteSettings(models.Model):
-    class FontChoices(models.TextChoices):
-        ROBOTO = "'Roboto', sans-serif", "Roboto"
-        OPEN_SANS = "'Open Sans', sans-serif", "Open Sans"
-        LATO = "'Lato', sans-serif", "Lato"
-        MONTSERRAT = "'Montserrat', sans-serif", "Montserrat"
-        SOURCE_SANS = "'Source Sans Pro', sans-serif", "Source Sans Pro"
-
-    class Meta:
-        verbose_name = "Globale Design-Einstellungen"
-        verbose_name_plural = "Globale Design-Einstellungen"
-
-    # Gedenkseiten-Listing
-    listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir trauern um")
-    listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
-    listing_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Startseite")
-    listing_card_color = models.CharField("Karten-Hintergrundfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
-    listing_text_color = models.CharField("Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
-    listing_arrow_color = models.CharField("Pfeilfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #8c8073", default="#8c8073")
-    
-    # Suche
-    search_title = models.CharField("Titel im Suchbereich", max_length=100, blank=True, default="Verstorbenen Suche")
-    search_helper_text = models.TextField("Hilfstext im Suchbereich", blank=True, default="Bitte geben Sie einen oder mehrere Suchbegriffe in die obenstehenden Felder ein, um nach einem Verstorbenen zu suchen.")
-    search_background_color = models.CharField("Hintergrundfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #e5e0da")
-    search_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Suche")
-    search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
-
-    # Expand-Bereich
-    expend_background_color = models.CharField("Hintergrundfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
-    expend_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Expand-Bereich")
-    expend_card_color = models.CharField("Karten-Hintergrundfarbe Expand", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
-    expend_text_color = models.CharField("Textfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
-
-    # Globale Schriften
-    font_family = models.CharField("Schriftart", max_length=100, choices=FontChoices.choices, default=FontChoices.ROBOTO)
-    font_size_base = models.CharField("Grundschriftgröße", max_length=10, blank=True, default="14px", help_text="CSS-Wert, z.B. 14px oder 0.9rem")
-
-    # Login-Seite
-    login_title = models.CharField("Titel Login-Seite", max_length=100, blank=True, default="Willkommen zurück")
-    login_subtitle = models.TextField("Untertitel Login-Seite", blank=True, default="Melden Sie sich an, um auf Ihr persönliches Vorsorge-Dashboard zuzugreifen und Gedenkseiten zu verwalten.")
-    login_background_color = models.CharField("Hintergrundfarbe Login", max_length=7, blank=True, help_text="Hex-Code")
-    login_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Login")
-    login_card_background_color = models.CharField("Hintergrundfarbe Login-Karte", max_length=7, blank=True, default="#FFFFFF")
-    login_text_color = models.CharField("Textfarbe Login-Karte", max_length=7, blank=True, default="#3a3a3a")
-    login_button_color = models.CharField("Button-Farbe Login", max_length=7, blank=True, default="#8c8073")
-    login_button_text_color = models.CharField("Button-Textfarbe Login", max_length=7, blank=True, default="#FFFFFF")
-
-    # Registrierungsseite
-    register_title = models.CharField("Titel Registrierungsseite", max_length=100, blank=True, default="Konto erstellen")
-    register_subtitle = models.TextField("Untertitel Registrierungsseite", blank=True, default="Erstellen Sie Ihr Konto, um mit der Vorsorge zu beginnen oder einem geliebten Menschen zu gedenken.")
-    register_background_color = models.CharField("Hintergrundfarbe Registrierung", max_length=7, blank=True, help_text="Hex-Code")
-    register_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Registrierung")
-    register_info_panel_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Bild im Info-Panel (Registrierung)")
-    register_info_panel_image_size = models.CharField("Anpassung Info-Panel Bild", max_length=10, choices=MemorialPage.BackgroundSize.choices, default=MemorialPage.BackgroundSize.COVER)
-    register_card_background_color = models.CharField("Hintergrundfarbe Registrierungs-Karte", max_length=7, blank=True, default="#FFFFFF")
-    register_text_color = models.CharField("Textfarbe Registrierungs-Karte", max_length=7, blank=True, default="#3a3a3a")
-    register_button_color = models.CharField("Button-Farbe Registrierung", max_length=7, blank=True, default="#8c8073")
-    register_button_text_color = models.CharField("Button-Textfarbe Registrierung", max_length=7, blank=True, default="#FFFFFF")
-    
-    def __str__(self):
-        return "Globale Design-Einstellungen"
-
-    def save(self, *args, **kwargs):
-        self.pk = 1
-        super(SiteSettings, self).save(*args, **kwargs)
 
 class UserManager(BaseUserManager):
     def create_user(self, email=None, password=None, **extra_fields):
@@ -290,13 +224,10 @@ class MemorialPage(models.Model):
         folder_name = f"{self.first_name} {self.last_name}".strip()
         if folder_name:
             try:
-                # Übergeordneten Ordner "Gedenkseiten" finden oder erstellen
                 parent_folder, _ = MediaFolder.objects.get_or_create(
                     name="Gedenkseiten",
-                    parent=None # Stellt sicher, dass es ein Hauptordner ist
+                    parent=None
                 )
-
-                # Ordner für die Gedenkseite erstellen und dem übergeordneten Ordner zuweisen
                 folder, created = MediaFolder.objects.get_or_create(
                     memorial_page=self,
                     defaults={'name': folder_name, 'parent': parent_folder}
@@ -333,6 +264,72 @@ class MemorialPage(models.Model):
         if self.user:
             return f"{self.user.first_name} {self.user.last_name}"
         return "Unbenannte Gedenkseite"
+
+class SiteSettings(models.Model):
+    class FontChoices(models.TextChoices):
+        ROBOTO = "'Roboto', sans-serif", "Roboto"
+        OPEN_SANS = "'Open Sans', sans-serif", "Open Sans"
+        LATO = "'Lato', sans-serif", "Lato"
+        MONTSERRAT = "'Montserrat', sans-serif", "Montserrat"
+        SOURCE_SANS = "'Source Sans Pro', sans-serif", "Source Sans Pro"
+
+    class Meta:
+        verbose_name = "Globale Design-Einstellungen"
+        verbose_name_plural = "Globale Design-Einstellungen"
+
+    # Gedenkseiten-Listing
+    listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir trauern um")
+    listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
+    listing_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Startseite")
+    listing_card_color = models.CharField("Karten-Hintergrundfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
+    listing_text_color = models.CharField("Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+    listing_arrow_color = models.CharField("Pfeilfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #8c8073", default="#8c8073")
+    
+    # Suche
+    search_title = models.CharField("Titel im Suchbereich", max_length=100, blank=True, default="Verstorbenen Suche")
+    search_helper_text = models.TextField("Hilfstext im Suchbereich", blank=True, default="Bitte geben Sie einen oder mehrere Suchbegriffe in die obenstehenden Felder ein, um nach einem Verstorbenen zu suchen.")
+    search_background_color = models.CharField("Hintergrundfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #e5e0da")
+    search_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Suche")
+    search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+
+    # Expand-Bereich
+    expend_background_color = models.CharField("Hintergrundfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
+    expend_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Expand-Bereich")
+    expend_card_color = models.CharField("Karten-Hintergrundfarbe Expand", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
+    expend_text_color = models.CharField("Textfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+
+    # Globale Schriften
+    font_family = models.CharField("Schriftart", max_length=100, choices=FontChoices.choices, default=FontChoices.ROBOTO)
+    font_size_base = models.CharField("Grundschriftgröße", max_length=10, blank=True, default="14px", help_text="CSS-Wert, z.B. 14px oder 0.9rem")
+
+    # Login-Seite
+    login_title = models.CharField("Titel Login-Seite", max_length=100, blank=True, default="Willkommen zurück")
+    login_subtitle = models.TextField("Untertitel Login-Seite", blank=True, default="Melden Sie sich an, um auf Ihr persönliches Vorsorge-Dashboard zuzugreifen und Gedenkseiten zu verwalten.")
+    login_background_color = models.CharField("Hintergrundfarbe Login", max_length=7, blank=True, help_text="Hex-Code")
+    login_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Login")
+    login_card_background_color = models.CharField("Hintergrundfarbe Login-Karte", max_length=7, blank=True, default="#FFFFFF")
+    login_text_color = models.CharField("Textfarbe Login-Karte", max_length=7, blank=True, default="#3a3a3a")
+    login_button_color = models.CharField("Button-Farbe Login", max_length=7, blank=True, default="#8c8073")
+    login_button_text_color = models.CharField("Button-Textfarbe Login", max_length=7, blank=True, default="#FFFFFF")
+
+    # Registrierungsseite
+    register_title = models.CharField("Titel Registrierungsseite", max_length=100, blank=True, default="Konto erstellen")
+    register_subtitle = models.TextField("Untertitel Registrierungsseite", blank=True, default="Erstellen Sie Ihr Konto, um mit der Vorsorge zu beginnen oder einem geliebten Menschen zu gedenken.")
+    register_background_color = models.CharField("Hintergrundfarbe Registrierung", max_length=7, blank=True, help_text="Hex-Code")
+    register_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Registrierung")
+    register_info_panel_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Bild im Info-Panel (Registrierung)")
+    register_info_panel_image_size = models.CharField("Anpassung Info-Panel Bild", max_length=10, choices=MemorialPage.BackgroundSize.choices, default=MemorialPage.BackgroundSize.COVER)
+    register_card_background_color = models.CharField("Hintergrundfarbe Registrierungs-Karte", max_length=7, blank=True, default="#FFFFFF")
+    register_text_color = models.CharField("Textfarbe Registrierungs-Karte", max_length=7, blank=True, default="#3a3a3a")
+    register_button_color = models.CharField("Button-Farbe Registrierung", max_length=7, blank=True, default="#8c8073")
+    register_button_text_color = models.CharField("Button-Textfarbe Registrierung", max_length=7, blank=True, default="#FFFFFF")
+    
+    def __str__(self):
+        return "Globale Design-Einstellungen"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(SiteSettings, self).save(*args, **kwargs)
 
 class Condolence(models.Model):
     class Meta:

@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: JavaScript-basiertes Scrollen wiederhergestellt, um ein sanftes, zentriertes Scroll-Erlebnis zu gewährleisten. Button-Design wiederhergestellt.
+// KORRIGIERT: JavaScript-basiertes Scrollen wiederhergestellt, um ein sanftes, zentriertes Scroll-Erlebnis zu gewährleisten. Button-Design und die "entweder/oder"-Anzeige der Sektionen wurden ebenfalls korrigiert.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -95,7 +95,7 @@ const MemorialPage = () => {
         if (isOpening) {
             setTimeout(() => {
                 expandAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 150); // Kurze Verzögerung, damit der Bereich rendern kann
+            }, 300); // Leichte Verzögerung, um dem Haupt-Scroll Zeit zu geben
         }
     };
     
@@ -207,7 +207,6 @@ const MemorialPage = () => {
             )}
             
             <aside className="quick-links">
-                 {/* KORRIGIERT: Klickevents wiederhergestellt, um das JS-gesteuerte Scrollen auszulösen */}
                 <a href="#abschied" onClick={(e) => { e.preventDefault(); handleTabClick('abschied'); }} title="Abschied nehmen">🕊️</a>
                 <a href="#leben" onClick={(e) => { e.preventDefault(); handleTabClick('leben'); }} title="Mein Leben">📖</a>
             </aside>
@@ -226,92 +225,97 @@ const MemorialPage = () => {
                         <img className="profile-photo" src={pageData.main_photo?.url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Profilbild von ${pageData.first_name}`} />
                     </div>
                     <nav className="tab-navigation">
-                        {/* KORRIGIERT: Wieder auf <button> umgestellt, um das Styling beizubehalten */}
                         <button onClick={() => handleTabClick('abschied')} className={activeMainView === 'abschied' ? 'active' : ''}>Abschied nehmen</button>
                         <button onClick={() => handleTabClick('leben')} className={activeMainView === 'leben' ? 'active' : ''}>Mein Leben</button>
                     </nav>
                 </div>
             </header>
             
-            <section id="abschied" ref={farewellSectionRef} className={farewellSectionClasses} style={farewellStyle}>
-                <div className="farewell-grid">
-                    <div className="farewell-title-area">
-                        <h2>Abschied nehmen</h2>
-                        <p>UND KONDOLIEREN</p>
-                    </div>
-                    <div className="farewell-content-wrapper">
-                        <div className="farewell-main-content">
-                            {isParteVisible && (
-                                <div className="parte-container">
-                                    <img src={pageData.obituary_card_image.url} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image.url)} />
-                                </div>
-                            )}
-                            <div className="right-column">
-                                <div className="right-column-top">
-                                    {isAcknowledgementVisible && (
-                                        <div className="media-container">
-                                            {pageData.acknowledgement_type === 'text' ? (
-                                                <div className="acknowledgement-text-container"><p>{pageData.acknowledgement_text}</p></div>
-                                            ) : (
-                                                <img src={pageData.acknowledgement_image.url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image.url)} />
+            <main>
+                {activeMainView === 'abschied' && (
+                    <section id="abschied" ref={farewellSectionRef} className={farewellSectionClasses} style={farewellStyle}>
+                        <div className="farewell-grid">
+                            <div className="farewell-title-area">
+                                <h2>Abschied nehmen</h2>
+                                <p>UND KONDOLIEREN</p>
+                            </div>
+                            <div className="farewell-content-wrapper">
+                                <div className="farewell-main-content">
+                                    {isParteVisible && (
+                                        <div className="parte-container">
+                                            <img src={pageData.obituary_card_image.url} alt="Partezettel" className="obituary-card" onClick={() => setLightboxImage(pageData.obituary_card_image.url)} />
+                                        </div>
+                                    )}
+                                    <div className="right-column">
+                                        <div className="right-column-top">
+                                            {isAcknowledgementVisible && (
+                                                <div className="media-container">
+                                                    {pageData.acknowledgement_type === 'text' ? (
+                                                        <div className="acknowledgement-text-container"><p>{pageData.acknowledgement_text}</p></div>
+                                                    ) : (
+                                                        <img src={pageData.acknowledgement_image.url} alt="Danksagung" className="acknowledgement-image" onClick={() => setLightboxImage(pageData.acknowledgement_image.url)} />
+                                                    )}
+                                                </div>
+                                            )}
+                                            {isMemorialPictureVisible && (
+                                                <div className="media-container gedenkbild-container">
+                                                    <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
+                                                        <div className="zoom-button" onClick={openSideBySideLightbox}>🔍</div>
+                                                        <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
+                                                            <div className="flip-card-front"><img src={pageData.memorial_picture.url} alt="Gedenkbild Vorderseite" /></div>
+                                                            <div className="flip-card-back"><img src={pageData.memorial_picture_back.url} alt="Gedenkbild Rückseite" /></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
-                                    )}
-                                    {isMemorialPictureVisible && (
-                                        <div className="media-container gedenkbild-container">
-                                            <div className="flip-card-container" onClick={() => setIsCardFlipped(!isCardFlipped)}>
-                                                <div className="zoom-button" onClick={openSideBySideLightbox}>🔍</div>
-                                                <div className={`flip-card-inner ${isCardFlipped ? 'is-flipped' : ''}`}>
-                                                    <div className="flip-card-front"><img src={pageData.memorial_picture.url} alt="Gedenkbild Vorderseite" /></div>
-                                                    <div className="flip-card-back"><img src={pageData.memorial_picture_back.url} alt="Gedenkbild Rückseite" /></div>
-                                                </div>
+                                        {displayedEvent && (
+                                            <div className="farewell-events-area">
+                                                <h3>Nächster Termin</h3>
+                                                <EventCard 
+                                                    event={displayedEvent} 
+                                                    pageData={pageData}
+                                                    onAttendClick={handleAttendClick}
+                                                    onCalendarClick={handleCalendarClick}
+                                                    onNavigateClick={handleNavigate}
+                                                    isCompact={true}
+                                                />
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                                {displayedEvent && (
-                                    <div className="farewell-events-area">
-                                        <h3>Nächster Termin</h3>
-                                        <EventCard 
-                                            event={displayedEvent} 
-                                            pageData={pageData}
-                                            onAttendClick={handleAttendClick}
-                                            onCalendarClick={handleCalendarClick}
-                                            onNavigateClick={handleNavigate}
-                                            isCompact={true}
-                                        />
+                                        )}
                                     </div>
-                                )}
+                                </div>
+                                <div className={`farewell-actions-area ${!hasAnyMediaContent ? 'centered-large' : ''}`}>
+                                    <button onClick={() => toggleExpandedView('condolences')}>
+                                        Kondolenz schreiben {pageData.condolence_count > 0 && `(${pageData.condolence_count})`}
+                                    </button>
+                                    <button onClick={() => toggleExpandedView('candles')}>
+                                        Kerze anzünden {pageData.candle_count > 0 && `(${pageData.candle_count})`}
+                                    </button>
+                                    <button onClick={() => toggleExpandedView('events')}>Alle Termine</button>
+                                </div>
                             </div>
                         </div>
-                        <div className={`farewell-actions-area ${!hasAnyMediaContent ? 'centered-large' : ''}`}>
-                            <button onClick={() => toggleExpandedView('condolences')}>
-                                Kondolenz schreiben {pageData.condolence_count > 0 && `(${pageData.condolence_count})`}
-                            </button>
-                            <button onClick={() => toggleExpandedView('candles')}>
-                                Kerze anzünden {pageData.candle_count > 0 && `(${pageData.candle_count})`}
-                            </button>
-                            <button onClick={() => toggleExpandedView('events')}>Alle Termine</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                    </section>
+                )}
 
-            <section id="leben" ref={lifeSectionRef} className={farewellSectionClasses} style={farewellStyle}>
-                 <div className="farewell-grid">
-                     <div className="farewell-title-area">
-                         <h2>Mein Leben</h2>
-                         <p>ERINNERUNGEN TEILEN</p>
-                     </div>
-                     <div className="farewell-content-wrapper centered-large">
-                         <div className="farewell-actions-area centered-large">
-                             <button onClick={() => toggleExpandedView('chronik')}>Chronik</button>
-                             <button onClick={() => toggleExpandedView('galerie')}>Galerie</button>
-                             <button onClick={() => toggleExpandedView('geschichten')}>Geschichten</button>
+                {activeMainView === 'leben' && (
+                    <section id="leben" ref={lifeSectionRef} className={farewellSectionClasses} style={farewellStyle}>
+                         <div className="farewell-grid">
+                             <div className="farewell-title-area">
+                                 <h2>Mein Leben</h2>
+                                 <p>ERINNERUNGEN TEILEN</p>
+                             </div>
+                             <div className="farewell-content-wrapper centered-large">
+                                 <div className="farewell-actions-area centered-large">
+                                     <button onClick={() => toggleExpandedView('chronik')}>Chronik</button>
+                                     <button onClick={() => toggleExpandedView('galerie')}>Galerie</button>
+                                     <button onClick={() => toggleExpandedView('geschichten')}>Geschichten</button>
+                                 </div>
+                             </div>
                          </div>
-                     </div>
-                 </div>
-            </section>
+                    </section>
+                )}
+            </main>
 
             <div ref={expandAreaRef}>
                 {expandedView && (

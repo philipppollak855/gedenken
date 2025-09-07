@@ -1,0 +1,18 @@
+# docker-compose.override.yml
+# NEU: Diese Datei passt die Docker-Konfiguration NUR für die lokale Entwicklung an.
+# Sie überschreibt den Startbefehl, um Djangos Entwicklungs-Server zu verwenden,
+# der hochgeladene Mediendateien automatisch und ohne WhiteNoise korrekt ausliefert.
+
+services:
+  backend:
+    # Überschreibt den Befehl aus der Haupt-docker-compose.yml
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      # Stellt sicher, dass hochgeladene Bilder in der Entwicklung erhalten bleiben
+      - media_data:/app/media
+
+volumes:
+  media_data:
+

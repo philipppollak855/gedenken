@@ -1,5 +1,6 @@
 # backend/api/serializers.py
-# KORRIGIERT: Stellt sicher, dass Serializer die korrekte URL-Struktur für Bilder liefert.
+# KORRIGIERT: Verwendet jetzt direkt die 'url'-Property aus dem MediaAsset-Modell,
+# um eine einheitliche und zuverlässige URL-Generierung zu gewährleisten.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -15,21 +16,11 @@ from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class MediaAssetSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
-
+    # Es wird keine 'get_url'-Methode mehr benötigt.
+    # Der Serializer greift automatisch auf die 'url'-Property des MediaAsset-Modells zu.
     class Meta:
         model = MediaAsset
         fields = ('title', 'url', 'asset_type')
-
-    def get_url(self, obj):
-        request = self.context.get('request')
-        if obj.file_upload and request:
-            return request.build_absolute_uri(obj.file_upload.url)
-        if obj.file_url:
-            return obj.file_url
-        return None
-
-# ... (Rest der Serializer bleiben unverändert, hier ist der relevante Teil) ...
 
 class MemorialPageListSerializer(serializers.ModelSerializer):
     main_photo = MediaAssetSerializer(read_only=True)
@@ -41,7 +32,6 @@ class MemorialPageListSerializer(serializers.ModelSerializer):
             'date_of_birth', 'date_of_death', 'main_photo'
         ]
 
-# ... (Alle anderen Serializer von EventLocationSerializer bis zum Ende bleiben hier) ...
 class EventLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventLocation
@@ -278,3 +268,4 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
+

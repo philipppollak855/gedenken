@@ -1,5 +1,5 @@
 // frontend/src/modules/auth/RegistrationPage.jsx
-// AKTUALISIERT: Das Info-Panel-Bild wird jetzt dynamisch aus den Admin-Einstellungen geladen.
+// AKTUALISIERT: Wendet jetzt auch die `backgroundSize`-Eigenschaft auf das Info-Panel-Bild an.
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -67,6 +67,7 @@ const RegistrationPage = () => {
 
     const infoPanelStyle = {
         backgroundImage: settings.register_info_panel_image ? `url(${settings.register_info_panel_image.url})` : 'url(https://images.pexels.com/photos/1037992/pexels-photo-1037992.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)',
+        backgroundSize: settings.register_info_panel_image_size || 'cover',
     };
 
     const cardStyle = {
@@ -83,7 +84,7 @@ const RegistrationPage = () => {
         <div className="auth-page-container" style={pageStyle}>
             <div className="auth-card">
                 <div className="auth-info-panel" style={infoPanelStyle}>
-                    {/* Das Bild wird jetzt über die inline-styles dynamisch gesetzt */}
+                    {/* Das Bild und dessen Anpassung werden jetzt über die inline-styles dynamisch gesetzt */}
                 </div>
                 <div className="auth-form-panel" style={cardStyle}>
                     <h2>{settings.register_title || 'Konto erstellen'}</h2>

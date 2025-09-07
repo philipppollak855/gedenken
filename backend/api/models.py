@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Das SiteSettings-Modell wurde um ein Feld für das Info-Panel-Bild auf der Registrierungsseite erweitert.
+# ERWEITERT: Das SiteSettings-Modell wurde um ein Feld zur Steuerung der Bildanpassung erweitert.
 
 import uuid
 from django.db import models
@@ -127,6 +127,7 @@ class SiteSettings(models.Model):
     register_background_color = models.CharField("Hintergrundfarbe Registrierung", max_length=7, blank=True, help_text="Hex-Code")
     register_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Registrierung")
     register_info_panel_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Bild im Info-Panel (Registrierung)")
+    register_info_panel_image_size = models.CharField("Anpassung Info-Panel Bild", max_length=10, choices=MemorialPage.BackgroundSize.choices, default=MemorialPage.BackgroundSize.COVER)
     register_card_background_color = models.CharField("Hintergrundfarbe Registrierungs-Karte", max_length=7, blank=True, default="#FFFFFF")
     register_text_color = models.CharField("Textfarbe Registrierungs-Karte", max_length=7, blank=True, default="#3a3a3a")
     register_button_color = models.CharField("Button-Farbe Registrierung", max_length=7, blank=True, default="#8c8073")

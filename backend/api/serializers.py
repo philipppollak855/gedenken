@@ -1,5 +1,5 @@
 # backend/api/serializers.py
-# ERWEITERT: Der SiteSettingsSerializer wurde um die Felder für das Info-Panel-Bild der Registrierungsseite erweitert.
+# ERWEITERT: Der SiteSettingsSerializer wurde um das Feld für die Bildanpassung der Registrierungsseite erweitert.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -195,7 +195,7 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     expend_background_image = MediaAssetSerializer(read_only=True)
     login_background_image = MediaAssetSerializer(read_only=True)
     register_background_image = MediaAssetSerializer(read_only=True)
-    register_info_panel_image = MediaAssetSerializer(read_only=True) # NEU
+    register_info_panel_image = MediaAssetSerializer(read_only=True) 
 
     class Meta:
         model = SiteSettings
@@ -209,7 +209,7 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'login_text_color', 'login_button_color', 'login_button_text_color', 'login_background_image',
             'register_title', 'register_subtitle', 'register_background_color', 'register_card_background_color',
             'register_text_color', 'register_button_color', 'register_button_text_color', 'register_background_image',
-            'register_info_panel_image', # NEU
+            'register_info_panel_image', 'register_info_panel_image_size',
         ]
 
 class MemorialPageSerializer(serializers.ModelSerializer):

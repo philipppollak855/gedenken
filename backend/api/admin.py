@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Das Fieldset für die Registrierungsseite im SiteSettingsAdmin wurde um das neue Bild-Feld erweitert.
+# ERWEITERT: Das Fieldset für die Registrierungsseite wurde um das neue Feld für die Bildanpassung erweitert.
 
 import uuid
 import json
@@ -158,7 +158,7 @@ class SiteSettingsAdmin(ModelAdmin):
         'expend_background_image', 
         'login_background_image',
         'register_background_image',
-        'register_info_panel_image', # NEU
+        'register_info_panel_image',
     )
     fieldsets = (
         ('Gedenkseiten-Listing', {
@@ -177,7 +177,7 @@ class SiteSettingsAdmin(ModelAdmin):
             'fields': ('login_title', 'login_subtitle', 'login_background_color', 'login_background_image', 'login_card_background_color', 'login_text_color', 'login_button_color', 'login_button_text_color')
         }),
         ('Registrierungsseite', {
-            'fields': ('register_title', 'register_subtitle', 'register_background_color', 'register_background_image', 'register_info_panel_image', 'register_card_background_color', 'register_text_color', 'register_button_color', 'register_button_text_color')
+            'fields': ('register_title', 'register_subtitle', 'register_background_color', 'register_background_image', 'register_info_panel_image', 'register_info_panel_image_size', 'register_card_background_color', 'register_text_color', 'register_button_color', 'register_button_text_color')
         }),
     )
     

@@ -1,64 +1,68 @@
 /* frontend/src/modules/user/MeinBereich.css */
-/* DIESE DATEI IST NEU */
+/* NEU: Stile für das neue zweispaltige Layout von "Mein Bereich". */
 
 .mein-bereich-container {
-    max-width: 900px;
+    display: flex;
+    max-width: 1400px;
     margin: 2rem auto;
-    padding: 2rem;
-    background-color: #fff;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.bereich-sidebar {
+    flex: 0 0 250px; /* Breite der Sidebar */
+    background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.mein-bereich-container h1 {
-    font-family: 'Playfair Display', serif;
-    text-align: center;
-    margin-bottom: 2rem;
-    color: #3a3a3a;
-}
-
-.bereich-sektion {
-    margin-bottom: 2.5rem;
     padding: 1.5rem;
-    border: 1px solid #e5e0da;
-    border-radius: 4px;
+    position: sticky;
+    top: 100px; /* 80px Header + 20px Abstand */
 }
 
-.bereich-sektion h2 {
-    font-family: 'Playfair Display', serif;
-    margin-top: 0;
-    margin-bottom: 1rem;
+.bereich-sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.seiten-liste {
-    list-style: none;
-    padding: 0;
-}
-
-.seiten-liste li {
-    margin-bottom: 0.5rem;
-}
-
-.seiten-liste a {
+.bereich-sidebar nav a {
     text-decoration: none;
-    color: #8c8073;
+    color: #3a3a3a;
     font-weight: 500;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
 }
 
-.seiten-liste a:hover {
-    text-decoration: underline;
+.bereich-sidebar nav a:hover {
+    background-color: #f4f1ee;
 }
 
-.bereich-button {
-    display: inline-block;
+.bereich-sidebar nav a.active {
     background-color: #8c8073;
     color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: background-color 0.2s;
+    font-weight: 700;
 }
 
-.bereich-button:hover {
-    background-color: #6d6d6d;
+.bereich-content {
+    flex-grow: 1;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    padding: 2rem 2.5rem;
+    min-height: 60vh;
+}
+
+.bereich-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e0da;
+    padding-bottom: 1rem;
+}
+
+.placeholder-text {
+    color: #6b7280;
+    font-size: 1.1rem;
 }

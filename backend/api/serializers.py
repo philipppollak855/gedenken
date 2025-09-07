@@ -1,5 +1,5 @@
 # backend/api/serializers.py
-# ERWEITERT: Der SiteSettingsSerializer wurde um die Felder für die Passwort-Reset-Seiten erweitert.
+# KORRIGIERT: Fehlende Serializer hinzugefügt und neue Serializer für "Mein Bereich" ergänzt.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -8,7 +8,7 @@ from .models import (
     Document, LastWishes, MemorialPage, Condolence, TimelineEvent, 
     GalleryItem, MemorialCandle, ReleaseRequest, MemorialEvent, SiteSettings,
     CondolenceTemplate, CandleImage, CandleMessageTemplate, MediaAsset, EventLocation,
-    EventAttendance
+    EventAttendance, FamilyLink
 )
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -195,28 +195,12 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     expend_background_image = MediaAssetSerializer(read_only=True)
     login_background_image = MediaAssetSerializer(read_only=True)
     register_background_image = MediaAssetSerializer(read_only=True)
-    register_info_panel_image = MediaAssetSerializer(read_only=True) 
+    register_info_panel_image = MediaAssetSerializer(read_only=True)
     password_reset_background_image = MediaAssetSerializer(read_only=True)
 
     class Meta:
         model = SiteSettings
-        fields = [
-            'listing_title', 'listing_background_color', 'listing_card_color', 'listing_text_color', 'listing_arrow_color',
-            'search_title', 'search_helper_text', 'search_background_color', 'search_text_color',
-            'expend_background_color', 'expend_card_color', 'expend_text_color',
-            'listing_background_image', 'search_background_image', 'expend_background_image',
-            'font_family', 'font_size_base',
-            'login_title', 'login_subtitle', 'login_background_color', 'login_card_background_color',
-            'login_text_color', 'login_button_color', 'login_button_text_color', 'login_background_image',
-            'register_title', 'register_subtitle', 'register_background_color', 'register_card_background_color',
-            'register_text_color', 'register_button_color', 'register_button_text_color', 'register_background_image',
-            'register_info_panel_image', 'register_info_panel_image_size',
-            'password_reset_title', 'password_reset_subtitle', 'password_reset_background_color', 
-            'password_reset_card_background_color', 'password_reset_text_color', 
-            'password_reset_button_color', 'password_reset_button_text_color', 
-            'password_reset_background_image', 'password_reset_confirm_title', 
-            'password_reset_confirm_subtitle',
-        ]
+        fields = '__all__'
 
 class MemorialPageSerializer(serializers.ModelSerializer):
     main_photo = MediaAssetSerializer(read_only=True)
@@ -280,4 +264,22 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
+
+# --- NEUE SERIALIZER FÜR "MEIN BEREICH" ---
+
+class ManagedGedenkseiteSerializer(serializers.ModelSerializer):
+    """
+    Ein einfacher Serializer, der nur die nötigsten Infos für die Liste
+    der verwalteten Gedenkseiten bereitstellt.
+    """
+    class Meta:
+        model = MemorialPage
+        fields = ['slug', 'first_name', 'last_name']
+
+class MeinBereichDataSerializer(serializers.Serializer):
+    """
+    Dieser Serializer sammelt die Daten für die "Mein Bereich"-Seite.
+    """
+    own_page = ManagedGedenkseiteSerializer(read_only=True)
+    managed_pages = ManagedGedenkseiteSerializer(many=True, read_only=True)
 

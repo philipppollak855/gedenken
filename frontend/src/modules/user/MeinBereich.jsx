@@ -1,61 +1,72 @@
 // frontend/src/modules/user/MeinBereich.jsx
-// Vollständiger Code der "Mein Bereich"-Seite.
+// NEU: Vollständig überarbeitete Komponente als Layout-Container mit Sidebar und verschachteltem Routing.
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 
+// Platzhalter-Komponenten für die verschiedenen Bereiche
+import MeineVorsorge from './MeineVorsorge';
+import MeineGedenkseite from './MeineGedenkseite';
+import MeineDaten from './MeineDaten';
+import MeineMedien from './MeineMedien';
+import VerwalteteSeiten from './VerwalteteSeiten';
+import KontoVerwalten from './KontoVerwalten';
+
 const MeinBereich = () => {
-    const [managedPages, setManagedPages] = useState([]);
+    const [userData, setUserData] = useState({ own_page: null, managed_pages: [] });
     const [isLoading, setIsLoading] = useState(true);
     const api = useApi();
 
-    const fetchManagedPages = useCallback(async () => {
+    const fetchUserData = useCallback(async () => {
         try {
-            const response = await api('/manage/memorial-pages/');
+            const response = await api('/mein-bereich-data/');
             if (response.ok) {
-                setManagedPages(await response.json());
+                setUserData(await response.json());
             }
         } catch (error) {
-            console.error("Fehler beim Laden der verwalteten Seiten:", error);
+            console.error("Fehler beim Laden der Benutzerdaten für 'Mein Bereich':", error);
         } finally {
             setIsLoading(false);
         }
     }, [api]);
 
     useEffect(() => {
-        fetchManagedPages();
-    }, [fetchManagedPages]);
+        fetchUserData();
+    }, [fetchUserData]);
+
+    if (isLoading) {
+        return <div className="loading-container">Lade Daten für Mein Bereich...</div>;
+    }
 
     return (
         <div className="mein-bereich-container">
-            <h1>Mein Bereich</h1>
-            
-            <div className="bereich-sektion">
-                <h2>Meine Gedenkseiten verwalten</h2>
-                {isLoading ? (
-                    <p>Lade Seiten...</p>
-                ) : managedPages.length > 0 ? (
-                    <ul className="seiten-liste">
-                        {managedPages.map(page => (
-                            <li key={page.slug}>
-                                <Link to={`/gedenken/${page.slug}/verwalten`}>
-                                    Gedenkseite von {page.first_name} {page.last_name}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>Sie verwalten aktuell keine Gedenkseiten.</p>
-                )}
-            </div>
-
-            <div className="bereich-sektion">
-                <h2>Meine Vorsorge</h2>
-                <p>Hier können Sie Ihre persönlichen Vorsorgedaten einsehen und bearbeiten.</p>
-                <Link to="/dashboard" className="bereich-button">Zur Vorsorge</Link>
-            </div>
+            <aside className="bereich-sidebar">
+                <nav>
+                    <NavLink to="vorsorge">Meine Vorsorge</NavLink>
+                    {userData.own_page && (
+                        <NavLink to="gedenkseite">Meine Gedenkseite</NavLink>
+                    )}
+                    <NavLink to="daten">Meine Daten</NavLink>
+                    <NavLink to="medien">Meine Medien</NavLink>
+                    {userData.managed_pages && userData.managed_pages.length > 0 && (
+                         <NavLink to="verwaltet">Verwaltete Seiten</NavLink>
+                    )}
+                    <NavLink to="konto">Konto verwalten</NavLink>
+                </nav>
+            </aside>
+            <main className="bereich-content">
+                <Routes>
+                    <Route path="vorsorge" element={<MeineVorsorge />} />
+                    <Route path="gedenkseite" element={<MeineGedenkseite pageData={userData.own_page} />} />
+                    <Route path="daten" element={<MeineDaten />} />
+                    <Route path="medien" element={<MeineMedien />} />
+                    <Route path="verwaltet" element={<VerwalteteSeiten pages={userData.managed_pages} />} />
+                    <Route path="konto" element={<KontoVerwalten />} />
+                    <Route path="*" element={<Navigate to="vorsorge" replace />} />
+                </Routes>
+            </main>
         </div>
     );
 };

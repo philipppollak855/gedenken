@@ -3,6 +3,11 @@
 # Bricht bei Fehlern sofort ab
 set -e
 
+# Erstellt das media-Verzeichnis, falls es nicht existiert.
+# Das ist wichtig, da Render den Mount-Pfad, aber nicht den Unterordner erstellt.
+echo "Creating media directory if it doesn't exist..."
+mkdir -p /var/media/media
+
 # Führt die Datenbank-Migrationen aus
 echo "Applying database migrations..."
 python manage.py migrate
@@ -26,3 +31,4 @@ EOF
 # Startet den Gunicorn Webserver, damit die Anwendung online ist
 echo "Starting Gunicorn server..."
 gunicorn core.wsgi:application --bind 0.0.0.0:10000
+

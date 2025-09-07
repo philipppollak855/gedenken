@@ -1,5 +1,6 @@
 # render.yaml
-# KORRIGIERT: BACKEND_URL Umgebungsvariable hinzugefügt.
+# KORRIGIERT: Der Pfad zum Settings-Modul wurde korrigiert.
+# NEU: explizite Pfade für MEDIA_ROOT hinzugefügt
 
 databases:
   - name: vorsorge-db
@@ -13,7 +14,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
-    startCommand: "gunicorn --chdir . core.wsgi"
+    startCommand: "bash entrypoint.sh" # GEÄNDERT: Startet über das entrypoint-Skript
     
     disks:
       - name: media-storage
@@ -27,10 +28,8 @@ services:
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
-      - key: DJANGO_ENV
-        value: production
-      - key: BACKEND_URL # NEU: Damit Django seine eigene Adresse kennt.
-        value: "https://vorsorge-backend.onrender.com"
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.settings
       - key: DJANGO_SUPERUSER_EMAIL
         value: philipp.pollak855@gmail.com
       - key: DJANGO_SUPERUSER_PASSWORD
@@ -41,3 +40,9 @@ services:
         value: "vorsorge-backend.onrender.com"
       - key: PGCLIENTENCODING
         value: utf8
+      # NEU: Definiert den Pfad für die hochgeladenen Dateien in der Produktionsumgebung
+      - key: MEDIA_ROOT
+        value: /var/media/media
+      # NEU: Definiert die URL des Backends für die korrekte Erstellung der Bild-URLs
+      - key: BACKEND_URL
+        value: "https://vorsorge-backend.onrender.com"

@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Fügt ein neues Fieldset für die Login-Seite in den SiteSettings hinzu.
+# KORRIGIERT: Der Importpfad für ColorPickerWidget wurde an die neuere Version von django-unfold angepasst.
 
 import uuid
 import json
@@ -10,7 +10,7 @@ from django.utils.text import slugify
 from django.utils.timezone import now
 from django.template.response import TemplateResponse
 from unfold.admin import ModelAdmin
-from unfold.widgets import ColorPickerWidget
+from unfold.forms import ColorPickerWidget  # KORRIGIERTER IMPORT
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse
@@ -49,8 +49,6 @@ class MediaAssetAdmin(ModelAdmin):
     @admin.display(description='Verwendung')
     def image_usage(self, obj):
         usages = []
-        
-        # Mapping von Feldnamen in MemorialPage zu benutzerfreundlichen Labels
         field_map = {
             'main_photo': "Portrait",
             'hero_background_image': "Hintergrund Hero",
@@ -60,21 +58,17 @@ class MediaAssetAdmin(ModelAdmin):
             'memorial_picture_back': "Gedenkbild Rückseite",
             'acknowledgement_image': "Danksagung"
         }
-
-        # Direkte Abfragen für Gedenkseiten
         for field_name, label in field_map.items():
             pages = MemorialPage.objects.filter(**{field_name: obj})
             if pages.exists():
                 page_links = [f'<a href="{reverse("admin:api_memorialpage_change", args=[p.pk])}">{str(p)}</a>' for p in pages]
                 usages.append(f"{label}: {', '.join(page_links)}")
         
-        # Abfrage für Galerie-Bilder
         gallery_pages = GalleryItem.objects.filter(image=obj).select_related('page')
         if gallery_pages.exists():
             page_links = list(set([f'<a href="{reverse("admin:api_memorialpage_change", args=[g.page.pk])}">{str(g.page)}</a>' for g in gallery_pages]))
             usages.append(f"Galerie: {', '.join(page_links)}")
 
-        # Abfrage für Kerzen-Bilder
         if CandleImage.objects.filter(image=obj).exists():
              usages.append("Kerzenbild (Stammdaten)")
 
@@ -160,9 +154,7 @@ class MemorialCandleAdmin(ModelAdmin): pass
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin):
     formfield_overrides = {
-        # Wendet den ColorPicker auf alle CharFields an, die keine Choices haben.
         CharField: {"widget": ColorPickerWidget},
-        # Wendet KEINEN ColorPicker auf TextFields an
         TextField: {"widget": None},
     }
     raw_id_fields = (
@@ -194,7 +186,6 @@ class SiteSettingsAdmin(ModelAdmin):
         custom_urls = [
             path('', self.admin_site.admin_view(self.change_view), {'object_id': '1'}, name='api_sitesettings_changelist'),
         ]
-        # Entfernt die Standard-URLs für "add" und "delete"
         return [url for url in custom_urls if url.name != 'api_sitesettings_add' and url.name != 'api_sitesettings_delete'] + urls
 
 @admin.register(FamilyLink)

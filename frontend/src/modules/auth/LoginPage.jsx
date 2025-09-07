@@ -1,15 +1,15 @@
 // frontend/src/modules/auth/LoginPage.jsx
-// AKTUALISIERT: Link "Passwort vergessen" hinzugefügt und CSS-Import auf die geteilte Datei geändert.
+// KORRIGIERT: Unbenutzte 'useNavigate' import und variable entfernt, um den Netlify Build-Fehler zu beheben.
 
 import React, { useContext, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // useNavigate entfernt
 import AuthContext from '../../context/AuthContext';
-import './AuthPage.css'; // NEUER, GEMEINSAMER CSS-IMPORT
+import './AuthPage.css';
 
 const LoginPage = () => {
     const { loginUser } = useContext(AuthContext);
     const [settings, setSettings] = useState({});
-    const navigate = useNavigate();
+    // const navigate = useNavigate(); // Diese Zeile wurde entfernt
 
     useEffect(() => {
         const fetchSettings = async () => {

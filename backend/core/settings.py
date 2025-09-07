@@ -1,6 +1,7 @@
 # backend/core/settings.py
 # BEREINIGT: Die fehlerhafte SIDEBAR-Konfiguration wurde vollständig entfernt.
 # Unfold wird nun die stabile Standard-Sidebar generieren.
+# KORRIGIERT: MEDIA_ROOT und BACKEND_URL für korrekte Bildauslieferung angepasst.
 
 import os
 import dj_database_url
@@ -27,6 +28,10 @@ if IS_PRODUCTION:
     CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_STRING.split(' ') if CORS_ALLOWED_ORIGINS_STRING else []
     
     CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host]
+    
+    # Produktions-spezifische URL für die API
+    BACKEND_URL = os.getenv('BACKEND_URL', f'https://{ALLOWED_HOSTS[0]}' if ALLOWED_HOSTS else '')
+
 else:
     DEBUG = True
     ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1 backend').split(' ')
@@ -42,9 +47,10 @@ else:
         }
     }
     CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    
+    # Entwicklungs-spezifische URL für die API
+    BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
-
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
 INSTALLED_APPS = [
     'unfold',
@@ -61,14 +67,13 @@ INSTALLED_APPS = [
     'import_export',
 ]
 
-# Fügt whitenoise nur für die Entwicklung hinzu, um das Verhalten der Produktion zu imitieren
 if not IS_PRODUCTION:
     INSTALLED_APPS.insert(INSTALLED_APPS.index('django.contrib.staticfiles'), 'whitenoise.runserver_nostatic')
 
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Hinzugefügt
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -110,16 +115,17 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.User'
-
-# NEU: Erlaubt das Einbetten von Admin-Seiten in IFrames auf derselben Domain
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
 }
 
+# --- KORREKTE KONFIGURATION FÜR HOCHGELADENE MEDIEN ---
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join('/var/media', 'media'))
+# In der Entwicklung verweisen wir auf den Ordner innerhalb des Containers.
+# In der Produktion (Render) verweist dies auf den gemounteten Disk.
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 
 UNFOLD = {
     "SITE_TITLE": "Vorsorge-Plattform Admin",
@@ -128,12 +134,9 @@ UNFOLD = {
     "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
-    "STYLES": [
-        # "/static/admin/css/custom_admin.css", # Aus der Unfold-Konfiguration entfernt
-    ],
+    "STYLES": [],
     "SCRIPTS": [
         "/static/admin/js/custom_admin.js",
     ],
-    # Die "SIDEBAR"-Konfiguration wurde entfernt. Unfold generiert jetzt das Standard-Menü.
 }
 

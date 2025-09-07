@@ -1,9 +1,9 @@
 // frontend/src/modules/auth/RegistrationPage.jsx
-// Komplett überarbeitete Registrierungsseite mit dynamischem Design.
+// AKTUALISIERT: Das Info-Panel-Bild wird jetzt dynamisch aus den Admin-Einstellungen geladen.
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './RegistrationPage.css'; // Neues, separates CSS importieren
+import './RegistrationPage.css';
 
 const RegistrationPage = () => {
     const [errors, setErrors] = useState({});
@@ -65,6 +65,10 @@ const RegistrationPage = () => {
         backgroundImage: settings.register_background_image ? `url(${settings.register_background_image.url})` : 'none',
     };
 
+    const infoPanelStyle = {
+        backgroundImage: settings.register_info_panel_image ? `url(${settings.register_info_panel_image.url})` : 'url(https://images.pexels.com/photos/1037992/pexels-photo-1037992.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)',
+    };
+
     const cardStyle = {
         backgroundColor: settings.register_card_background_color || '#ffffff',
         color: settings.register_text_color || '#3a3a3a',
@@ -78,8 +82,8 @@ const RegistrationPage = () => {
     return (
         <div className="auth-page-container" style={pageStyle}>
             <div className="auth-card">
-                <div className="auth-info-panel registration-info-panel">
-                    {/* Dieser Bereich kann für ein Bild oder zusätzliche Informationen genutzt werden */}
+                <div className="auth-info-panel" style={infoPanelStyle}>
+                    {/* Das Bild wird jetzt über die inline-styles dynamisch gesetzt */}
                 </div>
                 <div className="auth-form-panel" style={cardStyle}>
                     <h2>{settings.register_title || 'Konto erstellen'}</h2>
@@ -125,3 +129,4 @@ const RegistrationPage = () => {
 };
 
 export default RegistrationPage;
+

@@ -1,6 +1,5 @@
 /* frontend/src/modules/auth/RegistrationPage.css */
-/* Dieses CSS ist größtenteils identisch mit LoginPage.css für ein konsistentes Design */
-/* Es wird in der RegistrationPage.jsx importiert. */
+/* KORRIGIERT: Das hartcodierte Hintergrundbild wurde aus .auth-info-panel entfernt. */
 
 .auth-page-container {
     padding-top: 80px;
@@ -28,7 +27,7 @@
 
 .auth-info-panel {
     background-color: #f4f1ee; /* Fallback */
-    background-image: url('https://images.pexels.com/photos/1037992/pexels-photo-1037992.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+    /* Das hardcodierte Bild wurde entfernt und wird nun dynamisch gesetzt */
     background-size: cover;
     background-position: center;
 }
@@ -114,3 +113,4 @@
     font-size: 0.85rem;
     margin: -0.5rem 0 1rem 0;
 }
+

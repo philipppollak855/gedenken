@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/EventCard.jsx
-// HINZUGEFÜGT: Eine "isCompact"-Ansicht, die zusätzliche Details ausblendet.
+// AKTUALISIERT: Die kompakte Ansicht wurde komplett überarbeitet für eine bessere und platzsparendere Darstellung.
 
 import React from 'react';
 
@@ -14,14 +14,41 @@ const EventCard = ({ event, pageData, onAttendClick, onCalendarClick, onNavigate
     const weekday = eventDate.toLocaleDateString('de-DE', { weekday: 'long' });
     const time = eventDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
-    return (
-        <div className={`event-card ${isCompact ? 'is-compact' : ''}`}>
-            {!isCompact && (
-                <div className="event-date-box">
+    // NEU: Eigene, optimierte Darstellung für die kompakte Ansicht im "Abschied nehmen"-Bereich
+    if (isCompact) {
+        return (
+            <div className="event-card is-compact">
+                <div className="compact-date-box">
                     <span className="day">{day}</span>
                     <span className="month">{month}</span>
                 </div>
-            )}
+                <div className="compact-details">
+                    <h3>{event.title}</h3>
+                    <div className="event-time-location">
+                        <span className="weekday-time">{weekday}, {time} Uhr</span>
+                        {event.show_location && event.location && (
+                            <span className="location-info">{event.location.name}</span>
+                        )}
+                    </div>
+                </div>
+                <div className="compact-actions">
+                     {event.show_location && event.location?.address && (
+                        <button onClick={() => onNavigateClick(event)} className="action-button nav-button">Navigation</button>
+                     )}
+                    <button onClick={() => onCalendarClick(event)} className="action-button calendar-button">Kalender</button>
+                    <button onClick={() => onAttendClick(event)} className="action-button">Teilnehmen</button>
+                </div>
+            </div>
+        );
+    }
+
+    // Die Standard-Darstellung für die Event-Liste bleibt unverändert
+    return (
+        <div className="event-card">
+            <div className="event-date-box">
+                <span className="day">{day}</span>
+                <span className="month">{month}</span>
+            </div>
             <div className="event-details">
                 <div className="event-header">
                     <div>
@@ -41,22 +68,20 @@ const EventCard = ({ event, pageData, onAttendClick, onCalendarClick, onNavigate
                         <button onClick={() => onAttendClick(event)} className="action-button">Teilnehmen</button>
                     </div>
                 </div>
-                {!isCompact && (
-                    <>
-                        <div className="event-info-grid">
-                            {event.show_dresscode && event.dresscode && (
-                                <div className="info-item"><strong>Kleidung:</strong><span>{event.dresscode}</span></div>
-                            )}
-                            {event.show_condolence_note && event.condolence_note && (
-                                <div className="info-item"><strong>Kondolenz:</strong><span>{event.condolence_note}</span></div>
-                            )}
-                            {event.show_donation_info && event.donation_for && (
-                                 <div className="info-item info-item-full"><strong>Spende:</strong><span>Anstelle von Blumen bitten wir um eine Spende zugunsten von: <strong>{event.donation_for}</strong></span></div>
-                            )}
-                        </div>
-                        {event.description && <p className="event-description">{event.description}</p>}
-                    </>
-                )}
+                <>
+                    <div className="event-info-grid">
+                        {event.show_dresscode && event.dresscode && (
+                            <div className="info-item"><strong>Kleidung:</strong><span>{event.dresscode}</span></div>
+                        )}
+                        {event.show_condolence_note && event.condolence_note && (
+                            <div className="info-item"><strong>Kondolenz:</strong><span>{event.condolence_note}</span></div>
+                        )}
+                        {event.show_donation_info && event.donation_for && (
+                             <div className="info-item info-item-full"><strong>Spende:</strong><span>Anstelle von Blumen bitten wir um eine Spende zugunsten von: <strong>{event.donation_for}</strong></span></div>
+                        )}
+                    </div>
+                    {event.description && <p className="event-description">{event.description}</p>}
+                </>
             </div>
         </div>
     );

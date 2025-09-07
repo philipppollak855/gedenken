@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/MemorialPage.css */
-/* Vollständiger und korrigierter Code. */
+/* AKTUALISIERT: CSS-Regeln für die neue, kompakte Event-Anzeige hinzugefügt. */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@400;700&display=swap');
 
@@ -34,7 +34,7 @@ h1, h2, h3, h4 {
 /* Hero Section */
 .hero-section {
     position: relative;
-    height: calc(100vh - 80px); /* HÃ¶he abzÃ¼glich der Navigation */
+    height: calc(100vh - 80px); /* Höhe abzüglich der Navigation */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -182,10 +182,26 @@ h1, h2, h3, h4 {
 .farewell-section.text-inverted .farewell-title-area h2,
 .farewell-section.text-inverted .farewell-title-area p,
 .farewell-section.text-inverted .media-label,
-.farewell-section.text-inverted .media-helper-text {
+.farewell-section.text-inverted .media-helper-text,
+.farewell-section.text-inverted .compact-details h3,
+.farewell-section.text-inverted .compact-details .event-time-location span,
+.farewell-section.text-inverted .farewell-events-area h3 {
     color: #3a3a3a;
     text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
 }
+
+.farewell-section.text-inverted .compact-date-box,
+.farewell-section.text-inverted .compact-actions .action-button,
+.farewell-section.text-inverted .event-buttons button {
+    background-color: rgba(0,0,0,0.1);
+    border-color: rgba(0,0,0,0.2);
+    color: #3a3a3a;
+}
+.farewell-section.text-inverted .compact-date-box {
+    color: #3a3a3a;
+}
+
+
 .farewell-grid {
     display: flex;
     flex-direction: column;
@@ -490,7 +506,7 @@ h1, h2, h3, h4 {
     font-size: 1.5rem;
 }
 
-/* Lightbox fÃ¼r Vollbildansicht */
+/* Lightbox für Vollbildansicht */
 .lightbox {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -549,3 +565,276 @@ h1, h2, h3, h4 {
     font-size: 1.1rem;
     margin-bottom: 1.5rem;
 }
+
+/* --- --- STYLES FOR NON-COMPACT EVENT CARD (IN EXPAND AREA) --- --- */
+.event-list {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.event-card {
+    background-color: var(--card-bg, white);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.event-date-box {
+    flex: 0 0 120px;
+    background-color: #8c8073;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    font-family: 'Playfair Display', serif;
+}
+.event-date-box .day {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.event-date-box .month {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+}
+
+.event-details {
+    padding: 1.5rem 2rem;
+    flex-grow: 1;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.event-header h3 {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.2;
+}
+
+.event-time-location {
+    margin-top: 0.5rem;
+}
+
+.event-time-location .weekday-time {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--base-text-color);
+}
+.event-time-location .location-info {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--subtle-text-color);
+    margin-top: 0.25rem;
+}
+
+.event-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.action-button {
+    background-color: #8c8073;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+.action-button:hover {
+    background-color: #6d6d6d;
+}
+.action-button.nav-button {
+    background-color: #a99a8c;
+}
+
+.event-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.info-item-full {
+    grid-column: 1 / -1;
+}
+.info-item strong {
+    font-size: 0.9rem;
+    color: var(--subtle-text-color);
+    text-transform: uppercase;
+}
+.info-item span {
+    font-size: 1rem;
+}
+
+.event-description {
+    font-style: italic;
+    color: var(--subtle-text-color);
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.popup-content.search-popup {
+    max-width: 800px;
+}
+
+.search-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-results {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 1rem;
+    padding-bottom: 1rem;
+}
+
+.search-result-card {
+    flex: 0 0 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 1rem;
+    cursor: pointer;
+}
+
+/* NEUE STILE FÜR KALENDER-POPUP */
+.popup-content .action-button {
+    background-color: #8c8073;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 1rem;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+.popup-content .action-button:hover {
+    background-color: #6d6d6d;
+}
+.popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* --- --- STYLES FÜR KOMPAKTE EVENT CARD (IN FAREWELL AREA) --- --- */
+
+.event-card.is-compact {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    display: flex; /* Haupt-Layout ist jetzt flex */
+    align-items: center; /* Vertikal zentrieren */
+    gap: 1.5rem; /* Abstand zwischen den Elementen */
+    width: 100%;
+}
+
+.compact-date-box {
+    flex-shrink: 0;
+    width: 70px;
+    height: 70px;
+    background-color: rgba(0,0,0,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+}
+.compact-date-box .day {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.compact-date-box .month {
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+.compact-details {
+    flex-grow: 1; /* Nimmt den restlichen Platz ein */
+}
+
+.compact-details h3,
+.compact-details .event-time-location span {
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    margin: 0;
+}
+.compact-details h3 {
+    font-size: 1.5rem; 
+    margin-bottom: 0.25rem;
+}
+.compact-details .location-info {
+    display: block;
+    opacity: 0.8;
+}
+
+.compact-actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column; /* Buttons untereinander */
+    gap: 0.5rem;
+    align-items: flex-end; /* Rechts ausrichten */
+}
+
+.event-card.is-compact .action-button {
+    background-color: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    width: 100%; /* Volle Breite im Container */
+    text-align: center;
+}
+
+
+/* --- --- WEITERE STILE (BLEIBEN GLEICH) --- --- */
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+}
+/* ... etc. ... */

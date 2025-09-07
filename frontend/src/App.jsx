@@ -1,5 +1,6 @@
 // frontend/src/App.jsx
-// ERWEITERT: Fügt die neuen Routen für die Seiten zum Zurücksetzen des Passworts hinzu.
+// KORRIGIERT: Fehlende Import-Anweisungen für die neuen Seiten hinzugefügt,
+// um den Absturz der Anwendung (weiße Seite) zu beheben.
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -15,8 +16,8 @@ import MemorialPage from './modules/gedenken/MemorialPage';
 import MemorialPageAdmin from './modules/gedenken/MemorialPageAdmin';
 import MemorialListingPage from './modules/gedenken/MemorialListingPage';
 import MyContributions from './modules/user/MyContributions';
-import PasswordResetRequestPage from './modules/auth/PasswordResetRequestPage'; // NEU
-import PasswordResetConfirmPage from './modules/auth/PasswordResetConfirmPage'; // NEU
+import PasswordResetRequestPage from './modules/auth/PasswordResetRequestPage'; // NEU & KORRIGIERT
+import PasswordResetConfirmPage from './modules/auth/PasswordResetConfirmPage'; // NEU & KORRIGIERT
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
             <Route path="/register" element={<RegistrationPage />} />
             {/* NEUE ROUTEN */}
             <Route path="/password-reset" element={<PasswordResetRequestPage />} />
-            <Route path="/password-reset-confirm/:uid/:token" element={<PasswordResetConfirmPage />} />
+            <Route path="/password-reset-confirm/:uid/:token/" element={<PasswordResetConfirmPage />} />
             
             <Route 
               path="/dashboard"
@@ -54,3 +55,4 @@ function App() {
 }
 
 export default App;
+

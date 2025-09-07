@@ -1,6 +1,5 @@
 # backend/api/admin.py
-# KORRIGIERT: Der problematische Import und die explizite Zuweisung des ColorPickerWidget wurden entfernt.
-# Unfold wird das Widget nun automatisch anwenden.
+# ERWEITERT: Fügt ein neues Fieldset für die Registrierungsseite in SiteSettingsAdmin hinzu.
 
 import uuid
 import json
@@ -11,6 +10,7 @@ from django.utils.text import slugify
 from django.utils.timezone import now
 from django.template.response import TemplateResponse
 from unfold.admin import ModelAdmin
+from unfold.contrib.forms.widgets import ColorPickerWidget
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse
@@ -153,14 +153,12 @@ class MemorialCandleAdmin(ModelAdmin): pass
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin):
-    # formfield_overrides wurde entfernt, um den ImportError zu beheben.
-    # Unfold wird automatisch ein ColorPickerWidget fÃ¼r CharFields anwenden,
-    # die wie Farbcodes aussehen (z.B. max_length=7).
     raw_id_fields = (
         'listing_background_image', 
         'search_background_image', 
         'expend_background_image', 
-        'login_background_image'
+        'login_background_image',
+        'register_background_image', # NEU
     )
     fieldsets = (
         ('Gedenkseiten-Listing', {
@@ -177,6 +175,10 @@ class SiteSettingsAdmin(ModelAdmin):
         }),
         ('Login-Seite', {
             'fields': ('login_title', 'login_subtitle', 'login_background_color', 'login_background_image', 'login_card_background_color', 'login_text_color', 'login_button_color', 'login_button_text_color')
+        }),
+        # NEU: Fieldset für die Registrierungsseite
+        ('Registrierungsseite', {
+            'fields': ('register_title', 'register_subtitle', 'register_background_color', 'register_background_image', 'register_card_background_color', 'register_text_color', 'register_button_color', 'register_button_text_color')
         }),
     )
     

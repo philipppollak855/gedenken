@@ -1,5 +1,5 @@
 # backend/api/serializers.py
-# ERWEITERT: Der SiteSettingsSerializer wurde um die neuen Login-Felder erweitert.
+# ERWEITERT: Der SiteSettingsSerializer wurde um die Felder für die Registrierungsseite erweitert.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -194,6 +194,7 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     search_background_image = MediaAssetSerializer(read_only=True)
     expend_background_image = MediaAssetSerializer(read_only=True)
     login_background_image = MediaAssetSerializer(read_only=True)
+    register_background_image = MediaAssetSerializer(read_only=True) # NEU
 
     class Meta:
         model = SiteSettings
@@ -202,8 +203,12 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'search_title', 'search_helper_text', 'search_background_color', 'search_text_color',
             'expend_background_color', 'expend_card_color', 'expend_text_color',
             'listing_background_image', 'search_background_image', 'expend_background_image',
-            'login_title', 'login_subtitle', 'login_background_image', 'login_background_color',
-            'login_card_background_color', 'login_text_color', 'login_button_color', 'login_button_text_color'
+            'font_family', 'font_size_base',
+            'login_title', 'login_subtitle', 'login_background_color', 'login_card_background_color',
+            'login_text_color', 'login_button_color', 'login_button_text_color', 'login_background_image',
+            # NEU: Felder für die Registrierung hinzugefügt
+            'register_title', 'register_subtitle', 'register_background_color', 'register_card_background_color',
+            'register_text_color', 'register_button_color', 'register_button_text_color', 'register_background_image',
         ]
 
 class MemorialPageSerializer(serializers.ModelSerializer):

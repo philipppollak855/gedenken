@@ -1,6 +1,6 @@
 # backend/core/wsgi.py
 # KORRIGIERT: Die explizite WhiteNoise-Integration wird wiederhergestellt,
-# um die korrekte Auslieferung von statischen und Mediendateien sicherzustellen.
+# um die korrekte Auslieferung von statischen UND MEDIEN-Dateien sicherzustellen.
 
 import os
 from django.core.wsgi import get_wsgi_application
@@ -16,5 +16,5 @@ application = get_wsgi_application()
 if not settings.DEBUG:
     # WhiteNoise anweisen, die statischen Dateien aus STATIC_ROOT zu bedienen
     application = WhiteNoise(application, root=settings.STATIC_ROOT)
-    # WhiteNoise anweisen, ZUSÄTZLICH die Mediendateien aus MEDIA_ROOT zu bedienen
+    # WICHTIG: WhiteNoise anweisen, ZUSÄTZLICH die Mediendateien aus MEDIA_ROOT zu bedienen
     application.add_files(settings.MEDIA_ROOT, prefix=settings.MEDIA_URL)

@@ -6,6 +6,9 @@
     {# Lädt den ursprünglichen Inhalt dieses Blocks, inklusive der Unfold-Stylesheets #}
     {{ block.super }}
 
+    {# Stellt die korrekte Zeichenkodierung sicher #}
+    <meta charset="UTF-8">
+
     {# Font Awesome für Dashboard-Icons #}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
@@ -61,4 +64,3 @@
     </style>
     
 {% endblock %}
-

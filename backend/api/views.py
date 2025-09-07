@@ -396,4 +396,3 @@ class EventAttendanceViewSet(viewsets.ModelViewSet):
         event = generics.get_object_or_404(MemorialEvent, pk=self.kwargs['event_pk'])
         author = self.request.user if self.request.user.is_authenticated else None
         serializer.save(event=event, user=author)
-

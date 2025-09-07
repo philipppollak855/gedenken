@@ -278,4 +278,3 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
-

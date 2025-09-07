@@ -510,5 +510,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("turbo:load", initializePageFeatures);
-
-

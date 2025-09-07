@@ -567,4 +567,3 @@ class EventAttendance(models.Model):
 
     def __str__(self):
         return f"{self.guest_name} nimmt an {self.event.title} teil"
-

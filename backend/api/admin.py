@@ -439,4 +439,3 @@ def admin_dashboard_view(request):
     return render(request, "admin/dashboard.html", context)
 
 admin.site.index = admin_dashboard_view
-

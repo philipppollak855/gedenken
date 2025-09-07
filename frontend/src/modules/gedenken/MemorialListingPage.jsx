@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// KORRIGIERT: Stellt sicher, dass Hintergrundbilder nur angewendet werden, wenn eine URL vorhanden ist.
+// KORRIGIERT: Greift jetzt auf die verschachtelte Bild-URL zu.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -14,12 +14,13 @@ const MemorialCard = ({ page, animate }) => {
     return (
         <Link to={`/gedenken/${page.slug}`} className={`memorial-card ${animate ? 'animate-in' : ''}`}>
             <div className="card-image-wrapper">
-                <img src={page.main_photo_url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Gedenkbild von ${page.first_name}`} />
+                {/* KORRIGIERT: Greift auf page.main_photo.url statt page.main_photo_url zu */}
+                <img src={page.main_photo?.url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Gedenkbild von ${page.first_name}`} />
             </div>
             <div className="card-info">
                 <h3>{page.first_name} {page.last_name}</h3>
                 <p>
-                    * {formatDate(page.date_of_birth)} &nbsp;&nbsp; â€  {formatDate(page.date_of_death)}
+                    * {formatDate(page.date_of_birth)} &nbsp;&nbsp; † {formatDate(page.date_of_death)}
                 </p>
             </div>
         </Link>
@@ -114,16 +115,16 @@ const MemorialListingPage = () => {
         backgroundColor: settings.listing_background_color || '#F1EFEA',
         color: settings.listing_text_color || '#3a3a3a',
     };
-    if (settings.listing_background_image_url) {
-        heroStyle.backgroundImage = `url(${settings.listing_background_image_url})`;
+    if (settings.listing_background_image?.url) {
+        heroStyle.backgroundImage = `url(${settings.listing_background_image.url})`;
     }
     
     const searchStyle = {
         backgroundColor: settings.search_background_color || '#e5e0da',
         color: settings.search_text_color || '#3a3a3a',
     };
-    if (settings.search_background_image_url) {
-        searchStyle.backgroundImage = `url(${settings.search_background_image_url})`;
+    if (settings.search_background_image?.url) {
+        searchStyle.backgroundImage = `url(${settings.search_background_image.url})`;
     }
 
     return (
@@ -132,17 +133,17 @@ const MemorialListingPage = () => {
                 <div className="section-content">
                     <h1>{settings.listing_title || "Wir gedenken"}</h1>
                     <div className="carousel-container">
-                        <button onClick={() => handleHeroPageChange('prev')} className="carousel-arrow">âŸ¨</button>
+                        <button onClick={() => handleHeroPageChange('prev')} className="carousel-arrow">‹</button>
                         <div className="memorial-grid">
                             {heroPaginatedPages.map(page => (
                                 <MemorialCard key={page.slug} page={page} animate={animateCards} />
                             ))}
                         </div>
-                        <button onClick={() => handleHeroPageChange('next')} className="carousel-arrow">âŸ©</button>
+                        <button onClick={() => handleHeroPageChange('next')} className="carousel-arrow">›</button>
                     </div>
                 </div>
                 <div className="scroll-down-indicator" onClick={() => searchSectionRef.current?.scrollIntoView({ behavior: 'smooth' })}>
-                    âŸ©
+                    ›
                 </div>
             </section>
 
@@ -173,5 +174,4 @@ const MemorialListingPage = () => {
 };
 
 export default MemorialListingPage;
-
 

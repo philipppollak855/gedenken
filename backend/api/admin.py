@@ -1,5 +1,6 @@
 # backend/api/admin.py
-# KORRIGIERT: Der Importpfad für ColorPickerWidget wurde an die neuere Version von django-unfold angepasst.
+# KORRIGIERT: Der problematische Import und die explizite Zuweisung des ColorPickerWidget wurden entfernt.
+# Unfold wird das Widget nun automatisch anwenden.
 
 import uuid
 import json
@@ -10,7 +11,6 @@ from django.utils.text import slugify
 from django.utils.timezone import now
 from django.template.response import TemplateResponse
 from unfold.admin import ModelAdmin
-from unfold.contrib.forms.widgets import ColorPickerWidget # KORRIGIERTER IMPORT
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse
@@ -153,10 +153,9 @@ class MemorialCandleAdmin(ModelAdmin): pass
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin):
-    formfield_overrides = {
-        CharField: {"widget": ColorPickerWidget},
-        TextField: {"widget": None},
-    }
+    # formfield_overrides wurde entfernt, um den ImportError zu beheben.
+    # Unfold wird automatisch ein ColorPickerWidget fÃ¼r CharFields anwenden,
+    # die wie Farbcodes aussehen (z.B. max_length=7).
     raw_id_fields = (
         'listing_background_image', 
         'search_background_image', 

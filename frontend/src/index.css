@@ -1,7 +1,6 @@
 /* frontend/src/index.css */
-/* Globale Stile */
+/* KORRIGIERT: Der generische 'main' Selektor wurde durch eine spezifischere Klasse '.page-container' ersetzt. */
 
-/* NEU: Aktiviert das sanfte Scrollen für die gesamte Seite */
 html {
   scroll-behavior: smooth;
 }
@@ -17,13 +16,12 @@ body {
   color: #333;
 }
 
-/* Dieser Wrapper stellt sicher, dass der Inhalt unterhalb der fixen Navigation beginnt. */
 .content-wrapper {
-    padding-top: 80px; /* Muss mit der Höhe in Header.css übereinstimmen */
+    padding-top: 80px; 
 }
 
-/* Allgemeine Stile für Seiten mit einem zentrierten Container (z.B. Dashboard) */
-main {
+/* Neuer, spezifischer Stil für Standard-Inhaltsseiten */
+.page-container {
   max-width: 960px;
   margin: 2rem auto;
   padding: 20px;
@@ -33,15 +31,14 @@ main {
 }
 
 /* Spezifische Seiten-Wrapper wie .memorial-page-wrapper oder .listing-page-container
-   sollten ihr eigenes Styling definieren und benötigen nicht das von 'main'. */
-.memorial-page-wrapper, .listing-page-container {
+   sollten ihr eigenes Styling definieren und benötigen nicht das von '.page-container'. */
+.memorial-page-wrapper, .listing-page-container, .mein-bereich-container {
     padding: 0;
-    margin: 0;
+    margin: 0 auto; /* Zentriert breitere Layouts */
     box-shadow: none;
     background-color: transparent;
     max-width: none;
 }
-
 
 input, textarea {
   width: calc(100% - 20px);

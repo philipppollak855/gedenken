@@ -1,7 +1,5 @@
 # backend/core/settings.py
-# BEREINIGT: Die fehlerhafte SIDEBAR-Konfiguration wurde vollständig entfernt.
-# Unfold wird nun die stabile Standard-Sidebar generieren.
-# KORRIGIERT: MEDIA_ROOT und BACKEND_URL für korrekte Bildauslieferung angepasst.
+# FINALE KORREKTUR: Die BACKEND_URL wird jetzt dynamisch aus den ALLOWED_HOSTS für die Produktion abgeleitet.
 
 import os
 import dj_database_url
@@ -20,6 +18,11 @@ if IS_PRODUCTION:
     ALLOWED_HOSTS_STRING = os.environ.get('ALLOWED_HOSTS', '')
     ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(' ') if ALLOWED_HOSTS_STRING else []
     
+    # DYNAMISCHE BACKEND_URL FÜR PRODUKTION
+    # Nimmt den ersten Host aus ALLOWED_HOSTS (z.B. "vorsorge-backend.onrender.com")
+    # und setzt ihn als Basis-URL. Das stellt sicher, dass die Bild-URLs korrekt sind.
+    BACKEND_URL = f"https://{ALLOWED_HOSTS[0]}" if ALLOWED_HOSTS else ''
+
     DATABASES = {
         'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
     }
@@ -28,14 +31,13 @@ if IS_PRODUCTION:
     CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_STRING.split(' ') if CORS_ALLOWED_ORIGINS_STRING else []
     
     CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host]
-    
-    # Produktions-spezifische URL für die API
-    BACKEND_URL = os.getenv('BACKEND_URL', f'https://{ALLOWED_HOSTS[0]}' if ALLOWED_HOSTS else '')
-
 else:
     DEBUG = True
     ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1 backend').split(' ')
     
+    # Statische BACKEND_URL für die lokale Entwicklung
+    BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
+
     DATABASES = {
         'default': {
             'ENGINE': os.getenv('DATABASE_ENGINE'),
@@ -47,9 +49,6 @@ else:
         }
     }
     CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
-    
-    # Entwicklungs-spezifische URL für die API
-    BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
 
 INSTALLED_APPS = [
@@ -69,7 +68,6 @@ INSTALLED_APPS = [
 
 if not IS_PRODUCTION:
     INSTALLED_APPS.insert(INSTALLED_APPS.index('django.contrib.staticfiles'), 'whitenoise.runserver_nostatic')
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -121,10 +119,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
 }
 
-# --- KORREKTE KONFIGURATION FÜR HOCHGELADENE MEDIEN ---
 MEDIA_URL = '/media/'
-# In der Entwicklung verweisen wir auf den Ordner innerhalb des Containers.
-# In der Produktion (Render) verweist dies auf den gemounteten Disk.
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 
 UNFOLD = {
@@ -134,7 +129,6 @@ UNFOLD = {
     "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
     "COPYRIGHT": "Ihre Bestattung GmbH",
     "THEME": "dark",
-    "STYLES": [],
     "SCRIPTS": [
         "/static/admin/js/custom_admin.js",
     ],

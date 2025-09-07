@@ -1,9 +1,10 @@
 // frontend/src/modules/auth/RegistrationPage.jsx
-// AKTUALISIERT: Wendet jetzt auch die `backgroundSize`-Eigenschaft auf das Info-Panel-Bild an.
+// KORRIGIERT: Der CSS-Import wurde auf die neue, geteilte Datei 'AuthPage.css' umgestellt.
+// Dies behebt einen App-weiten Absturz, der zu einer leeren, weißen Seite führte.
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './RegistrationPage.css';
+import './AuthPage.css'; // KORRIGIERTER CSS-IMPORT
 
 const RegistrationPage = () => {
     const [errors, setErrors] = useState({});
@@ -66,7 +67,7 @@ const RegistrationPage = () => {
     };
 
     const infoPanelStyle = {
-        backgroundImage: settings.register_info_panel_image ? `url(${settings.register_info_panel_image.url})` : 'url(https://images.pexels.com/photos/1037992/pexels-photo-1037992.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)',
+        backgroundImage: settings.register_info_panel_image ? `url(${settings.register_info_panel_image.url})` : 'none',
         backgroundSize: settings.register_info_panel_image_size || 'cover',
     };
 

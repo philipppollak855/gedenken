@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialPage.jsx
-// KORRIGIERT: JavaScript-basiertes Scrollen durch native HTML-Anker und CSS ersetzt, um ein durchgängig sanftes Scroll-Erlebnis zu gewährleisten.
+// KORRIGIERT: JavaScript-basiertes Scrollen wiederhergestellt, um ein sanftes, zentriertes Scroll-Erlebnis zu gewährleisten. Button-Design wiederhergestellt.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -20,9 +20,13 @@ const MemorialPage = () => {
     const [selectedEventForAttendance, setSelectedEventForAttendance] = useState(null);
     const [showCalendarPopup, setShowCalendarPopup] = useState(false);
     const [selectedEventForCalendar, setSelectedEventForCalendar] = useState(null);
+    const [activeMainView, setActiveMainView] = useState('abschied');
     const { slug } = useParams();
     const api = useApi();
     const expandAreaRef = useRef(null);
+    const farewellSectionRef = useRef(null);
+    const lifeSectionRef = useRef(null);
+    const isInitialMount = useRef(true);
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -50,6 +54,16 @@ const MemorialPage = () => {
         if (slug) fetchPageData();
     }, [slug, fetchPageData]);
 
+    // Effekt für das sanfte Scrollen zu den Sektionen
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        const targetRef = activeMainView === 'abschied' ? farewellSectionRef : lifeSectionRef;
+        targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, [activeMainView]);
+
     const displayedEvent = useMemo(() => {
         if (!pageData || !pageData.events || pageData.events.length === 0) return null;
         const now = new Date();
@@ -62,13 +76,26 @@ const MemorialPage = () => {
         return pastEvents.length > 0 ? pastEvents[0] : null;
     }, [pageData]);
     
+    const handleTabClick = (view) => {
+        setActiveMainView(view);
+        setExpandedView(null); // Schließt offene Bereiche beim Wechseln der Hauptansicht
+    };
+
     const toggleExpandedView = (view) => {
         const isOpening = expandedView !== view;
+        const targetMainView = ['condolences', 'candles', 'events'].includes(view) ? 'abschied' : 'leben';
+        
+        // Setzt die Hauptansicht, um sicherzustellen, dass die Sektion sichtbar ist
+        if (activeMainView !== targetMainView) {
+            setActiveMainView(targetMainView);
+        }
+        
         setExpandedView(prev => prev === view ? null : view);
+
         if (isOpening) {
             setTimeout(() => {
                 expandAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            }, 150); // Kurze Verzögerung, damit der Bereich rendern kann
         }
     };
     
@@ -167,8 +194,6 @@ const MemorialPage = () => {
 
     const farewellSectionClasses = `farewell-section ${pageData.farewell_text_inverted ? 'text-inverted' : ''}`;
 
-    const activeMainView = expandedView ? (['condolences', 'candles', 'events'].includes(expandedView) ? 'abschied' : 'leben') : 'abschied';
-
     return (
         <div className="memorial-page-wrapper">
             {lightboxImage && <div className="lightbox" onClick={() => setLightboxImage(null)}><img src={lightboxImage} alt="Vollbildansicht" /></div>}
@@ -182,8 +207,9 @@ const MemorialPage = () => {
             )}
             
             <aside className="quick-links">
-                <a href="#abschied" title="Abschied nehmen">🕊️</a>
-                <a href="#leben" title="Mein Leben">📖</a>
+                 {/* KORRIGIERT: Klickevents wiederhergestellt, um das JS-gesteuerte Scrollen auszulösen */}
+                <a href="#abschied" onClick={(e) => { e.preventDefault(); handleTabClick('abschied'); }} title="Abschied nehmen">🕊️</a>
+                <a href="#leben" onClick={(e) => { e.preventDefault(); handleTabClick('leben'); }} title="Mein Leben">📖</a>
             </aside>
 
             <header className="hero-section" style={heroStyle}>
@@ -200,13 +226,14 @@ const MemorialPage = () => {
                         <img className="profile-photo" src={pageData.main_photo?.url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Profilbild von ${pageData.first_name}`} />
                     </div>
                     <nav className="tab-navigation">
-                        <a href="#abschied" className={activeMainView === 'abschied' ? 'active' : ''}>Abschied nehmen</a>
-                        <a href="#leben" className={activeMainView === 'leben' ? 'active' : ''}>Mein Leben</a>
+                        {/* KORRIGIERT: Wieder auf <button> umgestellt, um das Styling beizubehalten */}
+                        <button onClick={() => handleTabClick('abschied')} className={activeMainView === 'abschied' ? 'active' : ''}>Abschied nehmen</button>
+                        <button onClick={() => handleTabClick('leben')} className={activeMainView === 'leben' ? 'active' : ''}>Mein Leben</button>
                     </nav>
                 </div>
             </header>
             
-            <section id="abschied" className={farewellSectionClasses} style={farewellStyle}>
+            <section id="abschied" ref={farewellSectionRef} className={farewellSectionClasses} style={farewellStyle}>
                 <div className="farewell-grid">
                     <div className="farewell-title-area">
                         <h2>Abschied nehmen</h2>
@@ -270,7 +297,7 @@ const MemorialPage = () => {
                 </div>
             </section>
 
-            <section id="leben" className={farewellSectionClasses} style={farewellStyle}>
+            <section id="leben" ref={lifeSectionRef} className={farewellSectionClasses} style={farewellStyle}>
                  <div className="farewell-grid">
                      <div className="farewell-title-area">
                          <h2>Mein Leben</h2>

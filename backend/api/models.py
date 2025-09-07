@@ -1,5 +1,5 @@
 # backend/api/models.py
-# HINZUGEFÜGT: Logik zur automatischen Erstellung von Medien-Ordnern für Gedenkseiten.
+# ERWEITERT: Das SiteSettings-Modell wurde um Felder für die Login-Seite erweitert.
 
 import uuid
 from django.db import models
@@ -86,6 +86,7 @@ class SiteSettings(models.Model):
         verbose_name = "Globale Design-Einstellungen"
         verbose_name_plural = "Globale Design-Einstellungen"
 
+    # Gedenkseiten-Listing
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir trauern um")
     listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     listing_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Startseite")
@@ -93,19 +94,32 @@ class SiteSettings(models.Model):
     listing_text_color = models.CharField("Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
     listing_arrow_color = models.CharField("Pfeilfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #8c8073", default="#8c8073")
     
+    # Suche
     search_title = models.CharField("Titel im Suchbereich", max_length=100, blank=True, default="Verstorbenen Suche")
     search_helper_text = models.TextField("Hilfstext im Suchbereich", blank=True, default="Bitte geben Sie einen oder mehrere Suchbegriffe in die obenstehenden Felder ein, um nach einem Verstorbenen zu suchen.")
     search_background_color = models.CharField("Hintergrundfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #e5e0da")
     search_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Suche")
     search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
 
+    # Expand-Bereich (Kondolenzen, etc.)
     expend_background_color = models.CharField("Hintergrundfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     expend_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Expand-Bereich")
     expend_card_color = models.CharField("Karten-Hintergrundfarbe Expand", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
     expend_text_color = models.CharField("Textfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
 
+    # Globale Schriften
     font_family = models.CharField("Schriftart", max_length=100, choices=FontChoices.choices, default=FontChoices.ROBOTO)
     font_size_base = models.CharField("Grundschriftgröße", max_length=10, blank=True, default="14px", help_text="CSS-Wert, z.B. 14px oder 0.9rem")
+
+    # --- NEU: Login Page ---
+    login_title = models.CharField("Titel Login-Seite", max_length=100, blank=True, default="Willkommen zurück")
+    login_subtitle = models.TextField("Untertitel Login-Seite", blank=True, default="Melden Sie sich an, um auf Ihr persönliches Vorsorge-Dashboard zuzugreifen und Gedenkseiten zu verwalten.")
+    login_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Login")
+    login_background_color = models.CharField("Hintergrundfarbe Login", max_length=7, blank=True, default="#f4f1ee", help_text="Hex-Code")
+    login_card_background_color = models.CharField("Karten-Hintergrundfarbe Login", max_length=7, blank=True, default="#ffffff", help_text="Hex-Code")
+    login_text_color = models.CharField("Textfarbe Login", max_length=7, blank=True, default="#3a3a3a", help_text="Hex-Code")
+    login_button_color = models.CharField("Button-Farbe Login", max_length=7, blank=True, default="#8c8073", help_text="Hex-Code")
+    login_button_text_color = models.CharField("Button-Textfarbe Login", max_length=7, blank=True, default="#ffffff", help_text="Hex-Code")
 
     def __str__(self):
         return "Globale Design-Einstellungen"
@@ -114,6 +128,7 @@ class SiteSettings(models.Model):
         self.pk = 1
         super(SiteSettings, self).save(*args, **kwargs)
 
+# ... (Rest der Datei bleibt unverändert) ...
 class UserManager(BaseUserManager):
     def create_user(self, email=None, password=None, **extra_fields):
         if not email and extra_fields.get('role') == User.Role.VERSTORBENER:
@@ -264,19 +279,14 @@ class MemorialPage(models.Model):
         folder_name = f"{self.first_name} {self.last_name}".strip()
         if folder_name:
             try:
-                # Übergeordneten Ordner "Gedenkseiten" finden oder erstellen
                 parent_folder, _ = MediaFolder.objects.get_or_create(
                     name="Gedenkseiten",
-                    parent=None # Stellt sicher, dass es ein Hauptordner ist
+                    parent=None
                 )
-
-                # Ordner für die Gedenkseite erstellen und dem übergeordneten Ordner zuweisen
                 folder, created = MediaFolder.objects.get_or_create(
                     memorial_page=self,
                     defaults={'name': folder_name, 'parent': parent_folder}
                 )
-                
-                # Wenn der Ordner bereits existierte, aber kein Parent hatte, zuweisen
                 if not created and folder.parent != parent_folder:
                     folder.parent = parent_folder
                     folder.save()

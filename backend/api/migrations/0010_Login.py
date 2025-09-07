@@ -52,3 +52,4 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, default='Willkommen zurück', max_length=100, verbose_name='Titel Login-Seite'),
         ),
     ]
+

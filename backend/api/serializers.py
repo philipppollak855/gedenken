@@ -19,12 +19,15 @@ class MediaAssetSerializer(serializers.ModelSerializer):
         model = MediaAsset
         fields = ('title', 'url', 'asset_type')
 
-# ... (Andere Serializer bleiben unverändert) ...
 class MemorialPageListSerializer(serializers.ModelSerializer):
     main_photo = MediaAssetSerializer(read_only=True)
+
     class Meta:
         model = MemorialPage
-        fields = ['slug', 'first_name', 'last_name', 'date_of_birth', 'date_of_death', 'main_photo']
+        fields = [
+            'slug', 'first_name', 'last_name', 
+            'date_of_birth', 'date_of_death', 'main_photo'
+        ]
 
 class EventLocationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -190,7 +193,6 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     listing_background_image = MediaAssetSerializer(read_only=True)
     search_background_image = MediaAssetSerializer(read_only=True)
     expend_background_image = MediaAssetSerializer(read_only=True)
-    # NEU
     login_background_image = MediaAssetSerializer(read_only=True)
 
     class Meta:
@@ -200,7 +202,6 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'search_title', 'search_helper_text', 'search_background_color', 'search_text_color',
             'expend_background_color', 'expend_card_color', 'expend_text_color',
             'listing_background_image', 'search_background_image', 'expend_background_image',
-            # NEU
             'login_title', 'login_subtitle', 'login_background_image', 'login_background_color',
             'login_card_background_color', 'login_text_color', 'login_button_color', 'login_button_text_color'
         ]
@@ -267,3 +268,4 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
+

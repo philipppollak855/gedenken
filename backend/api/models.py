@@ -128,7 +128,6 @@ class SiteSettings(models.Model):
         self.pk = 1
         super(SiteSettings, self).save(*args, **kwargs)
 
-# ... (Rest der Datei bleibt unverändert) ...
 class UserManager(BaseUserManager):
     def create_user(self, email=None, password=None, **extra_fields):
         if not email and extra_fields.get('role') == User.Role.VERSTORBENER:
@@ -577,3 +576,4 @@ class EventAttendance(models.Model):
 
     def __str__(self):
         return f"{self.guest_name} nimmt an {self.event.title} teil"
+

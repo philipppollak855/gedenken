@@ -25,7 +25,6 @@ from .models import (
     CandleMessageTemplate, MediaAsset, MediaFolder, EventLocation, EventAttendance
 )
 
-# ... (MediaFolderAdmin und MediaAssetAdmin bleiben unverändert) ...
 @admin.register(MediaFolder)
 class MediaFolderAdmin(ModelAdmin):
     list_display = ('name', 'parent')
@@ -50,77 +49,85 @@ class MediaAssetAdmin(ModelAdmin):
     @admin.display(description='Verwendung')
     def image_usage(self, obj):
         usages = []
+        
+        # Mapping von Feldnamen in MemorialPage zu benutzerfreundlichen Labels
         field_map = {
-            'main_photo': "Portrait", 'hero_background_image': "Hintergrund Hero",
-            'farewell_background_image': "Hintergrund Abschied", 'obituary_card_image': "Partezettel",
-            'memorial_picture': "Gedenkbild (Vorderseite)", 'memorial_picture_back': "Gedenkbild (Rückseite)",
+            'main_photo': "Portrait",
+            'hero_background_image': "Hintergrund Hero",
+            'farewell_background_image': "Hintergrund Abschied",
+            'obituary_card_image': "Partezettel",
+            'memorial_picture': "Gedenkbild (Vorderseite)",
+            'memorial_picture_back': "Gedenkbild Rückseite",
             'acknowledgement_image': "Danksagung"
         }
+
+        # Direkte Abfragen für Gedenkseiten
         for field_name, label in field_map.items():
             pages = MemorialPage.objects.filter(**{field_name: obj})
             if pages.exists():
                 page_links = [f'<a href="{reverse("admin:api_memorialpage_change", args=[p.pk])}">{str(p)}</a>' for p in pages]
                 usages.append(f"{label}: {', '.join(page_links)}")
-        if GalleryItem.objects.filter(image=obj).exists():
-            usages.append("Galerie")
+        
+        # Abfrage für Galerie-Bilder
+        gallery_pages = GalleryItem.objects.filter(image=obj).select_related('page')
+        if gallery_pages.exists():
+            page_links = list(set([f'<a href="{reverse("admin:api_memorialpage_change", args=[g.page.pk])}">{str(g.page)}</a>' for g in gallery_pages]))
+            usages.append(f"Galerie: {', '.join(page_links)}")
+
+        # Abfrage für Kerzen-Bilder
         if CandleImage.objects.filter(image=obj).exists():
              usages.append("Kerzenbild (Stammdaten)")
+
         return mark_safe("<br>".join(usages)) if usages else "Nicht direkt verwendet"
 
+    def save_model(self, request, obj, form, change):
+        if not change:
+            folder_id = request.GET.get('folder_id')
+            if folder_id:
+                try:
+                    obj.folder = MediaFolder.objects.get(pk=folder_id)
+                except (ValueError, MediaFolder.DoesNotExist):
+                    pass
+        super().save_model(request, obj, form, change)
+
     def changelist_view(self, request, extra_context=None):
+        if '_popup' in request.GET:
+            self.change_list_template = "admin/change_list.html"
+            return super().changelist_view(request, extra_context)
+
+        self.change_list_template = "admin/api/mediaasset/explorer_changelist.html"
         extra_context = extra_context or {}
+
         def get_folder_tree(parent=None):
             folders = MediaFolder.objects.filter(parent=parent).order_by('name')
-            return [{'folder': folder, 'children': get_folder_tree(folder)} for folder in folders]
+            tree = []
+            for folder in folders:
+                tree.append({
+                    'folder': folder,
+                    'children': get_folder_tree(folder)
+                })
+            return tree
+
         extra_context['folder_tree'] = get_folder_tree()
+        
         try:
-            extra_context['current_folder'] = MediaFolder.objects.get(pk=int(request.GET.get('folder_id', '')))
+            current_folder_id = int(request.GET.get('folder_id', ''))
+            extra_context['current_folder'] = MediaFolder.objects.get(pk=current_folder_id)
         except (ValueError, TypeError, MediaFolder.DoesNotExist):
             extra_context['current_folder'] = None
+
         return super().changelist_view(request, extra_context)
-        
+
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
+        queryset = super().get_queryset(request)
+        if '_popup' in request.GET:
+            return queryset
         try:
-            folder_id = int(request.GET.get('folder_id'))
-            return qs.filter(folder_id=folder_id)
+            current_folder_id = int(request.GET.get('folder_id', ''))
+            return queryset.filter(folder_id=current_folder_id)
         except (ValueError, TypeError):
-            return qs.filter(folder__isnull=True)
+            return queryset.filter(folder__isnull=True)
 
-
-@admin.register(SiteSettings)
-class SiteSettingsAdmin(ModelAdmin):
-    formfield_overrides = {
-        CharField: {"widget": ColorPickerWidget},
-    }
-    fieldsets = (
-        ('Gedenkseiten-Listing', {
-            'fields': ('listing_title', 'listing_background_color', 'listing_background_image', 'listing_card_color', 'listing_text_color', 'listing_arrow_color')
-        }),
-        ('Suche', {
-            'fields': ('search_title', 'search_helper_text', 'search_background_color', 'search_background_image', 'search_text_color')
-        }),
-        ('Expand-Bereich (Kondolenzen etc.)', {
-            'fields': ('expend_background_color', 'expend_background_image', 'expend_card_color', 'expend_text_color')
-        }),
-        ('Globale Schriften', {
-            'fields': ('font_family', 'font_size_base')
-        }),
-        # NEUES FIELDSET
-        ('Login-Seite', {
-            'fields': ('login_title', 'login_subtitle', 'login_background_color', 'login_background_image', 'login_card_background_color', 'login_text_color', 'login_button_color', 'login_button_text_color')
-        }),
-    )
-    # Wichtig: Wir Ã¼berschreiben die Standard-URLs, um die "add" und "delete" Ansichten zu entfernen.
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            # Wir leiten auf die "change" Ansicht um, da es immer nur ein Objekt gibt.
-            path('', self.admin_site.admin_view(self.change_view), {'object_id': '1'}, name='api_sitesettings_changelist'),
-        ]
-        return custom_urls
-
-# ... (Rest der Datei bleibt unverändert) ...
 @admin.register(LastWishes)
 class LastWishesAdmin(ModelAdmin): pass
 @admin.register(Document)
@@ -149,6 +156,46 @@ class CondolenceTemplateAdmin(ModelAdmin): pass
 class CondolenceAdmin(ModelAdmin): pass
 @admin.register(MemorialCandle)
 class MemorialCandleAdmin(ModelAdmin): pass
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(ModelAdmin):
+    formfield_overrides = {
+        # Wendet den ColorPicker auf alle CharFields an, die keine Choices haben.
+        CharField: {"widget": ColorPickerWidget},
+        # Wendet KEINEN ColorPicker auf TextFields an
+        TextField: {"widget": None},
+    }
+    raw_id_fields = (
+        'listing_background_image', 
+        'search_background_image', 
+        'expend_background_image', 
+        'login_background_image'
+    )
+    fieldsets = (
+        ('Gedenkseiten-Listing', {
+            'fields': ('listing_title', 'listing_background_color', 'listing_background_image', 'listing_card_color', 'listing_text_color', 'listing_arrow_color')
+        }),
+        ('Suche', {
+            'fields': ('search_title', 'search_helper_text', 'search_background_color', 'search_background_image', 'search_text_color')
+        }),
+        ('Expand-Bereich (Kondolenzen etc.)', {
+            'fields': ('expend_background_color', 'expend_background_image', 'expend_card_color', 'expend_text_color')
+        }),
+        ('Globale Schriften', {
+            'fields': ('font_family', 'font_size_base')
+        }),
+        ('Login-Seite', {
+            'fields': ('login_title', 'login_subtitle', 'login_background_color', 'login_background_image', 'login_card_background_color', 'login_text_color', 'login_button_color', 'login_button_text_color')
+        }),
+    )
+    
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('', self.admin_site.admin_view(self.change_view), {'object_id': '1'}, name='api_sitesettings_changelist'),
+        ]
+        # Entfernt die Standard-URLs für "add" und "delete"
+        return [url for url in custom_urls if url.name != 'api_sitesettings_add' and url.name != 'api_sitesettings_delete'] + urls
 
 @admin.register(FamilyLink)
 class FamilyLinkAdmin(ModelAdmin):
@@ -430,3 +477,4 @@ def admin_dashboard_view(request):
     return render(request, "admin/dashboard.html", context)
 
 admin.site.index = admin_dashboard_view
+

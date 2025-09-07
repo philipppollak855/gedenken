@@ -1,28 +1,25 @@
 // frontend/src/modules/auth/LoginPage.jsx
-// Komplett neu gestaltet für ein modernes, anpassbares Design.
+// AKTUALISIERT: Link "Passwort vergessen" hinzugefügt und CSS-Import auf die geteilte Datei geändert.
 
 import React, { useContext, useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
-import './LoginPage.css'; // Neues CSS importieren
+import './AuthPage.css'; // NEUER, GEMEINSAMER CSS-IMPORT
 
 const LoginPage = () => {
     const { loginUser } = useContext(AuthContext);
-    const [settings, setSettings] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [settings, setSettings] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const response = await fetch(`${process.env.REACT_APP_API_URL}/api/settings/`);
                 if (response.ok) {
-                    const data = await response.json();
-                    setSettings(data);
+                    setSettings(await response.json());
                 }
             } catch (error) {
-                console.error("Fehler beim Laden der Login-Einstellungen:", error);
-            } finally {
-                setIsLoading(false);
+                console.error("Fehler beim Laden der Design-Einstellungen:", error);
             }
         };
         fetchSettings();
@@ -34,57 +31,39 @@ const LoginPage = () => {
         const password = e.target.password.value;
         loginUser(email, password);
     };
-    
-    // Dynamische Styles basierend auf den Admin-Einstellungen
+
     const pageStyle = {
-        backgroundColor: settings?.login_background_color || '#f4f1ee',
-        backgroundImage: settings?.login_background_image ? `url(${settings.login_background_image.url})` : 'none',
+        backgroundColor: settings.login_background_color || '#f4f1ee',
+        backgroundImage: settings.login_background_image ? `url(${settings.login_background_image.url})` : 'none',
     };
-    
     const cardStyle = {
-        backgroundColor: settings?.login_card_background_color || '#ffffff',
-        color: settings?.login_text_color || '#3a3a3a',
+        backgroundColor: settings.login_card_background_color || '#ffffff',
+        color: settings.login_text_color || '#3a3a3a',
     };
-
     const buttonStyle = {
-        backgroundColor: settings?.login_button_color || '#8c8073',
-        color: settings?.login_button_text_color || '#ffffff',
+        backgroundColor: settings.login_button_color || '#8c8073',
+        color: settings.login_button_text_color || '#ffffff',
     };
-
-    if (isLoading) {
-        return <div>Lade...</div>;
-    }
 
     return (
-        <div className="login-page-container" style={pageStyle}>
-            <div className="login-card">
-                <div className="info-panel">
-                    <h1 style={{ color: settings?.login_text_color || '#3a3a3a' }}>
-                        {settings?.login_title || "Willkommen zurück"}
-                    </h1>
-                    <p style={{ color: settings?.login_text_color || '#3a3a3a' }}>
-                        {settings?.login_subtitle || "Melden Sie sich an, um auf Ihr persönliches Vorsorge-Dashboard zuzugreifen und Gedenkseiten zu verwalten."}
-                    </p>
-                </div>
-                <div className="form-panel" style={cardStyle}>
-                    <h2>Anmelden</h2>
-                    <form onSubmit={handleSubmit}>
-                        <div className="input-group">
-                            <label htmlFor="email">E-Mail-Adresse</label>
-                            <input type="email" id="email" name="email" required />
+        <div className="auth-page-container single-panel" style={pageStyle}>
+            <div className="auth-card">
+                <div className="auth-form-panel" style={cardStyle}>
+                    <h2>{settings.login_title || 'Willkommen zurück'}</h2>
+                    <p>{settings.login_subtitle || 'Melden Sie sich an, um auf Ihr persönliches Vorsorge-Dashboard zuzugreifen und Gedenkseiten zu verwalten.'}</p>
+                    
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        <input type="email" name="email" placeholder="E-Mail-Adresse" required />
+                        <input type="password" name="password" placeholder="Passwort" required />
+                        <div className="forgot-password-link">
+                            <Link to="/password-reset" style={{color: buttonStyle.backgroundColor}}>Passwort vergessen?</Link>
                         </div>
-                        <div className="input-group">
-                            <label htmlFor="password">Passwort</label>
-                            <input type="password" id="password" name="password" required />
-                        </div>
-                        <button type="submit" className="login-button" style={buttonStyle}>
-                            Sicher einloggen
-                        </button>
+                        <button type="submit" style={buttonStyle}>Anmelden</button>
                     </form>
-                    <div className="form-links">
-                        <Link to="/register">Neues Konto erstellen</Link>
-                        <Link to="/password-reset">Passwort vergessen?</Link>
-                    </div>
+                    
+                    <p className="auth-switch-link">
+                        Noch kein Konto? <Link to="/register" style={{color: buttonStyle.backgroundColor}}>Hier registrieren</Link>
+                    </p>
                 </div>
             </div>
         </div>

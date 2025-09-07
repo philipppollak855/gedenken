@@ -1,5 +1,5 @@
 // frontend/src/App.jsx
-// KORRIGIERT: Stellt die korrekte Layout-Struktur für die fixe Navigation sicher.
+// ERWEITERT: Fügt die neuen Routen für die Seiten zum Zurücksetzen des Passworts hinzu.
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -15,6 +15,8 @@ import MemorialPage from './modules/gedenken/MemorialPage';
 import MemorialPageAdmin from './modules/gedenken/MemorialPageAdmin';
 import MemorialListingPage from './modules/gedenken/MemorialListingPage';
 import MyContributions from './modules/user/MyContributions';
+import PasswordResetRequestPage from './modules/auth/PasswordResetRequestPage'; // NEU
+import PasswordResetConfirmPage from './modules/auth/PasswordResetConfirmPage'; // NEU
 
 function App() {
   return (
@@ -26,6 +28,10 @@ function App() {
             <Route path="/" element={<HomePage />} exact />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegistrationPage />} />
+            {/* NEUE ROUTEN */}
+            <Route path="/password-reset" element={<PasswordResetRequestPage />} />
+            <Route path="/password-reset-confirm/:uid/:token" element={<PasswordResetConfirmPage />} />
+            
             <Route 
               path="/dashboard"
               element={<PrivateRoute><main><VorsorgeDashboard /></main></PrivateRoute>} 

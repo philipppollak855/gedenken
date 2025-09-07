@@ -1,6 +1,5 @@
 # backend/api/urls.py
-# ERWEITERT: Neue Route fÃ¼r EventAttendance hinzugefÃ¼gt.
-# NEU: Route für die globale Suche hinzugefügt.
+# NEU: URL-Pfade für den Passwort-Reset-Prozess hinzugefügt.
 
 from django.urls import path, include
 from rest_framework_nested import routers
@@ -12,7 +11,8 @@ from .views import (
     MemorialCandleViewSet, ManagedMemorialPageViewSet, TimelineEventViewSet, 
     GalleryItemViewSet, ReleaseRequestViewSet, SiteSettingsView, MyContributionsView,
     CondolenceTemplateViewSet, CandleImageViewSet, CandleMessageTemplateViewSet,
-    SeedDatabaseView, EventAttendanceViewSet, MemorialEventViewSet, GlobalSearchView
+    SeedDatabaseView, EventAttendanceViewSet, MemorialEventViewSet, GlobalSearchView,
+    PasswordResetRequestView, PasswordResetConfirmView  # NEUE IMPORTE
 )
 
 router = routers.DefaultRouter()
@@ -40,7 +40,6 @@ managed_pages_router = routers.NestedSimpleRouter(router, r'manage/memorial-page
 managed_pages_router.register(r'timeline-events', TimelineEventViewSet, basename='page-timeline-events')
 managed_pages_router.register(r'gallery-items', GalleryItemViewSet, basename='page-gallery-items')
 
-# NEU: Router fÃ¼r die Teilnahme an Events
 events_router = routers.NestedSimpleRouter(pages_router, r'events', lookup='event')
 events_router.register(r'attendees', EventAttendanceViewSet, basename='event-attendees')
 
@@ -57,4 +56,7 @@ urlpatterns = [
     path('my-contributions/', MyContributionsView.as_view(), name='my-contributions'),
     path('global-search/', GlobalSearchView.as_view(), name='global-search'),
     path('seed-database/<str:key>/', SeedDatabaseView.as_view(), name='seed-database'),
+    # NEUE URLS FÜR PASSWORT-RESET
+    path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 ]

@@ -1,6 +1,5 @@
 # backend/api/models.py
-# KORRIGIERT: Die Reihenfolge der Klassen wurde geändert, um den NameError zu beheben.
-# MemorialPage wird jetzt vor SiteSettings definiert.
+# ERWEITERT: Das SiteSettings-Modell wurde um Felder für die Seiten zum Zurücksetzen des Passworts erweitert.
 
 import uuid
 from django.db import models
@@ -323,6 +322,19 @@ class SiteSettings(models.Model):
     register_text_color = models.CharField("Textfarbe Registrierungs-Karte", max_length=7, blank=True, default="#3a3a3a")
     register_button_color = models.CharField("Button-Farbe Registrierung", max_length=7, blank=True, default="#8c8073")
     register_button_text_color = models.CharField("Button-Textfarbe Registrierung", max_length=7, blank=True, default="#FFFFFF")
+
+    # Passwort zurücksetzen
+    password_reset_title = models.CharField("Titel (Passwort anfordern)", max_length=100, blank=True, default="Passwort vergessen?")
+    password_reset_subtitle = models.TextField("Untertitel (Passwort anfordern)", blank=True, default="Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link, um Ihr Passwort zurückzusetzen.")
+    password_reset_background_color = models.CharField("Hintergrundfarbe", max_length=7, blank=True, help_text="Hex-Code")
+    password_reset_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild")
+    password_reset_card_background_color = models.CharField("Karten-Hintergrundfarbe", max_length=7, blank=True, default="#FFFFFF")
+    password_reset_text_color = models.CharField("Textfarbe", max_length=7, blank=True, default="#3a3a3a")
+    password_reset_button_color = models.CharField("Button-Farbe", max_length=7, blank=True, default="#8c8073")
+    password_reset_button_text_color = models.CharField("Button-Textfarbe", max_length=7, blank=True, default="#FFFFFF")
+    
+    password_reset_confirm_title = models.CharField("Titel (Neues Passwort)", max_length=100, blank=True, default="Neues Passwort festlegen")
+    password_reset_confirm_subtitle = models.TextField("Untertitel (Neues Passwort)", blank=True, default="Bitte geben Sie Ihr neues Passwort ein und bestätigen Sie es.")
     
     def __str__(self):
         return "Globale Design-Einstellungen"

@@ -1,7 +1,10 @@
 # backend/api/views.py
-# ERWEITERT: Neue, granulare Berechtigungs-Klassen wurden hinzugefügt, um die Zugriffsrechte von Angehörigen zu steuern.
+# NEU: Zwei neue Views für den Passwort-Reset-Prozess hinzugefügt.
+# WICHTIG: E-Mail-Versand ist simuliert und wird in der Konsole ausgegeben.
 
 import os
+import json
+from datetime import timedelta
 from django.core.management import call_command
 from django.urls import reverse
 from django.db.models import Q
@@ -12,6 +15,10 @@ from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth.hashers import make_password
 from rest_framework.authentication import SessionAuthentication
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.conf import settings
 
 from .serializers import (
     RegisterSerializer, UserSerializer, DigitalLegacyItemSerializer,
@@ -31,19 +38,15 @@ from .models import (
     FamilyLink
 )
 
+# ... (Alle bestehenden Views von GlobalSearchView bis SeedDatabaseView bleiben unverändert)
 class GlobalSearchView(APIView):
-    """
-    Stellt eine globale Suche über verschiedene Modelle im Admin-Backend bereit.
-    """
-    authentication_classes = [SessionAuthentication] # KORREKTUR: Erlaubt Authentifizierung aus dem Admin-Panel.
+    authentication_classes = [SessionAuthentication]
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         query = request.query_params.get('q', None)
         results = []
-
         if query and len(query) > 2:
-            # Benutzer durchsuchen
             try:
                 users = User.objects.filter(
                     Q(first_name__icontains=query) |
@@ -58,8 +61,6 @@ class GlobalSearchView(APIView):
                     })
             except Exception as e:
                 print(f"Fehler bei der Benutzersuche: {e}")
-
-            # Gedenkseiten durchsuchen
             try:
                 pages = MemorialPage.objects.filter(
                     Q(first_name__icontains=query) |
@@ -73,8 +74,6 @@ class GlobalSearchView(APIView):
                     })
             except Exception as e:
                 print(f"Fehler bei der Gedenkseitensuche: {e}")
-
-            # Kondolenzen durchsuchen
             try:
                 condolences = Condolence.objects.filter(
                      Q(guest_name__icontains=query) |
@@ -88,9 +87,6 @@ class GlobalSearchView(APIView):
                     })
             except Exception as e:
                 print(f"Fehler bei der Kondolenzsuche: {e}")
-
-
-            # Gedenkkerzen durchsuchen
             try:
                 candles = MemorialCandle.objects.filter(
                      Q(guest_name__icontains=query) |
@@ -122,31 +118,90 @@ class AllowGuestPostIsOwnerOrReadOnly(permissions.BasePermission):
 
 class SeedDatabaseView(APIView):
     permission_classes = [permissions.AllowAny]
-
     def post(self, request, key):
         SECRET_KEY = os.environ.get('SEED_SECRET_KEY')
         if not SECRET_KEY:
-            return Response(
-                {"error": "Secret key for seeding is not configured on the server."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
+            return Response({"error": "Secret key for seeding is not configured on the server."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         if key != SECRET_KEY:
-            return Response(
-                {"error": "Invalid secret key."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
+            return Response({"error": "Invalid secret key."}, status=status.HTTP_403_FORBIDDEN)
         try:
             print('Starting database seeding via API...')
             call_command('seed_data')
             print('Database seeding finished.')
             return Response({"message": "Database seeding initiated successfully."}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(
-                {"error": f"An error occurred during seeding: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": f"An error occurred during seeding: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# --- NEUE VIEWS FÜR PASSWORT-RESET ---
+
+class PasswordResetRequestView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Nicht verraten, ob der User existiert
+            return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        
+        # In einer echten Anwendung würde man hier die FRONTEND_URL aus den settings holen
+        frontend_url = 'https://gedenken.netlify.app'
+        reset_link = f"{frontend_url}/password-reset-confirm/{uid}/{token}/"
+
+        # --- E-Mail-Versand (hier simuliert) ---
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("PASSWORT-RESET-LINK (normalerweise per E-Mail gesendet):")
+        print(reset_link)
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        # In einer echten Anwendung:
+        # send_mail(
+        #     'Passwort zurücksetzen für Ihre Vorsorge-Plattform',
+        #     f'Bitte klicken Sie auf diesen Link, um Ihr Passwort zurückzusetzen: {reset_link}',
+        #     'noreply@vorsorge-plattform.com',
+        #     [email],
+        #     fail_silently=False,
+        # )
+
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+
+class PasswordResetConfirmView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        uidb64 = request.data.get('uid')
+        token = request.data.get('token')
+        password = request.data.get('password')
+        password2 = request.data.get('password2')
+
+        if not all([uidb64, token, password, password2]):
+            return Response({'error': 'Alle Felder sind erforderlich.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if password != password2:
+            return Response({'error': 'Passwörter stimmen nicht überein.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            try:
+                validate_password(password, user)
+            except ValidationError as e:
+                return Response({'errors': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+            
+            user.set_password(password)
+            user.save()
+            return Response({'status': 'Passwort erfolgreich zurückgesetzt.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Ungültiger Link.'}, status=status.HTTP_400_BAD_REQUEST)
+
+# --- Bestehende ViewSets ---
 
 class CandleImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CandleImage.objects.all()
@@ -173,11 +228,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
 
-# --- NEUE BERECHTIGUNGS-KLASSEN ---
-
 class CanViewVorsorgeDataPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        # Jeder authentifizierte Benutzer darf die Liste seiner zugänglichen Daten abfragen.
         return request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
@@ -208,8 +260,6 @@ class CanEditMemorialPagePermission(permissions.BasePermission):
             deceased_user=obj.user, relative_user=user,
             can_edit_memorial_page=True
         ).exists()
-
-# --- ViewSets mit neuen Berechtigungen ---
 
 class DigitalLegacyItemViewSet(viewsets.ModelViewSet):
     serializer_class = DigitalLegacyItemSerializer
@@ -322,7 +372,7 @@ class MemorialCandleViewSet(viewsets.ModelViewSet):
 
 class TimelineEventViewSet(viewsets.ModelViewSet):
     serializer_class = TimelineEventSerializer
-    permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission] # Angepasst
+    permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission]
     def get_queryset(self):
         page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
@@ -334,7 +384,7 @@ class TimelineEventViewSet(viewsets.ModelViewSet):
 
 class GalleryItemViewSet(viewsets.ModelViewSet):
     serializer_class = GalleryItemSerializer
-    permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission] # Angepasst
+    permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission]
     def get_queryset(self):
         page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)

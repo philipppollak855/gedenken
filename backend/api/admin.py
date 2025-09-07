@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Das Fieldset für die Registrierungsseite wurde um das neue Feld für die Bildanpassung erweitert.
+# ERWEITERT: Ein neues Fieldset für die "Passwort zurücksetzen"-Seiten wurde hinzugefügt.
 
 import uuid
 import json
@@ -159,6 +159,7 @@ class SiteSettingsAdmin(ModelAdmin):
         'login_background_image',
         'register_background_image',
         'register_info_panel_image',
+        'password_reset_background_image', # NEU
     )
     fieldsets = (
         ('Gedenkseiten-Listing', {
@@ -178,6 +179,16 @@ class SiteSettingsAdmin(ModelAdmin):
         }),
         ('Registrierungsseite', {
             'fields': ('register_title', 'register_subtitle', 'register_background_color', 'register_background_image', 'register_info_panel_image', 'register_info_panel_image_size', 'register_card_background_color', 'register_text_color', 'register_button_color', 'register_button_text_color')
+        }),
+        ('Passwort zurücksetzen', { # NEUES FIELDSET
+            'classes': ('collapse',),
+            'fields': (
+                'password_reset_title', 'password_reset_subtitle',
+                'password_reset_background_color', 'password_reset_background_image',
+                'password_reset_card_background_color', 'password_reset_text_color',
+                'password_reset_button_color', 'password_reset_button_text_color',
+                'password_reset_confirm_title', 'password_reset_confirm_subtitle'
+            )
         }),
     )
     

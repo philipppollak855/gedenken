@@ -1,5 +1,6 @@
 # backend/core/settings.py
 # FINALE KORREKTUR: Die BACKEND_URL wird jetzt dynamisch aus den ALLOWED_HOSTS für die Produktion abgeleitet.
+# MEDIA_ROOT wird jetzt explizit für Produktion und Entwicklung getrennt gesetzt.
 
 import os
 import dj_database_url
@@ -18,9 +19,6 @@ if IS_PRODUCTION:
     ALLOWED_HOSTS_STRING = os.environ.get('ALLOWED_HOSTS', '')
     ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(' ') if ALLOWED_HOSTS_STRING else []
     
-    # DYNAMISCHE BACKEND_URL FÜR PRODUKTION
-    # Nimmt den ersten Host aus ALLOWED_HOSTS (z.B. "vorsorge-backend.onrender.com")
-    # und setzt ihn als Basis-URL. Das stellt sicher, dass die Bild-URLs korrekt sind.
     BACKEND_URL = f"https://{ALLOWED_HOSTS[0]}" if ALLOWED_HOSTS else ''
 
     DATABASES = {
@@ -31,11 +29,14 @@ if IS_PRODUCTION:
     CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_STRING.split(' ') if CORS_ALLOWED_ORIGINS_STRING else []
     
     CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host]
+    
+    # Pfad für von Benutzern hochgeladene Dateien auf dem persistenten Speicher von Render
+    MEDIA_ROOT = os.path.join('/var/media', 'media')
+
 else:
     DEBUG = True
     ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1 backend').split(' ')
     
-    # Statische BACKEND_URL für die lokale Entwicklung
     BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
     DATABASES = {
@@ -49,6 +50,9 @@ else:
         }
     }
     CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    
+    # Pfad für von Benutzern hochgeladene Dateien in der lokalen Entwicklung
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 INSTALLED_APPS = [
@@ -120,7 +124,7 @@ REST_FRAMEWORK = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
+# HINWEIS: MEDIA_ROOT wird jetzt oben im IS_PRODUCTION Block gesetzt.
 
 UNFOLD = {
     "SITE_TITLE": "Vorsorge-Plattform Admin",

@@ -10,7 +10,7 @@ from django.utils.text import slugify
 from django.utils.timezone import now
 from django.template.response import TemplateResponse
 from unfold.admin import ModelAdmin
-from unfold.forms import ColorPickerWidget  # KORRIGIERTER IMPORT
+from unfold.contrib.forms.widgets import ColorPickerWidget # KORRIGIERTER IMPORT
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse

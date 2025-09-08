@@ -1,5 +1,5 @@
 // frontend/src/context/AuthContext.jsx
-// KORRIGIERT: Leitet den Benutzer nach dem Login direkt zur neuen "Mein Bereich"-Seite weiter.
+// KORRIGIERT: Leitet nach dem Login auf das neue Dashboard.
 
 import React, { createContext, useState, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
                 setAuthTokens(data);
                 setUser(jwtDecode(data.access));
                 localStorage.setItem('authTokens', JSON.stringify(data));
-                navigate('/mein-bereich/vorsorge'); // KORRIGIERT
+                navigate('/mein-bereich/dashboard'); // KORRIGIERT
             } else {
                 alert('Login fehlgeschlagen! Überprüfen Sie E-Mail und Passwort.');
             }
@@ -68,3 +68,4 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+

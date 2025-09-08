@@ -1,5 +1,5 @@
 // frontend/src/components/layout/Header.jsx
-// AKTUALISIERT: Link zu "Meine Beiträge" hinzugefügt.
+// KORRIGIERT: Der Link "Mein Bereich" führt nun zum neuen Dashboard und "Meine Beiträge" wurde entfernt.
 
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -46,8 +46,8 @@ const Header = () => {
                 <div className="header-actions">
                     {user ? (
                         <>
-                            <Link to="/dashboard" className="action-link">Mein Bereich</Link>
-                            <Link to="/meine-beitraege" className="action-link">Meine Beiträge</Link>
+                            {/* KORRIGIERT: Link führt jetzt zum neuen Dashboard */}
+                            <Link to="/mein-bereich/dashboard" className="action-link">Mein Bereich</Link>
                             <button onClick={logoutUser} className="logout-button">Logout</button>
                         </>
                     ) : (
@@ -60,3 +60,4 @@ const Header = () => {
 };
 
 export default Header;
+

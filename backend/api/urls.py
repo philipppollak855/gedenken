@@ -1,5 +1,5 @@
 # backend/api/urls.py
-# NEU: URL-Pfade für den Passwort-Reset-Prozess hinzugefügt.
+# ERWEITERT: Fügt die neuen Endpunkte für "Mein Bereich" hinzu.
 
 from django.urls import path, include
 from rest_framework_nested import routers
@@ -12,7 +12,7 @@ from .views import (
     GalleryItemViewSet, ReleaseRequestViewSet, SiteSettingsView, MyContributionsView,
     CondolenceTemplateViewSet, CandleImageViewSet, CandleMessageTemplateViewSet,
     SeedDatabaseView, EventAttendanceViewSet, MemorialEventViewSet, GlobalSearchView,
-    PasswordResetRequestView, PasswordResetConfirmView  # NEUE IMPORTE
+    MeinBereichDataView, CreateMemorialPageView # NEU
 )
 
 router = routers.DefaultRouter()
@@ -56,7 +56,9 @@ urlpatterns = [
     path('my-contributions/', MyContributionsView.as_view(), name='my-contributions'),
     path('global-search/', GlobalSearchView.as_view(), name='global-search'),
     path('seed-database/<str:key>/', SeedDatabaseView.as_view(), name='seed-database'),
-    # NEUE URLS FÜR PASSWORT-RESET
-    path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
-    path('password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    
+    # NEUE URLS FÜR "MEIN BEREICH"
+    path('mein-bereich-data/', MeinBereichDataView.as_view(), name='mein-bereich-data'),
+    path('create-memorial-page/', CreateMemorialPageView.as_view(), name='create-memorial-page'),
 ]
+

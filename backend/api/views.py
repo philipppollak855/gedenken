@@ -1,13 +1,12 @@
 # backend/api/views.py
-# NEU: Zwei neue Views für den Passwort-Reset-Prozess hinzugefügt.
-# WICHTIG: E-Mail-Versand ist simuliert und wird in der Konsole ausgegeben.
+# VOLLSTÄNDIGER CODE: Beinhaltet jetzt alle Views, einschließlich Passwort-Reset und die neuen Funktionen für "Mein Bereich".
 
 import os
 import json
 from datetime import timedelta
 from django.core.management import call_command
 from django.urls import reverse
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework.views import APIView
 from rest_framework import generics, permissions, viewsets, status
 from rest_framework.response import Response
@@ -19,6 +18,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 from .serializers import (
     RegisterSerializer, UserSerializer, DigitalLegacyItemSerializer,
@@ -28,7 +28,7 @@ from .serializers import (
     GalleryItemSerializer, ReleaseRequestSerializer,
     MemorialPageListSerializer, SiteSettingsSerializer, CondolenceTemplateSerializer,
     CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer,
-    MemorialEventSerializer
+    MemorialEventSerializer, MeinBereichDataSerializer
 )
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
@@ -38,7 +38,7 @@ from .models import (
     FamilyLink
 )
 
-# ... (Alle bestehenden Views von GlobalSearchView bis SeedDatabaseView bleiben unverändert)
+
 class GlobalSearchView(APIView):
     authentication_classes = [SessionAuthentication]
     permission_classes = [permissions.IsAdminUser]
@@ -132,8 +132,6 @@ class SeedDatabaseView(APIView):
         except Exception as e:
             return Response({"error": f"An error occurred during seeding: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# --- NEUE VIEWS FÜR PASSWORT-RESET ---
-
 class PasswordResetRequestView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
 
@@ -142,30 +140,18 @@ class PasswordResetRequestView(generics.GenericAPIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            # Nicht verraten, ob der User existiert
             return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         
-        # In einer echten Anwendung würde man hier die FRONTEND_URL aus den settings holen
         frontend_url = 'https://gedenken.netlify.app'
         reset_link = f"{frontend_url}/password-reset-confirm/{uid}/{token}/"
 
-        # --- E-Mail-Versand (hier simuliert) ---
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         print("PASSWORT-RESET-LINK (normalerweise per E-Mail gesendet):")
         print(reset_link)
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        # In einer echten Anwendung:
-        # send_mail(
-        #     'Passwort zurücksetzen für Ihre Vorsorge-Plattform',
-        #     f'Bitte klicken Sie auf diesen Link, um Ihr Passwort zurückzusetzen: {reset_link}',
-        #     'noreply@vorsorge-plattform.com',
-        #     [email],
-        #     fail_silently=False,
-        # )
-
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
 class PasswordResetConfirmView(generics.GenericAPIView):
@@ -200,8 +186,6 @@ class PasswordResetConfirmView(generics.GenericAPIView):
             return Response({'status': 'Passwort erfolgreich zurückgesetzt.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Ungültiger Link.'}, status=status.HTTP_400_BAD_REQUEST)
-
-# --- Bestehende ViewSets ---
 
 class CandleImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CandleImage.objects.all()
@@ -353,7 +337,7 @@ class CondolenceViewSet(viewsets.ModelViewSet):
             return Condolence.objects.filter(page__slug=self.kwargs['page_slug'], is_approved=True)
         return Condolence.objects.all()
     def perform_create(self, serializer):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         author = self.request.user if self.request.user.is_authenticated else None
         is_approved_on_creation = (page.condolence_moderation == MemorialPage.ModerationStatus.NOT_MODERATED)
         serializer.save(page=page, author=author, is_approved=is_approved_on_creation)
@@ -366,7 +350,7 @@ class MemorialCandleViewSet(viewsets.ModelViewSet):
             return MemorialCandle.objects.filter(page__slug=self.kwargs['page_slug'])
         return MemorialCandle.objects.all()
     def perform_create(self, serializer):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         author = self.request.user if self.request.user.is_authenticated else None
         serializer.save(page=page, author=author)
 
@@ -374,11 +358,11 @@ class TimelineEventViewSet(viewsets.ModelViewSet):
     serializer_class = TimelineEventSerializer
     permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission]
     def get_queryset(self):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
         return TimelineEvent.objects.filter(page=page)
     def perform_create(self, serializer):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
         serializer.save(page=page)
 
@@ -386,11 +370,11 @@ class GalleryItemViewSet(viewsets.ModelViewSet):
     serializer_class = GalleryItemSerializer
     permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission]
     def get_queryset(self):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
         return GalleryItem.objects.filter(page=page)
     def perform_create(self, serializer):
-        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
         serializer.save(page=page)
 
@@ -443,6 +427,53 @@ class EventAttendanceViewSet(viewsets.ModelViewSet):
         return EventAttendance.objects.filter(event_id=self.kwargs['event_pk'])
 
     def perform_create(self, serializer):
-        event = generics.get_object_or_404(MemorialEvent, pk=self.kwargs['event_pk'])
+        event = get_object_or_404(MemorialEvent, pk=self.kwargs['event_pk'])
         author = self.request.user if self.request.user.is_authenticated else None
         serializer.save(event=event, user=author)
+
+# --- NEUE VIEWS FÜR "MEIN BEREICH" ---
+class MeinBereichDataView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        own_page_data = None
+        try:
+            own_page = user.memorial_page
+            own_page_data = ManagedGedenkseiteSerializer(own_page).data
+        except MemorialPage.DoesNotExist:
+            pass
+
+        managed_links = FamilyLink.objects.filter(
+            relative_user=user,
+            can_edit_memorial_page=True
+        ).select_related('deceased_user__memorial_page')
+
+        managed_pages_data = [
+            ManagedGedenkseiteSerializer(link.deceased_user.memorial_page).data
+            for link in managed_links if hasattr(link.deceased_user, 'memorial_page')
+        ]
+        
+        data = {
+            'own_page': own_page_data,
+            'managed_pages': managed_pages_data
+        }
+        serializer = MeinBereichDataSerializer(data)
+        return Response(serializer.data)
+
+class CreateMemorialPageView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        if hasattr(user, 'memorial_page'):
+            return Response({'error': 'Für diesen Benutzer existiert bereits eine Gedenkseite.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        page = MemorialPage.objects.create(
+            user=user,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            status=MemorialPage.Status.INACTIVE
+        )
+        return Response({'slug': page.slug}, status=status.HTTP_201_CREATED)
+

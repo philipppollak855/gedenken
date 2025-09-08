@@ -1,115 +1,120 @@
 /* frontend/src/modules/user/MeinBereich.css */
-/* ERWEITERT: Verwendet jetzt CSS-Variablen, die über Inline-Styles aus dem Admin-Bereich gesetzt werden. */
 
-.mein-bereich-page-wrapper {
-    padding-top: 80px; /* Platz für den Header */
+.mein-bereich-page {
+    padding-top: 80px; /* Platz fÃ¼r den Header */
     min-height: 100vh;
-    box-sizing: border-box;
+    background-color: var(--mein-bereich-bg);
+    background-image: var(--mein-bereich-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2rem;
+    box-sizing: border-box;
 }
 
-.mein-bereich-container {
+.mein-bereich-layout {
     display: flex;
     width: 100%;
-    max-width: 1600px;
-    margin: 2rem auto;
-    background-color: var(--container-bg, #FFFFFF);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    min-height: calc(100vh - 80px - 4rem);
+    max-width: 1400px;
+    height: 85vh;
+    max-height: 900px;
+    background-color: var(--container-bg);
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
-.bereich-sidebar {
-    flex: 0 0 250px;
-    background-color: var(--sidebar-bg, #f9f9f9);
-    border-right: 1px solid #e5e0da;
-    padding: 2rem;
+.mein-bereich-sidebar {
+    flex: 0 0 260px;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
 }
 
-.bereich-sidebar nav {
+.mein-bereich-sidebar nav {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.bereich-sidebar nav a {
+.mein-bereich-sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.25rem;
     text-decoration: none;
-    color: var(--sidebar-text, #6d6d6d);
+    color: inherit;
+    border-radius: 8px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
     font-weight: 500;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    transition: background-color 0.2s, color 0.2s;
 }
 
-.bereich-sidebar nav a:hover {
-    background-color: rgba(0,0,0,0.05);
+.mein-bereich-sidebar nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-.bereich-sidebar nav a.active {
-    background-color: var(--sidebar-active-bg, #8c8073);
-    color: var(--sidebar-active-text, white);
+.mein-bereich-sidebar nav a.active {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    font-weight: 600;
 }
 
-.bereich-content {
+.mein-bereich-sidebar nav a svg {
+    flex-shrink: 0;
+}
+
+.mein-bereich-content {
     flex-grow: 1;
-    padding: 2rem 3rem;
-    overflow-y: auto; /* Erlaubt Scrollen, falls der Inhalt zu lang wird */
+    padding: 2.5rem;
+    overflow-y: auto;
 }
 
-/* Platzhalter-Stile */
-.placeholder-text {
-    color: #6b7280;
-    line-height: 1.6;
-    margin-top: 1rem;
-}
-
-/* Dashboard-Stile */
-.dashboard-willkommen h1 {
-    font-family: 'Playfair Display', serif;
+/* Dashboard-Ãœbersichtskarten */
+.dashboard-overview h1 {
     font-size: 2.5rem;
     color: #3a3a3a;
+    margin-top: 0;
     margin-bottom: 0.5rem;
 }
 
-.willkommen-untertitel {
+.dashboard-overview p {
     font-size: 1.1rem;
     color: #6b7280;
-    margin-bottom: 3rem;
-    max-width: 700px;
+    margin-bottom: 2.5rem;
 }
 
-.dashboard-karten-container {
+.card-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
 }
 
-.dashboard-karte {
-    background-color: #f9f9f9;
-    border: 1px solid #e5e0da;
+.info-card {
+    background-color: #ffffff;
+    padding: 1.5rem;
     border-radius: 8px;
-    padding: 2rem;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #e5e0da;
 }
 
-.dashboard-karte:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+.info-card h2 {
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e5e0da;
+    padding-bottom: 0.75rem;
 }
 
-.dashboard-karte h3 {
-    font-family: 'Playfair Display', serif;
-    margin: 0 0 1rem 0;
-    color: #8c8073;
-}
-
-.dashboard-karte p {
-    margin: 0;
+.info-card p {
+    font-size: 1rem;
     line-height: 1.6;
-    color: #6b7280;
+    color: #3a3a3a;
+    margin-bottom: 0;
 }
 

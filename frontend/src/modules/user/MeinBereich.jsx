@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 
-// SVG-Icon-Komponenten für bessere Lesbarkeit
+// SVG-Icon-Komponenten
 const DashboardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>;
 const VorsorgeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>;
 const GedenkseiteIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
@@ -31,7 +31,7 @@ const MeinBereich = () => {
                 if (settingsRes.ok) setSettings(await settingsRes.json());
 
             } catch (error) {
-                console.error("Fehler beim Laden der Daten fÃ¼r 'Mein Bereich':", error);
+                console.error("Fehler beim Laden der Daten für 'Mein Bereich':", error);
             }
         };
         fetchData();
@@ -52,7 +52,7 @@ const MeinBereich = () => {
             <div className="mein-bereich-layout">
                 <aside className="mein-bereich-sidebar">
                     <nav>
-                        <NavLink to="/mein-bereich/dashboard"><DashboardIcon /> <span>Ãœbersicht</span></NavLink>
+                        <NavLink to="/mein-bereich/dashboard"><DashboardIcon /> <span>Übersicht</span></NavLink>
                         <NavLink to="/mein-bereich/vorsorge"><VorsorgeIcon /> <span>Meine Vorsorge</span></NavLink>
                         <NavLink to="/mein-bereich/gedenkseite"><GedenkseiteIcon /> <span>Meine Gedenkseite</span></NavLink>
                         <NavLink to="/mein-bereich/daten"><DatenIcon /> <span>Meine Daten</span></NavLink>
@@ -60,9 +60,9 @@ const MeinBereich = () => {
                         {data.managed_pages?.length > 0 && (
                             <NavLink to="/mein-bereich/verwaltete-seiten"><VerwalteteSeitenIcon /> <span>Verwaltete Seiten</span></NavLink>
                         )}
-                        <NavLink to="/mein-bereich/beitraege"><BeitraegeIcon /> <span>Meine BeitrÃ¤ge</span></NavLink>
+                        <NavLink to="/mein-bereich/beitraege"><BeitraegeIcon /> <span>Meine Beiträge</span></NavLink>
                         <NavLink to="/mein-bereich/gespeicherte-seiten"><DashboardIcon /> <span>Gespeicherte Seiten</span></NavLink>
-                        <NavLink to="/mein-bereich/angehoerige-verwalten"><VerwalteteSeitenIcon /> <span>AngehÃ¶rige verwalten</span></NavLink>
+                        <NavLink to="/mein-bereich/angehoerige-verwalten"><VerwalteteSeitenIcon /> <span>Angehörige verwalten</span></NavLink>
                         <NavLink to="/mein-bereich/konto-verwalten"><KontoIcon /> <span>Konto verwalten</span></NavLink>
                     </nav>
                 </aside>

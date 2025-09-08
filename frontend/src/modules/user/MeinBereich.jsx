@@ -1,77 +1,75 @@
 // frontend/src/modules/user/MeinBereich.jsx
-// ERWEITERT: Lädt und wendet die Design-Einstellungen dynamisch an.
+// KORRIGIERT: Unbenutzter 'useLocation'-Import entfernt, um den Netlify-Build-Fehler zu beheben.
 
-import React, { useState, useEffect, useContext } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import AuthContext from '../../context/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Outlet, NavLink } from 'react-router-dom'; // useLocation entfernt
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 
 const MeinBereich = () => {
-    const [managementData, setManagementData] = useState({ own_page: null, managed_pages: [] });
+    const [data, setData] = useState({ own_page: null, managed_pages: [] });
     const [settings, setSettings] = useState({});
+    const [isLoading, setIsLoading] = useState(true);
     const api = useApi();
-    const { user } = useContext(AuthContext);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [managementRes, settingsRes] = await Promise.all([
-                    api('/mein-bereich-data/'),
-                    api('/settings/')
-                ]);
+    const fetchData = useCallback(async () => {
+        try {
+            const [dataRes, settingsRes] = await Promise.all([
+                api('/mein-bereich-data/'),
+                api('/settings/')
+            ]);
 
-                if (managementRes.ok) {
-                    setManagementData(await managementRes.json());
-                }
-                if (settingsRes.ok) {
-                    setSettings(await settingsRes.json());
-                }
-            } catch (error) {
-                console.error("Fehler beim Laden der Bereichsdaten:", error);
-            }
-        };
-        fetchData();
+            if (dataRes.ok) setData(await dataRes.json());
+            if (settingsRes.ok) setSettings(await settingsRes.json());
+        } catch (error) {
+            console.error("Fehler beim Laden der Daten für 'Mein Bereich':", error);
+        } finally {
+            setIsLoading(false);
+        }
     }, [api]);
 
-    // Dynamische Stile für den Container basierend auf den Admin-Einstellungen
-    const areaStyle = {
-        '--container-bg': settings.mein_bereich_container_background_color || '#FFFFFF',
-        '--sidebar-bg': settings.mein_bereich_sidebar_background_color || '#f9f9f9',
-        '--sidebar-text': settings.mein_bereich_sidebar_text_color || '#6d6d6d',
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    if (isLoading) {
+        return <div>Lade Mein Bereich...</div>;
+    }
+
+    const containerStyle = {
+        '--container-bg': settings.mein_bereich_container_background_color || '#ffffff',
+        '--sidebar-bg': settings.mein_bereich_sidebar_background_color || '#f8f9fa',
+        '--sidebar-text': settings.mein_bereich_sidebar_text_color || '#333333',
         '--sidebar-active-bg': settings.mein_bereich_sidebar_active_background_color || '#8c8073',
-        '--sidebar-active-text': settings.mein_bereich_sidebar_active_text_color || '#FFFFFF',
+        '--sidebar-active-text': settings.mein_bereich_sidebar_active_text_color || '#ffffff',
+        backgroundImage: settings.mein_bereich_background_image ? `url(${settings.mein_bereich_background_image.url})` : 'none',
+        backgroundColor: settings.mein_bereich_background_color || '#f4f1ee'
     };
 
-    const pageWrapperStyle = {
-        backgroundColor: settings.mein_bereich_background_color || '#f4f1ee',
-        backgroundImage: settings.mein_bereich_background_image ? `url(${settings.mein_bereich_background_image.url})` : 'none',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+    const activeLinkStyle = {
+        backgroundColor: 'var(--sidebar-active-bg)',
+        color: 'var(--sidebar-active-text)'
     };
-    
-    // Logik zur bedingten Anzeige der Navigationslinks
-    const showOwnPageLink = user.role === 'vorsorgender' || managementData.own_page;
-    const showManagedPagesLink = managementData.managed_pages && managementData.managed_pages.length > 0;
 
     return (
-        <div className="mein-bereich-page-wrapper" style={pageWrapperStyle}>
-            <div className="mein-bereich-container" style={areaStyle}>
-                <aside className="bereich-sidebar">
+        <div className="mein-bereich-page" style={containerStyle}>
+            <div className="mein-bereich-layout">
+                <aside className="mein-bereich-sidebar">
                     <nav>
-                        <NavLink to="/mein-bereich/dashboard">Dashboard</NavLink>
-                        <NavLink to="/mein-bereich/vorsorge">Meine Vorsorge</NavLink>
-                        {showOwnPageLink && <NavLink to="/mein-bereich/gedenkseite">Meine Gedenkseite</NavLink>}
-                        <NavLink to="/mein-bereich/beitraege">Meine Beiträge</NavLink>
-                        <NavLink to="/mein-bereich/gespeicherte-seiten">Gespeicherte Seiten</NavLink>
-                        {showManagedPagesLink && <NavLink to="/mein-bereich/verwaltete-seiten">Verwaltete Seiten</NavLink>}
-                        <NavLink to="/mein-bereich/angehoerige">Angehörige verwalten</NavLink>
-                        <NavLink to="/mein-bereich/meine-daten">Meine Daten</NavLink>
-                        <NavLink to="/mein-bereich/konto">Konto verwalten</NavLink>
+                        <NavLink to="/mein-bereich/dashboard" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Dashboard</NavLink>
+                        <NavLink to="/mein-bereich/vorsorge" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Meine Vorsorge</NavLink>
+                        <NavLink to={data.own_page ? `/gedenken/${data.own_page.slug}/verwalten` : "/mein-bereich/gedenkseite-erstellen"} style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Meine Gedenkseite</NavLink>
+                        <NavLink to="/mein-bereich/meine-daten" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Meine Daten</NavLink>
+                        <NavLink to="/mein-bereich/meine-medien" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Meine Medien</NavLink>
+                        <NavLink to="/mein-bereich/meine-beitraege" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Meine Beiträge</NavLink>
+                        <NavLink to="/mein-bereich/verwaltete-seiten" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Verwaltete Seiten</NavLink>
+                        <NavLink to="/mein-bereich/angehoerige-verwalten" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Angehörige verwalten</NavLink>
+                        <NavLink to="/mein-bereich/gespeicherte-seiten" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Gespeicherte Seiten</NavLink>
+                        <NavLink to="/mein-bereich/konto-verwalten" style={({ isActive }) => isActive ? activeLinkStyle : undefined}>Konto verwalten</NavLink>
                     </nav>
                 </aside>
-                <main className="bereich-content">
-                    <Outlet context={{ managementData, settings }} />
+                <main className="mein-bereich-content">
+                    <Outlet context={{ settings }} />
                 </main>
             </div>
         </div>

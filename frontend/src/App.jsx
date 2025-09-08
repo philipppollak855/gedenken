@@ -1,8 +1,7 @@
 // frontend/src/App.jsx
-// KORRIGIERT: Unbenutzte Imports entfernt, um den Netlify-Build-Fehler zu beheben.
+// KORRIGIERT: Unbenutzter Import von 'VorsorgeDashboard' entfernt, um den Netlify-Build-Fehler zu beheben.
 
 import React from 'react';
-// HINWEIS: 'Navigate' wurde entfernt, da es hier nicht direkt verwendet wird.
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
@@ -10,7 +9,7 @@ import HomePage from './modules/HomePage';
 import LoginPage from './modules/auth/LoginPage';
 import RegistrationPage from './modules/auth/RegistrationPage';
 import Header from './components/layout/Header';
-import VorsorgeDashboard from './modules/vorsorge/VorsorgeDashboard';
+// HINWEIS: 'VorsorgeDashboard' wurde entfernt, da es jetzt innerhalb von 'MeinBereich' verwendet wird.
 import PrivateRoute from './utils/PrivateRoute';
 import MemorialPage from './modules/gedenken/MemorialPage';
 import MemorialPageAdmin from './modules/gedenken/MemorialPageAdmin';
@@ -19,7 +18,6 @@ import MyContributions from './modules/user/MyContributions';
 import MeinBereich from './modules/user/MeinBereich';
 import PasswordResetRequestPage from './modules/auth/PasswordResetRequestPage';
 import PasswordResetConfirmPage from './modules/auth/PasswordResetConfirmPage';
-// HINWEIS: 'MeineGedenkseiteErstellen' wurde entfernt. Die Route wird in MeinBereich.jsx gehandhabt.
 
 function App() {
   return (

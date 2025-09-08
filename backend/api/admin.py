@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Ein neues Fieldset für die "Passwort zurücksetzen"-Seiten wurde hinzugefügt.
+# ERWEITERT: Die SiteSettings-Adminseite wurde um ein neues Fieldset für "Mein Bereich" erweitert.
 
 import uuid
 import json
@@ -159,7 +159,8 @@ class SiteSettingsAdmin(ModelAdmin):
         'login_background_image',
         'register_background_image',
         'register_info_panel_image',
-        'password_reset_background_image', # NEU
+        'password_reset_background_image',
+        'mein_bereich_background_image',  # NEU
     )
     fieldsets = (
         ('Gedenkseiten-Listing', {
@@ -180,7 +181,7 @@ class SiteSettingsAdmin(ModelAdmin):
         ('Registrierungsseite', {
             'fields': ('register_title', 'register_subtitle', 'register_background_color', 'register_background_image', 'register_info_panel_image', 'register_info_panel_image_size', 'register_card_background_color', 'register_text_color', 'register_button_color', 'register_button_text_color')
         }),
-        ('Passwort zurücksetzen', { # NEUES FIELDSET
+        ('Passwort zurücksetzen', {
             'classes': ('collapse',),
             'fields': (
                 'password_reset_title', 'password_reset_subtitle',
@@ -188,6 +189,16 @@ class SiteSettingsAdmin(ModelAdmin):
                 'password_reset_card_background_color', 'password_reset_text_color',
                 'password_reset_button_color', 'password_reset_button_text_color',
                 'password_reset_confirm_title', 'password_reset_confirm_subtitle'
+            )
+        }),
+        # NEUES FIELDSET
+        ('Mein Bereich', {
+            'classes': ('collapse',),
+            'fields': (
+                'mein_bereich_background_color', 'mein_bereich_background_image', 'mein_bereich_container_background_color',
+                'mein_bereich_sidebar_background_color', 'mein_bereich_sidebar_text_color', 
+                'mein_bereich_sidebar_active_background_color', 'mein_bereich_sidebar_active_text_color',
+                'mein_bereich_dashboard_title', 'mein_bereich_dashboard_subtitle'
             )
         }),
     )

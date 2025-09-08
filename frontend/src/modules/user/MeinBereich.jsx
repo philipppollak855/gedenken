@@ -1,85 +1,79 @@
 // frontend/src/modules/user/MeinBereich.jsx
-// ERWEITERT: Fügt eine neue "Dashboard"-Route als Startseite hinzu und passt die Navigation an.
+// ERWEITERT: Lädt und wendet die Design-Einstellungen dynamisch an.
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import AuthContext from '../../context/AuthContext';
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 
-// Import der Komponenten für die verschiedenen Bereiche
-import MeinBereichDashboard from './MeinBereichDashboard'; // NEU
-import MeineVorsorge from './MeineVorsorge';
-import MeineGedenkseite from './MeineGedenkseite';
-import MeineGedenkseiteErstellen from './MeineGedenkseiteErstellen';
-import MeineDaten from './MeineDaten';
-import MeineMedien from './MeineMedien';
-import VerwalteteSeiten from './VerwalteteSeiten';
-import KontoVerwalten from './KontoVerwalten';
-import GespeicherteSeiten from './GespeicherteSeiten';
-import AngehoerigeVerwalten from './AngehoerigeVerwalten';
-import MyContributions from './MyContributions';
-
 const MeinBereich = () => {
-    const [userData, setUserData] = useState({ own_page: null, managed_pages: [] });
-    const [isLoading, setIsLoading] = useState(true);
+    const [managementData, setManagementData] = useState({ own_page: null, managed_pages: [] });
+    const [settings, setSettings] = useState({});
     const api = useApi();
-
-    const fetchUserData = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const response = await api('/mein-bereich-data/');
-            if (response.ok) {
-                setUserData(await response.json());
-            }
-        } catch (error) {
-            console.error("Fehler beim Laden der Benutzerdaten für 'Mein Bereich':", error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [api]);
+    const { user } = useContext(AuthContext);
 
     useEffect(() => {
-        fetchUserData();
-    }, [fetchUserData]);
+        const fetchData = async () => {
+            try {
+                const [managementRes, settingsRes] = await Promise.all([
+                    api('/mein-bereich-data/'),
+                    api('/settings/')
+                ]);
 
-    if (isLoading) {
-        return <div className="loading-container">Lade Daten für Mein Bereich...</div>;
-    }
+                if (managementRes.ok) {
+                    setManagementData(await managementRes.json());
+                }
+                if (settingsRes.ok) {
+                    setSettings(await settingsRes.json());
+                }
+            } catch (error) {
+                console.error("Fehler beim Laden der Bereichsdaten:", error);
+            }
+        };
+        fetchData();
+    }, [api]);
+
+    // Dynamische Stile für den Container basierend auf den Admin-Einstellungen
+    const areaStyle = {
+        '--container-bg': settings.mein_bereich_container_background_color || '#FFFFFF',
+        '--sidebar-bg': settings.mein_bereich_sidebar_background_color || '#f9f9f9',
+        '--sidebar-text': settings.mein_bereich_sidebar_text_color || '#6d6d6d',
+        '--sidebar-active-bg': settings.mein_bereich_sidebar_active_background_color || '#8c8073',
+        '--sidebar-active-text': settings.mein_bereich_sidebar_active_text_color || '#FFFFFF',
+    };
+
+    const pageWrapperStyle = {
+        backgroundColor: settings.mein_bereich_background_color || '#f4f1ee',
+        backgroundImage: settings.mein_bereich_background_image ? `url(${settings.mein_bereich_background_image.url})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+    };
+    
+    // Logik zur bedingten Anzeige der Navigationslinks
+    const showOwnPageLink = user.role === 'vorsorgender' || managementData.own_page;
+    const showManagedPagesLink = managementData.managed_pages && managementData.managed_pages.length > 0;
 
     return (
-        <div className="mein-bereich-container">
-            <aside className="bereich-sidebar">
-                <nav>
-                    <NavLink to="dashboard">Übersicht</NavLink> {/* NEU */}
-                    <NavLink to="vorsorge">Meine Vorsorge</NavLink>
-                    <NavLink to="gedenkseite">Meine Gedenkseite</NavLink>
-                    <NavLink to="gespeicherte-seiten">Gespeicherte Seiten</NavLink>
-                    <NavLink to="angehoerige">Angehörige verwalten</NavLink>
-                    <NavLink to="beitraege">Meine Beiträge</NavLink>
-                    <NavLink to="daten">Meine Daten</NavLink>
-                    <NavLink to="medien">Meine Medien</NavLink>
-                    {userData.managed_pages && userData.managed_pages.length > 0 && (
-                         <NavLink to="verwaltet">Verwaltete Seiten</NavLink>
-                    )}
-                    <NavLink to="konto">Konto verwalten</NavLink>
-                </nav>
-            </aside>
-            <main className="bereich-content">
-                <Routes>
-                    <Route path="dashboard" element={<MeinBereichDashboard />} /> {/* NEU */}
-                    <Route path="vorsorge" element={<MeineVorsorge />} />
-                    <Route path="gedenkseite" element={<MeineGedenkseite pageData={userData.own_page} onPageCreated={fetchUserData} />} />
-                    <Route path="gedenkseite-erstellen" element={<MeineGedenkseiteErstellen onPageCreated={fetchUserData} />} />
-                    <Route path="gespeicherte-seiten" element={<GespeicherteSeiten />} />
-                    <Route path="angehoerige" element={<AngehoerigeVerwalten />} />
-                    <Route path="beitraege" element={<MyContributions />} />
-                    <Route path="daten" element={<MeineDaten />} />
-                    <Route path="medien" element={<MeineMedien />} />
-                    <Route path="verwaltet" element={<VerwalteteSeiten pages={userData.managed_pages} />} />
-                    <Route path="konto" element={<KontoVerwalten />} />
-                    <Route path="*" element={<Navigate to="dashboard" replace />} /> {/* KORRIGIERT */}
-                </Routes>
-            </main>
+        <div className="mein-bereich-page-wrapper" style={pageWrapperStyle}>
+            <div className="mein-bereich-container" style={areaStyle}>
+                <aside className="bereich-sidebar">
+                    <nav>
+                        <NavLink to="/mein-bereich/dashboard">Dashboard</NavLink>
+                        <NavLink to="/mein-bereich/vorsorge">Meine Vorsorge</NavLink>
+                        {showOwnPageLink && <NavLink to="/mein-bereich/gedenkseite">Meine Gedenkseite</NavLink>}
+                        <NavLink to="/mein-bereich/beitraege">Meine Beiträge</NavLink>
+                        <NavLink to="/mein-bereich/gespeicherte-seiten">Gespeicherte Seiten</NavLink>
+                        {showManagedPagesLink && <NavLink to="/mein-bereich/verwaltete-seiten">Verwaltete Seiten</NavLink>}
+                        <NavLink to="/mein-bereich/angehoerige">Angehörige verwalten</NavLink>
+                        <NavLink to="/mein-bereich/meine-daten">Meine Daten</NavLink>
+                        <NavLink to="/mein-bereich/konto">Konto verwalten</NavLink>
+                    </nav>
+                </aside>
+                <main className="bereich-content">
+                    <Outlet context={{ managementData, settings }} />
+                </main>
+            </div>
         </div>
     );
 };

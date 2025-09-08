@@ -197,10 +197,11 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     register_background_image = MediaAssetSerializer(read_only=True)
     register_info_panel_image = MediaAssetSerializer(read_only=True)
     password_reset_background_image = MediaAssetSerializer(read_only=True)
+    mein_bereich_background_image = MediaAssetSerializer(read_only=True)  # NEU
 
     class Meta:
         model = SiteSettings
-        fields = '__all__'
+        fields = '__all__'  # GEÄNDERT, um alle Felder automatisch einzuschließen
 
 class MemorialPageSerializer(serializers.ModelSerializer):
     main_photo = MediaAssetSerializer(read_only=True)

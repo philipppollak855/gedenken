@@ -1,11 +1,21 @@
 /* frontend/src/modules/user/MeinBereich.css */
-/* KORRIGIERT: JavaScript-Kommentare in gültige CSS-Kommentare umgewandelt. */
+/* ERWEITERT: Verwendet jetzt CSS-Variablen, die über Inline-Styles aus dem Admin-Bereich gesetzt werden. */
+
+.mein-bereich-page-wrapper {
+    padding-top: 80px; /* Platz für den Header */
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 .mein-bereich-container {
     display: flex;
+    width: 100%;
     max-width: 1600px;
     margin: 2rem auto;
-    background-color: #fff;
+    background-color: var(--container-bg, #FFFFFF);
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     min-height: calc(100vh - 80px - 4rem);
@@ -13,7 +23,7 @@
 
 .bereich-sidebar {
     flex: 0 0 250px;
-    background-color: #f9f9f9;
+    background-color: var(--sidebar-bg, #f9f9f9);
     border-right: 1px solid #e5e0da;
     padding: 2rem;
 }
@@ -26,7 +36,7 @@
 
 .bereich-sidebar nav a {
     text-decoration: none;
-    color: #6d6d6d;
+    color: var(--sidebar-text, #6d6d6d);
     font-weight: 500;
     padding: 0.75rem 1rem;
     border-radius: 6px;
@@ -34,18 +44,18 @@
 }
 
 .bereich-sidebar nav a:hover {
-    background-color: #f0f0f0;
-    color: #3a3a3a;
+    background-color: rgba(0,0,0,0.05);
 }
 
 .bereich-sidebar nav a.active {
-    background-color: #8c8073;
-    color: white;
+    background-color: var(--sidebar-active-bg, #8c8073);
+    color: var(--sidebar-active-text, white);
 }
 
 .bereich-content {
     flex-grow: 1;
     padding: 2rem 3rem;
+    overflow-y: auto; /* Erlaubt Scrollen, falls der Inhalt zu lang wird */
 }
 
 /* Platzhalter-Stile */

@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Das SiteSettings-Modell wurde um Felder für die Seiten zum Zurücksetzen des Passworts erweitert.
+# ERWEITERT: Das SiteSettings-Modell wurde um Felder für "Mein Bereich" erweitert.
 
 import uuid
 from django.db import models
@@ -335,6 +335,17 @@ class SiteSettings(models.Model):
     
     password_reset_confirm_title = models.CharField("Titel (Neues Passwort)", max_length=100, blank=True, default="Neues Passwort festlegen")
     password_reset_confirm_subtitle = models.TextField("Untertitel (Neues Passwort)", blank=True, default="Bitte geben Sie Ihr neues Passwort ein und bestätigen Sie es.")
+
+    # Mein Bereich
+    mein_bereich_background_color = models.CharField("Hintergrundfarbe (Mein Bereich)", max_length=7, blank=True, default="#f4f1ee")
+    mein_bereich_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Mein Bereich)")
+    mein_bereich_container_background_color = models.CharField("Hintergrundfarbe Container", max_length=7, blank=True, default="#FFFFFF")
+    mein_bereich_sidebar_background_color = models.CharField("Hintergrundfarbe Sidebar", max_length=7, blank=True, default="#f9f9f9")
+    mein_bereich_sidebar_text_color = models.CharField("Textfarbe Sidebar", max_length=7, blank=True, default="#6d6d6d")
+    mein_bereich_sidebar_active_background_color = models.CharField("Hintergrundfarbe (Aktiv)", max_length=7, blank=True, default="#8c8073")
+    mein_bereich_sidebar_active_text_color = models.CharField("Textfarbe (Aktiv)", max_length=7, blank=True, default="#FFFFFF")
+    mein_bereich_dashboard_title = models.CharField("Titel (Dashboard)", max_length=100, blank=True, default="Willkommen in Ihrem persönlichen Bereich")
+    mein_bereich_dashboard_subtitle = models.TextField("Untertitel (Dashboard)", blank=True, default="Hier haben Sie den zentralen Überblick über Ihre Vorsorge und Ihre Gedenkseiten.")
     
     def __str__(self):
         return "Globale Design-Einstellungen"

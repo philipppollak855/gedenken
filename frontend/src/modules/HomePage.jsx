@@ -1,38 +1,19 @@
 // frontend/src/modules/HomePage.jsx
-// Leitet eingeloggte Benutzer automatisch zum Dashboard weiter.
+// KORRIGIERT: Stellt sicher, dass die Startseite immer auf /gedenken umleitet.
 
-import React, { useContext, useEffect } from 'react';
-import AuthContext from '../context/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
-    const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    // Dieser "Effekt" wird ausgeführt, sobald die Komponente geladen wird.
-    // Wenn ein Benutzer eingeloggt ist, wird er sofort zum Dashboard navigiert.
     useEffect(() => {
-        if (user) {
-            navigate('/dashboard');
-        }
-    }, [user, navigate]);
+        // Leitet alle Besucher der Startseite (/) auf die Gedenkseiten-Übersicht um.
+        navigate('/gedenken', { replace: true });
+    }, [navigate]);
 
-    return (
-        <div>
-            <h1>Willkommen auf der Vorsorge- & Gedenkplattform</h1>
-            {user ? (
-                <div>
-                    <p>Sie sind erfolgreich eingeloggt. Sie werden zum Dashboard weitergeleitet...</p>
-                    {/* Dieser Link dient als Fallback, falls die Weiterleitung fehlschlägt. */}
-                    <Link to="/dashboard">
-                        <button>Falls Sie nicht weitergeleitet werden, klicken Sie hier.</button>
-                    </Link>
-                </div>
-            ) : (
-                <p>Bitte loggen Sie sich ein oder registrieren Sie ein neues Konto, um alle Funktionen zu nutzen.</p>
-            )}
-        </div>
-    );
+    return null; // Diese Komponente rendert nichts, sie leitet nur weiter.
 };
 
 export default HomePage;
+

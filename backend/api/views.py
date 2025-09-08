@@ -1,12 +1,12 @@
 # backend/api/views.py
-# VOLLSTÄNDIGER CODE: Beinhaltet jetzt alle Views, einschließlich Passwort-Reset und die neuen Funktionen für "Mein Bereich".
+# KORRIGIERT: Die 'MeinBereichDataView' fängt nun den Fall ab, dass ein Benutzer noch keine eigene Gedenkseite hat.
 
 import os
 import json
 from datetime import timedelta
 from django.core.management import call_command
 from django.urls import reverse
-from django.db.models import Q, Count
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework import generics, permissions, viewsets, status
 from rest_framework.response import Response
@@ -18,7 +18,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.conf import settings
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
 
 from .serializers import (
     RegisterSerializer, UserSerializer, DigitalLegacyItemSerializer,
@@ -38,7 +40,7 @@ from .models import (
     FamilyLink
 )
 
-
+# ... (Alle bestehenden Views von GlobalSearchView bis SeedDatabaseView bleiben unverändert)
 class GlobalSearchView(APIView):
     authentication_classes = [SessionAuthentication]
     permission_classes = [permissions.IsAdminUser]
@@ -152,6 +154,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
         print("PASSWORT-RESET-LINK (normalerweise per E-Mail gesendet):")
         print(reset_link)
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
 
 class PasswordResetConfirmView(generics.GenericAPIView):
@@ -186,6 +189,8 @@ class PasswordResetConfirmView(generics.GenericAPIView):
             return Response({'status': 'Passwort erfolgreich zurückgesetzt.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Ungültiger Link.'}, status=status.HTTP_400_BAD_REQUEST)
+
+# --- Bestehende ViewSets ---
 
 class CandleImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CandleImage.objects.all()
@@ -337,7 +342,7 @@ class CondolenceViewSet(viewsets.ModelViewSet):
             return Condolence.objects.filter(page__slug=self.kwargs['page_slug'], is_approved=True)
         return Condolence.objects.all()
     def perform_create(self, serializer):
-        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         author = self.request.user if self.request.user.is_authenticated else None
         is_approved_on_creation = (page.condolence_moderation == MemorialPage.ModerationStatus.NOT_MODERATED)
         serializer.save(page=page, author=author, is_approved=is_approved_on_creation)
@@ -350,7 +355,7 @@ class MemorialCandleViewSet(viewsets.ModelViewSet):
             return MemorialCandle.objects.filter(page__slug=self.kwargs['page_slug'])
         return MemorialCandle.objects.all()
     def perform_create(self, serializer):
-        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         author = self.request.user if self.request.user.is_authenticated else None
         serializer.save(page=page, author=author)
 
@@ -358,11 +363,11 @@ class TimelineEventViewSet(viewsets.ModelViewSet):
     serializer_class = TimelineEventSerializer
     permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission]
     def get_queryset(self):
-        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
         return TimelineEvent.objects.filter(page=page)
     def perform_create(self, serializer):
-        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
         serializer.save(page=page)
 
@@ -370,11 +375,11 @@ class GalleryItemViewSet(viewsets.ModelViewSet):
     serializer_class = GalleryItemSerializer
     permission_classes = [permissions.IsAuthenticated, CanEditMemorialPagePermission]
     def get_queryset(self):
-        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
         return GalleryItem.objects.filter(page=page)
     def perform_create(self, serializer):
-        page = get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
+        page = generics.get_object_or_404(MemorialPage, slug=self.kwargs['page_slug'])
         self.check_object_permissions(self.request, page)
         serializer.save(page=page)
 
@@ -427,38 +432,30 @@ class EventAttendanceViewSet(viewsets.ModelViewSet):
         return EventAttendance.objects.filter(event_id=self.kwargs['event_pk'])
 
     def perform_create(self, serializer):
-        event = get_object_or_404(MemorialEvent, pk=self.kwargs['event_pk'])
+        event = generics.get_object_or_404(MemorialEvent, pk=self.kwargs['event_pk'])
         author = self.request.user if self.request.user.is_authenticated else None
         serializer.save(event=event, user=author)
 
-# --- NEUE VIEWS FÜR "MEIN BEREICH" ---
 class MeinBereichDataView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        own_page_data = None
-        try:
-            own_page = user.memorial_page
-            own_page_data = ManagedGedenkseiteSerializer(own_page).data
-        except MemorialPage.DoesNotExist:
-            pass
-
-        managed_links = FamilyLink.objects.filter(
-            relative_user=user,
-            can_edit_memorial_page=True
-        ).select_related('deceased_user__memorial_page')
-
-        managed_pages_data = [
-            ManagedGedenkseiteSerializer(link.deceased_user.memorial_page).data
-            for link in managed_links if hasattr(link.deceased_user, 'memorial_page')
-        ]
         
-        data = {
-            'own_page': own_page_data,
-            'managed_pages': managed_pages_data
-        }
-        serializer = MeinBereichDataSerializer(data)
+        # KORRIGIERT: Fängt den Fall ab, dass keine eigene Gedenkseite existiert.
+        try:
+            own_page = MemorialPage.objects.get(user=user)
+        except MemorialPage.DoesNotExist:
+            own_page = None
+        
+        managed_links = FamilyLink.objects.filter(relative_user=user, can_edit_memorial_page=True)
+        managed_pages = [link.deceased_user.memorial_page for link in managed_links if hasattr(link.deceased_user, 'memorial_page')]
+        
+        serializer = MeinBereichDataSerializer({
+            'own_page': own_page,
+            'managed_pages': managed_pages
+        }, context={'request': request})
+        
         return Response(serializer.data)
 
 class CreateMemorialPageView(APIView):
@@ -469,11 +466,13 @@ class CreateMemorialPageView(APIView):
         if hasattr(user, 'memorial_page'):
             return Response({'error': 'Für diesen Benutzer existiert bereits eine Gedenkseite.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Erstellt eine minimale, inaktive Gedenkseite
         page = MemorialPage.objects.create(
             user=user,
             first_name=user.first_name,
             last_name=user.last_name,
             status=MemorialPage.Status.INACTIVE
         )
-        return Response({'slug': page.slug}, status=status.HTTP_201_CREATED)
+        serializer = MemorialPageSerializer(page, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 

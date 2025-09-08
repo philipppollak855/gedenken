@@ -15,8 +15,8 @@ import MeineDaten from './MeineDaten';
 import MeineMedien from './MeineMedien';
 import VerwalteteSeiten from './VerwalteteSeiten';
 import KontoVerwalten from './KontoVerwalten';
-import GespeicherteSeiten from './GespeicherteSeiten'; // NEU
-import AngehoerigeVerwalten from './AngehoerigeVerwalten'; // NEU
+// import GespeicherteSeiten from './GespeicherteSeiten'; // VORÜBERGEHEND DEAKTIVIERT
+// import AngehoerigeVerwalten from './AngehoerigeVerwalten'; // VORÜBERGEHEND DEAKTIVIERT
 
 const MeinBereich = () => {
     const [userData, setUserData] = useState({ own_page: null, managed_pages: [] });
@@ -50,11 +50,11 @@ const MeinBereich = () => {
             <aside className="bereich-sidebar">
                 <nav>
                     <NavLink to="vorsorge">Meine Vorsorge</NavLink>
-                    {/* KORREKTUR: Link wird jetzt immer angezeigt */}
                     <NavLink to="gedenkseite">Meine Gedenkseite</NavLink>
-                    {/* NEU: Platzhalter-Links */}
+                    {/* VORÜBERGEHEND DEAKTIVIERT 
                     <NavLink to="gespeicherte-seiten">Gespeicherte Seiten</NavLink>
                     <NavLink to="angehoerige">Angehörige verwalten</NavLink>
+                    */}
                     <NavLink to="daten">Meine Daten</NavLink>
                     <NavLink to="medien">Meine Medien</NavLink>
                     {userData.managed_pages && userData.managed_pages.length > 0 && (
@@ -68,9 +68,10 @@ const MeinBereich = () => {
                     <Route path="vorsorge" element={<MeineVorsorge />} />
                     <Route path="gedenkseite" element={<MeineGedenkseite pageData={userData.own_page} />} />
                     <Route path="gedenkseite-erstellen" element={<MeineGedenkseiteErstellen onPageCreated={fetchUserData} />} />
-                    {/* NEUE ROUTEN */}
+                    {/* VORÜBERGEHEND DEAKTIVIERT 
                     <Route path="gespeicherte-seiten" element={<GespeicherteSeiten />} />
                     <Route path="angehoerige" element={<AngehoerigeVerwalten />} />
+                    */}
                     <Route path="daten" element={<MeineDaten />} />
                     <Route path="medien" element={<MeineMedien />} />
                     <Route path="verwaltet" element={<VerwalteteSeiten pages={userData.managed_pages} />} />

@@ -1,0 +1,39 @@
+Zukunftspläne für die Gedenken & Vorsorgen Plattform
+Dieses Dokument dient als Gedächtnisstütze für zukünftige Entwicklungsarbeiten.
+
+1. Performance-Optimierung (nach der Entwicklung)
+Ziel: Ladezeiten, insbesondere für Bilder und Animationen, drastisch reduzieren.
+
+Plan:
+
+Domain-Kauf: Der Nutzer wird zu einem späteren Zeitpunkt eine Domain für das Projekt erwerben.
+
+Cloudflare-Integration: Sobald die Domain vorhanden ist, soll ein kostenloses Cloudflare-Konto eingerichtet werden. Die Nameserver der Domain werden auf Cloudflare umgestellt.
+
+Zweck: Nutzung des globalen Content Delivery Networks (CDN) von Cloudflare, um Bilder und statische Inhalte zwischenzuspeichern (caching) und von Servern auszuliefern, die geografisch näher am Benutzer sind. Dies reduziert die Latenz erheblich und entlastet den Render-Server.
+
+2. Ausbau des "Mein Bereich"
+Ziel: Die aktuell als Platzhalter angelegten Sektionen mit voller Funktionalität ausstatten.
+
+Offene Aufgaben (Reihenfolge nach Priorität festzulegen):
+
+Meine Daten: Ein Formular implementieren, mit dem Benutzer ihren Vornamen, Nachnamen und ihr Passwort ändern können.
+
+Meine Medien: Eine Übersicht der vom Benutzer hochgeladenen Medien (Bilder, Dokumente) erstellen. Eventuell eine Upload-Möglichkeit direkt aus diesem Bereich hinzufügen.
+
+Konto verwalten: Funktionen zum Verwalten des Abonnements oder zum Löschen des Kontos bereitstellen.
+
+Meine Gedenkseite (Verwaltung): Die Verwaltungsansicht (MemorialPageAdmin.jsx) weiter ausbauen und benutzerfreundlicher gestalten.
+
+Verwaltete Seiten: Die Übersicht der Seiten, die man als Angehöriger verwaltet, optisch aufbereiten und klare Links zur jeweiligen Verwaltungsansicht anbieten.
+
+3. Allgemeine Weiterentwicklung
+Ziel: Die Plattform zu einer voll funktionsfähigen, modernen und nutzerfreundlichen Anwendung weiterentwickeln.
+
+Mögliche nächste Schritte:
+
+E-Mail-Versand: Konfiguration eines echten E-Mail-Dienstes (z.B. SendGrid, Mailgun) in den Django-Settings für die Produktionsumgebung, damit der Passwort-Reset und andere Benachrichtigungen per E-Mail funktionieren.
+
+Design-Feinschliff: Weitere optische Verbesserungen an allen Frontend-Komponenten.
+
+Ausbau der Vorsorge-Module: Detaillierte Implementierung der Formulare und Anzeigen für "Digitaler Nachlass", "Finanzen", "Versicherungen" etc.

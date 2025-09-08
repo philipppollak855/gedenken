@@ -1,18 +1,22 @@
 // frontend/src/modules/user/MeinBereich.jsx
-// NEU: Vollständig überarbeitete Komponente als Layout-Container mit Sidebar und verschachteltem Routing.
+// KORRIGIERT: Der Link "Meine Gedenkseite" wird jetzt immer angezeigt.
+// ERWEITERT: Neue Links und Routen für "Gespeicherte Seiten" und "Angehörige verwalten" hinzugefügt.
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 
-// Platzhalter-Komponenten für die verschiedenen Bereiche
+// Import der Komponenten für die verschiedenen Bereiche
 import MeineVorsorge from './MeineVorsorge';
 import MeineGedenkseite from './MeineGedenkseite';
+import MeineGedenkseiteErstellen from './MeineGedenkseiteErstellen';
 import MeineDaten from './MeineDaten';
 import MeineMedien from './MeineMedien';
 import VerwalteteSeiten from './VerwalteteSeiten';
 import KontoVerwalten from './KontoVerwalten';
+import GespeicherteSeiten from './GespeicherteSeiten'; // NEU
+import AngehoerigeVerwalten from './AngehoerigeVerwalten'; // NEU
 
 const MeinBereich = () => {
     const [userData, setUserData] = useState({ own_page: null, managed_pages: [] });
@@ -20,6 +24,7 @@ const MeinBereich = () => {
     const api = useApi();
 
     const fetchUserData = useCallback(async () => {
+        setIsLoading(true);
         try {
             const response = await api('/mein-bereich-data/');
             if (response.ok) {
@@ -45,9 +50,11 @@ const MeinBereich = () => {
             <aside className="bereich-sidebar">
                 <nav>
                     <NavLink to="vorsorge">Meine Vorsorge</NavLink>
-                    {userData.own_page && (
-                        <NavLink to="gedenkseite">Meine Gedenkseite</NavLink>
-                    )}
+                    {/* KORREKTUR: Link wird jetzt immer angezeigt */}
+                    <NavLink to="gedenkseite">Meine Gedenkseite</NavLink>
+                    {/* NEU: Platzhalter-Links */}
+                    <NavLink to="gespeicherte-seiten">Gespeicherte Seiten</NavLink>
+                    <NavLink to="angehoerige">Angehörige verwalten</NavLink>
                     <NavLink to="daten">Meine Daten</NavLink>
                     <NavLink to="medien">Meine Medien</NavLink>
                     {userData.managed_pages && userData.managed_pages.length > 0 && (
@@ -60,6 +67,10 @@ const MeinBereich = () => {
                 <Routes>
                     <Route path="vorsorge" element={<MeineVorsorge />} />
                     <Route path="gedenkseite" element={<MeineGedenkseite pageData={userData.own_page} />} />
+                    <Route path="gedenkseite-erstellen" element={<MeineGedenkseiteErstellen onPageCreated={fetchUserData} />} />
+                    {/* NEUE ROUTEN */}
+                    <Route path="gespeicherte-seiten" element={<GespeicherteSeiten />} />
+                    <Route path="angehoerige" element={<AngehoerigeVerwalten />} />
                     <Route path="daten" element={<MeineDaten />} />
                     <Route path="medien" element={<MeineMedien />} />
                     <Route path="verwaltet" element={<VerwalteteSeiten pages={userData.managed_pages} />} />
@@ -72,3 +83,4 @@ const MeinBereich = () => {
 };
 
 export default MeinBereich;
+

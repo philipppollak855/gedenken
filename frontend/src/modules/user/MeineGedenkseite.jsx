@@ -1,5 +1,5 @@
 // frontend/src/modules/user/MeineGedenkseite.jsx
-// NEU: Platzhalter-Komponente für die Verwaltung der eigenen Gedenkseite.
+// AKTUALISIERT: Zeigt einen "Gedenkseite anlegen"-Button an, wenn keine Seite existiert.
 
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -9,7 +9,13 @@ const MeineGedenkseite = ({ pageData }) => {
         return (
             <div>
                 <h2>Meine Gedenkseite</h2>
-                <p className="placeholder-text">Ihnen ist noch keine Gedenkseite zugewiesen.</p>
+                <p className="placeholder-text">
+                    Sie haben noch keine persönliche Gedenkseite vorbereitet. 
+                    Legen Sie jetzt den Grundstein, um Ihre Wünsche und Erinnerungen für die Zukunft festzuhalten.
+                </p>
+                <Link to="/mein-bereich/gedenkseite-erstellen" className="bereich-button" style={{marginTop: '1rem'}}>
+                    Gedenkseite jetzt anlegen
+                </Link>
             </div>
         );
     }
@@ -18,11 +24,13 @@ const MeineGedenkseite = ({ pageData }) => {
         <div>
             <h2>Meine Gedenkseite</h2>
             <p>Verwalten Sie hier die Gedenkseite für <strong>{pageData.first_name} {pageData.last_name}</strong>.</p>
-            <Link to={`/gedenken/${pageData.slug}/verwalten`} className="bereich-button">
-                Seite bearbeiten
+            <p className="placeholder-text">Status: <strong>{pageData.status === 'active' ? 'Aktiv' : 'Inaktiv (Vorbereitung)'}</strong></p>
+            <Link to={`/gedenken/${pageData.slug}/verwalten`} className="bereich-button" style={{marginTop: '1rem'}}>
+                Seite bearbeiten & verwalten
             </Link>
         </div>
     );
 };
 
 export default MeineGedenkseite;
+

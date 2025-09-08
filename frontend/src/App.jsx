@@ -1,8 +1,8 @@
 // frontend/src/App.jsx
-// KORRIGIERT: Wendet eine spezifische CSS-Klasse für Standard-Inhaltsseiten an und entfernt die /dashboard-Weiterleitung.
+// AKTUALISIERT: Importiert die neue Komponente zum Erstellen der Gedenkseite.
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
 import HomePage from './modules/HomePage';
@@ -17,7 +17,8 @@ import MyContributions from './modules/user/MyContributions';
 import PasswordResetRequestPage from './modules/auth/PasswordResetRequestPage';
 import PasswordResetConfirmPage from './modules/auth/PasswordResetConfirmPage';
 import MeinBereich from './modules/user/MeinBereich';
-import VorsorgeDashboard from './modules/vorsorge/VorsorgeDashboard'; // Wird jetzt direkt geroutet
+import VorsorgeDashboard from './modules/vorsorge/VorsorgeDashboard';
+import MeineGedenkseiteErstellen from './modules/user/MeineGedenkseiteErstellen'; // NEU
 
 function App() {
   return (

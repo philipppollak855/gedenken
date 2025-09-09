@@ -1,6 +1,5 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// ERWEITERT: Zusätzliche Suchfelder für Geburts-/Sterbedatum und Friedhof hinzugefügt.
-// Die Filterlogik wurde entsprechend angepasst.
+// ERWEITERT: Implementiert eine einzelne Suchleiste mit einem innovativen Filter-Button.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -33,24 +32,34 @@ const MemorialListingPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // NEU: Eigene State-Variablen für jedes Suchfeld
-    const [searchName, setSearchName] = useState('');
-    const [searchBirthDate, setSearchBirthDate] = useState('');
-    const [searchDeathDate, setSearchDeathDate] = useState('');
-    const [searchCemetery, setSearchCemetery] = useState('');
-    
+    // NEU: Zustand für den Suchbegriff und den aktiven Filter
+    const [searchTerm, setSearchTerm] = useState('');
+    const [activeFilter, setActiveFilter] = useState('name'); // 'name', 'birth_date', 'death_date', 'cemetery'
+    const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
     const [heroCurrentPage, setHeroCurrentPage] = useState(0);
     const [animateCards, setAnimateCards] = useState(false);
 
     const searchSectionRef = useRef(null);
     const apiCalled = useRef(false);
+    const filterMenuRef = useRef(null);
+
+    // Effect to close filter menu on outside click
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
+                setIsFilterMenuOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [filterMenuRef]);
 
     useEffect(() => {
         if (apiCalled.current) return;
         apiCalled.current = true;
 
         const fetchData = async () => {
-            // ... (bestehender Code zum Laden der Daten bleibt unverändert)
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
@@ -93,10 +102,9 @@ const MemorialListingPage = () => {
     const heroPageCount = Math.ceil(sortedPages.length / 8);
     const heroPaginatedPages = sortedPages.slice(heroCurrentPage * 8, (heroCurrentPage + 1) * 8);
     
-    // ERWEITERT: Filterlogik berücksichtigt nun alle Suchfelder
+    // ERWEITERT: Filterlogik basiert auf dem aktiven Filter
     const filteredSearchPages = useMemo(() => {
-        const hasSearchTerm = searchName || searchBirthDate || searchDeathDate || searchCemetery;
-        if (!hasSearchTerm) return [];
+        if (!searchTerm) return [];
 
         const formatDateForSearch = (dateString) => {
             if (!dateString) return '';
@@ -105,13 +113,21 @@ const MemorialListingPage = () => {
         };
 
         return pages.filter(page => {
-            const nameMatch = searchName ? `${page.first_name} ${page.last_name}`.toLowerCase().includes(searchName.toLowerCase()) : true;
-            const birthDateMatch = searchBirthDate ? formatDateForSearch(page.date_of_birth).includes(searchBirthDate) : true;
-            const deathDateMatch = searchDeathDate ? formatDateForSearch(page.date_of_death).includes(searchDeathDate) : true;
-            const cemeteryMatch = searchCemetery ? (page.cemetery || '').toLowerCase().includes(searchCemetery.toLowerCase()) : true;
-            return nameMatch && birthDateMatch && deathDateMatch && cemeteryMatch;
-        }).slice(0, 12); // Zeigt bis zu 12 Ergebnisse an
-    }, [pages, searchName, searchBirthDate, searchDeathDate, searchCemetery]);
+            const term = searchTerm.toLowerCase();
+            switch (activeFilter) {
+                case 'name':
+                    return `${page.first_name} ${page.last_name}`.toLowerCase().includes(term);
+                case 'birth_date':
+                    return formatDateForSearch(page.date_of_birth).includes(term);
+                case 'death_date':
+                    return formatDateForSearch(page.date_of_death).includes(term);
+                case 'cemetery':
+                    return (page.cemetery || '').toLowerCase().includes(term);
+                default:
+                    return false;
+            }
+        }).slice(0, 12);
+    }, [pages, searchTerm, activeFilter]);
 
     const handleHeroPageChange = (direction) => {
         setAnimateCards(false);
@@ -122,6 +138,13 @@ const MemorialListingPage = () => {
             });
             setAnimateCards(true);
         }, 50); 
+    };
+    
+    const filterOptions = {
+        name: 'Name',
+        birth_date: 'Geburtsdatum',
+        death_date: 'Sterbedatum',
+        cemetery: 'Friedhof'
     };
 
     if (isLoading) {
@@ -134,6 +157,7 @@ const MemorialListingPage = () => {
     const heroStyle = {
         backgroundColor: settings.listing_background_color || '#F1EFEA',
         color: settings.listing_text_color || '#3a3a3a',
+        '--arrow-color': settings.listing_arrow_color || '#3a3a3a'
     };
     if (settings.listing_background_image?.url) {
         heroStyle.backgroundImage = `url(${settings.listing_background_image.url})`;
@@ -171,45 +195,43 @@ const MemorialListingPage = () => {
                 <div className="section-content">
                     <h2>{settings.search_title || "Verstorbenen Suche"}</h2>
                     
-                    {/* NEU: Suchformular mit Grid-Layout */}
-                    <div className="search-form-grid">
+                    {/* NEU: Innovative Suchleiste mit Filter-Button */}
+                    <div className="innovative-search-bar" ref={filterMenuRef}>
                         <input
                             type="text"
-                            placeholder="Name..."
-                            value={searchName}
-                            onChange={(e) => setSearchName(e.target.value)}
+                            placeholder={`Suche nach ${filterOptions[activeFilter]}...`}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="search-input"
                         />
-                        <input
-                            type="text"
-                            placeholder="Geburtsdatum (TT.MM.JJJJ)..."
-                            value={searchBirthDate}
-                            onChange={(e) => setSearchBirthDate(e.target.value)}
-                            className="search-input"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Sterbedatum (TT.MM.JJJJ)..."
-                            value={searchDeathDate}
-                            onChange={(e) => setSearchDeathDate(e.target.value)}
-                            className="search-input"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Friedhof..."
-                            value={searchCemetery}
-                            onChange={(e) => setSearchCemetery(e.target.value)}
-                            className="search-input"
-                        />
+                        <button className="filter-button" onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        </button>
+                        {isFilterMenuOpen && (
+                            <div className="filter-menu">
+                                {Object.entries(filterOptions).map(([key, value]) => (
+                                    <button 
+                                        key={key}
+                                        className={activeFilter === key ? 'active' : ''}
+                                        onClick={() => {
+                                            setActiveFilter(key);
+                                            setIsFilterMenuOpen(false);
+                                        }}
+                                    >
+                                        {value}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen oder mehrere Suchbegriffe ein."}</p>
+                    <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen Suchbegriff ein. Ã„ndern Sie bei Bedarf das Suchfeld mit dem Filter-Button."}</p>
                     <div className="memorial-grid search-results-grid">
-                        {(searchName || searchBirthDate || searchDeathDate || searchCemetery) && filteredSearchPages.length > 0 ? (
+                        {searchTerm && filteredSearchPages.length > 0 ? (
                             filteredSearchPages.map(page => (
                                 <MemorialCard key={page.slug} page={page} animate={true} />
                             ))
-                        ) : (searchName || searchBirthDate || searchDeathDate || searchCemetery) && (
+                        ) : searchTerm && (
                             <p className="no-results">Keine passenden Gedenkseiten gefunden.</p>
                         )}
                     </div>
@@ -220,3 +242,4 @@ const MemorialListingPage = () => {
 };
 
 export default MemorialListingPage;
+

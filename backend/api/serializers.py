@@ -1,5 +1,5 @@
 # backend/api/serializers.py
-# KORRIGIERT: Fehlende Serializer hinzugefügt und neue Serializer für "Mein Bereich" ergänzt.
+# ERWEITERT: Der SiteSettingsSerializer wurde um die neuen Felder für die Such-Filter und "Mein Bereich" erweitert.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -197,11 +197,11 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     register_background_image = MediaAssetSerializer(read_only=True)
     register_info_panel_image = MediaAssetSerializer(read_only=True)
     password_reset_background_image = MediaAssetSerializer(read_only=True)
-    mein_bereich_background_image = MediaAssetSerializer(read_only=True)  # NEU
+    mein_bereich_background_image = MediaAssetSerializer(read_only=True)
 
     class Meta:
         model = SiteSettings
-        fields = '__all__'  # GEÄNDERT, um alle Felder automatisch einzuschließen
+        fields = '__all__'
 
 class MemorialPageSerializer(serializers.ModelSerializer):
     main_photo = MediaAssetSerializer(read_only=True)

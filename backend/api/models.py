@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Das SiteSettings-Modell wurde um Felder für "Mein Bereich" erweitert.
+# ERWEITERT: Das SiteSettings-Modell wurde um Felder für die anpassbare Suchleiste erweitert.
 
 import uuid
 from django.db import models
@@ -290,6 +290,13 @@ class SiteSettings(models.Model):
     search_background_color = models.CharField("Hintergrundfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #e5e0da")
     search_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Suche")
     search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+    search_filter_button_color = models.CharField("Filter-Button Hintergrund", max_length=7, blank=True, default="#e5e0da")
+    search_filter_button_icon_color = models.CharField("Filter-Button Icon", max_length=7, blank=True, default="#3a3a3a")
+    search_filter_menu_color = models.CharField("Filter-Menü Hintergrund", max_length=7, blank=True, default="#FFFFFF")
+    search_filter_menu_text_color = models.CharField("Filter-Menü Text", max_length=7, blank=True, default="#3a3a3a")
+    search_filter_active_color = models.CharField("Filter-Menü Aktiv Hintergrund", max_length=7, blank=True, default="#8c8073")
+    search_filter_active_text_color = models.CharField("Filter-Menü Aktiv Text", max_length=7, blank=True, default="#FFFFFF")
+
 
     # Expand-Bereich
     expend_background_color = models.CharField("Hintergrundfarbe Expand-Bereich", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
@@ -337,16 +344,16 @@ class SiteSettings(models.Model):
     password_reset_confirm_subtitle = models.TextField("Untertitel (Neues Passwort)", blank=True, default="Bitte geben Sie Ihr neues Passwort ein und bestätigen Sie es.")
 
     # Mein Bereich
-    mein_bereich_background_color = models.CharField("Hintergrundfarbe (Mein Bereich)", max_length=7, blank=True, default="#f4f1ee")
-    mein_bereich_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Mein Bereich)")
-    mein_bereich_container_background_color = models.CharField("Hintergrundfarbe Container", max_length=7, blank=True, default="#FFFFFF")
-    mein_bereich_sidebar_background_color = models.CharField("Hintergrundfarbe Sidebar", max_length=7, blank=True, default="#f9f9f9")
-    mein_bereich_sidebar_text_color = models.CharField("Textfarbe Sidebar", max_length=7, blank=True, default="#6d6d6d")
-    mein_bereich_sidebar_active_background_color = models.CharField("Hintergrundfarbe (Aktiv)", max_length=7, blank=True, default="#8c8073")
-    mein_bereich_sidebar_active_text_color = models.CharField("Textfarbe (Aktiv)", max_length=7, blank=True, default="#FFFFFF")
-    mein_bereich_dashboard_title = models.CharField("Titel (Dashboard)", max_length=100, blank=True, default="Willkommen in Ihrem persönlichen Bereich")
-    mein_bereich_dashboard_subtitle = models.TextField("Untertitel (Dashboard)", blank=True, default="Hier haben Sie den zentralen Überblick über Ihre Vorsorge und Ihre Gedenkseiten.")
-    
+    mein_bereich_background_color = models.CharField("Hintergrundfarbe (Seite)", max_length=7, blank=True, default="#f4f1ee")
+    mein_bereich_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Seite)")
+    mein_bereich_container_background_color = models.CharField("Hintergrundfarbe (Container)", max_length=7, blank=True, default="#FFFFFF")
+    mein_bereich_sidebar_background_color = models.CharField("Sidebar Hintergrund", max_length=7, blank=True, default="#f8f9fa")
+    mein_bereich_sidebar_text_color = models.CharField("Sidebar Text", max_length=7, blank=True, default="#3a3a3a")
+    mein_bereich_sidebar_active_background_color = models.CharField("Sidebar Aktiv Hintergrund", max_length=7, blank=True, default="#8c8073")
+    mein_bereich_sidebar_active_text_color = models.CharField("Sidebar Aktiv Text", max_length=7, blank=True, default="#FFFFFF")
+    mein_bereich_dashboard_title = models.CharField("Dashboard Titel", max_length=100, blank=True, default="Willkommen in Ihrem Bereich")
+    mein_bereich_dashboard_subtitle = models.TextField("Dashboard Untertitel", blank=True, default="Hier haben Sie den Überblick und Zugriff auf alle Ihre persönlichen Daten, Vorsorge-Dokumente und Gedenkseiten.")
+
     def __str__(self):
         return "Globale Design-Einstellungen"
 

@@ -1,120 +1,135 @@
 /* frontend/src/modules/user/MeinBereich.css */
+/* Vollständige und korrigierte CSS-Datei für das "Mein Bereich"-Layout. */
 
 .mein-bereich-page {
-    padding-top: 80px; /* Platz fÃ¼r den Header */
+    padding-top: 80px; /* Platz für den fixen Header */
     min-height: 100vh;
-    background-color: var(--mein-bereich-bg);
-    background-image: var(--mein-bereich-bg-image);
+    background-color: var(--bg-color);
+    background-image: var(--bg-image);
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
     box-sizing: border-box;
+    padding-bottom: 4rem;
 }
 
 .mein-bereich-layout {
     display: flex;
-    width: 100%;
     max-width: 1400px;
-    height: 85vh;
-    max-height: 900px;
+    margin: 2rem auto;
     background-color: var(--container-bg);
-    border-radius: 1rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
     overflow: hidden;
-    backdrop-filter: blur(10px);
+    min-height: calc(100vh - 80px - 4rem);
 }
 
 .mein-bereich-sidebar {
     flex: 0 0 260px;
     background-color: var(--sidebar-bg);
-    color: var(--sidebar-text);
-    padding: 2rem 1rem;
-    display: flex;
-    flex-direction: column;
+    padding: 2rem 0;
 }
 
 .mein-bereich-sidebar nav {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
 }
 
 .mein-bereich-sidebar nav a {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.9rem 1.25rem;
+    padding: 1rem 2rem;
     text-decoration: none;
-    color: inherit;
-    border-radius: 8px;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    color: var(--sidebar-text);
     font-weight: 500;
+    border-left: 4px solid transparent;
+    transition: all 0.2s ease-in-out;
 }
 
 .mein-bereich-sidebar nav a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(0,0,0,0.05);
+    border-left-color: #ccc;
 }
 
 .mein-bereich-sidebar nav a.active {
     background-color: var(--sidebar-active-bg);
     color: var(--sidebar-active-text);
-    font-weight: 600;
-}
-
-.mein-bereich-sidebar nav a svg {
-    flex-shrink: 0;
+    border-left-color: var(--sidebar-active-bg);
+    font-weight: 700;
 }
 
 .mein-bereich-content {
     flex-grow: 1;
-    padding: 2.5rem;
+    padding: 3rem;
     overflow-y: auto;
 }
 
-/* Dashboard-Ãœbersichtskarten */
-.dashboard-overview h1 {
-    font-size: 2.5rem;
-    color: #3a3a3a;
-    margin-top: 0;
-    margin-bottom: 0.5rem;
+/* Dashboard-spezifische Stile */
+.dashboard-welcome {
+    text-align: center;
 }
 
-.dashboard-overview p {
-    font-size: 1.1rem;
-    color: #6b7280;
-    margin-bottom: 2.5rem;
+.dashboard-welcome h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: var(--mein-bereich-dashboard-title-color, #3a3a3a);
 }
 
-.card-grid {
+.dashboard-welcome p {
+    font-size: 1.2rem;
+    color: var(--mein-bereich-dashboard-subtitle-color, #6b7280);
+    max-width: 700px;
+    margin: 1rem auto 3rem auto;
+}
+
+.dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
 }
 
-.info-card {
-    background-color: #ffffff;
-    padding: 1.5rem;
+.dashboard-card {
+    background-color: var(--sidebar-bg); /* Nutzt dieselbe Farbe wie die Sidebar für Konsistenz */
+    padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     border: 1px solid #e5e0da;
 }
 
-.info-card h2 {
-    font-size: 1.25rem;
+.dashboard-card h2 {
+    font-family: 'Playfair Display', serif;
     margin-top: 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #e5e0da;
-    padding-bottom: 0.75rem;
 }
 
-.info-card p {
-    font-size: 1rem;
-    line-height: 1.6;
-    color: #3a3a3a;
-    margin-bottom: 0;
+.dashboard-card ul {
+    list-style: none;
+    padding: 0;
+}
+.dashboard-card ul li {
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-card a {
+    color: #8c8073;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.dashboard-card a:hover {
+    text-decoration: underline;
+}
+
+.dashboard-button {
+    display: inline-block;
+    background-color: #8c8073;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-top: 1rem;
+    transition: background-color 0.2s;
+}
+
+.dashboard-button:hover {
+    background-color: #6d6d6d;
 }
 

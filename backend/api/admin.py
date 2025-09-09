@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Die SiteSettings-Adminseite wurde um ein neues Fieldset für "Mein Bereich" erweitert.
+# ERWEITERT: Das "Suche"-Fieldset in den SiteSettings wurde um die neuen Farboptionen für den Filter erweitert.
 
 import uuid
 import json
@@ -55,14 +55,30 @@ class MediaAssetAdmin(ModelAdmin):
             'obituary_card_image': "Partezettel",
             'memorial_picture': "Gedenkbild (Vorderseite)",
             'memorial_picture_back': "Gedenkbild Rückseite",
-            'acknowledgement_image': "Danksagung"
+            'acknowledgement_image': "Danksagung",
+            'listing_background_image': "Hintergrund Gedenkseiten-Listing",
+            'search_background_image': "Hintergrund Suche",
+            'expend_background_image': "Hintergrund Expand-Bereich",
+            'login_background_image': "Hintergrund Login",
+            'register_background_image': "Hintergrund Registrierung",
+            'register_info_panel_image': "Info-Panel Registrierung",
+            'password_reset_background_image': "Hintergrund Passwort-Reset",
+            'mein_bereich_background_image': "Hintergrund Mein Bereich",
         }
-        for field_name, label in field_map.items():
-            pages = MemorialPage.objects.filter(**{field_name: obj})
-            if pages.exists():
-                page_links = [f'<a href="{reverse("admin:api_memorialpage_change", args=[p.pk])}">{str(p)}</a>' for p in pages]
-                usages.append(f"{label}: {', '.join(page_links)}")
         
+        # Check for usage in MemorialPage and SiteSettings
+        models_to_check = [MemorialPage, SiteSettings]
+        for model in models_to_check:
+            for field_name, label in field_map.items():
+                if hasattr(model, field_name):
+                    # Check if the field is a ForeignKey to MediaAsset
+                    field = model._meta.get_field(field_name)
+                    if isinstance(field, (models.ForeignKey, models.OneToOneField)) and field.related_model == MediaAsset:
+                        instances = model.objects.filter(**{field_name: obj})
+                        if instances.exists():
+                            instance_links = [f'<a href="{reverse(f"admin:api_{model._meta.model_name}_change", args=[i.pk])}">{str(i)}</a>' for i in instances]
+                            usages.append(f"{label}: {', '.join(instance_links)}")
+
         gallery_pages = GalleryItem.objects.filter(image=obj).select_related('page')
         if gallery_pages.exists():
             page_links = list(set([f'<a href="{reverse("admin:api_memorialpage_change", args=[g.page.pk])}">{str(g.page)}</a>' for g in gallery_pages]))
@@ -160,14 +176,16 @@ class SiteSettingsAdmin(ModelAdmin):
         'register_background_image',
         'register_info_panel_image',
         'password_reset_background_image',
-        'mein_bereich_background_image',  # NEU
+        'mein_bereich_background_image',
     )
     fieldsets = (
         ('Gedenkseiten-Listing', {
             'fields': ('listing_title', 'listing_background_color', 'listing_background_image', 'listing_card_color', 'listing_text_color', 'listing_arrow_color')
         }),
         ('Suche', {
-            'fields': ('search_title', 'search_helper_text', 'search_background_color', 'search_background_image', 'search_text_color')
+            'fields': ('search_title', 'search_helper_text', 'search_background_color', 'search_background_image', 'search_text_color',
+                       'search_filter_button_color', 'search_filter_button_icon_color', 'search_filter_menu_color', 
+                       'search_filter_menu_text_color', 'search_filter_active_color', 'search_filter_active_text_color')
         }),
         ('Expand-Bereich (Kondolenzen etc.)', {
             'fields': ('expend_background_color', 'expend_background_image', 'expend_card_color', 'expend_text_color')
@@ -191,7 +209,6 @@ class SiteSettingsAdmin(ModelAdmin):
                 'password_reset_confirm_title', 'password_reset_confirm_subtitle'
             )
         }),
-        # NEUES FIELDSET
         ('Mein Bereich', {
             'classes': ('collapse',),
             'fields': (
@@ -404,7 +421,7 @@ class MemorialPageAdmin(ModelAdmin):
                 url = reverse('admin:api_user_change', args=(relative.pk,))
                 main_contact_str = " (Hauptansprechpartner)" if link.is_main_contact else ""
                 relationship_str = f" - {link.relationship}" if link.relationship else ""
-                html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative.get_full_name()} ansehen">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{main_contact_str}</li>'
+                html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative.get_full_name()} bearbeiten">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{main_contact_str}</li>'
         html_list += "</ul>"
         manage_url = reverse('admin:api_user_change', args=(user.pk,)) + '#familylink_set-group'
         html_button = f'<div style="margin-top: 1rem;"><a href="{manage_url}" class="button manage-button" data-modal-title="Angehörige für {user.get_full_name()} verwalten">Angehörige verwalten</a></div>'

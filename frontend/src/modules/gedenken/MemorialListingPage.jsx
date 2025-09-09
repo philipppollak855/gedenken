@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// KORRIGIERT: Vollständiger Code mit anpassbarer, innovativer Suchleiste.
+// ERWEITERT: Implementiert eine einzelne Suchleiste mit einem innovativen Filter-Button.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -32,8 +32,9 @@ const MemorialListingPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     
+    // NEU: Zustand für den Suchbegriff und den aktiven Filter
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeFilter, setActiveFilter] = useState('name');
+    const [activeFilter, setActiveFilter] = useState('name'); // 'name', 'birth_date', 'death_date', 'cemetery'
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
     const [heroCurrentPage, setHeroCurrentPage] = useState(0);
@@ -43,6 +44,7 @@ const MemorialListingPage = () => {
     const apiCalled = useRef(false);
     const filterMenuRef = useRef(null);
 
+    // Effect to close filter menu on outside click
     useEffect(() => {
         function handleClickOutside(event) {
             if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
@@ -100,6 +102,7 @@ const MemorialListingPage = () => {
     const heroPageCount = Math.ceil(sortedPages.length / 8);
     const heroPaginatedPages = sortedPages.slice(heroCurrentPage * 8, (heroCurrentPage + 1) * 8);
     
+    // ERWEITERT: Filterlogik basiert auf dem aktiven Filter
     const filteredSearchPages = useMemo(() => {
         if (!searchTerm) return [];
 
@@ -163,12 +166,6 @@ const MemorialListingPage = () => {
     const searchStyle = {
         backgroundColor: settings.search_background_color || '#e5e0da',
         color: settings.search_text_color || '#3a3a3a',
-        '--filter-button-color': settings.search_filter_button_color,
-        '--filter-button-icon-color': settings.search_filter_button_icon_color,
-        '--filter-menu-color': settings.search_filter_menu_color,
-        '--filter-menu-text-color': settings.search_filter_menu_text_color,
-        '--filter-active-color': settings.search_filter_active_color,
-        '--filter-active-text-color': settings.search_filter_active_text_color,
     };
     if (settings.search_background_image?.url) {
         searchStyle.backgroundImage = `url(${settings.search_background_image.url})`;
@@ -198,6 +195,7 @@ const MemorialListingPage = () => {
                 <div className="section-content">
                     <h2>{settings.search_title || "Verstorbenen Suche"}</h2>
                     
+                    {/* NEU: Innovative Suchleiste mit Filter-Button */}
                     <div className="innovative-search-bar" ref={filterMenuRef}>
                         <input
                             type="text"
@@ -227,7 +225,7 @@ const MemorialListingPage = () => {
                         )}
                     </div>
 
-                    <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen Suchbegriff ein. Ändern Sie bei Bedarf das Suchfeld mit dem Filter-Button."}</p>
+                    <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen Suchbegriff ein. Ã„ndern Sie bei Bedarf das Suchfeld mit dem Filter-Button."}</p>
                     <div className="memorial-grid search-results-grid">
                         {searchTerm && filteredSearchPages.length > 0 ? (
                             filteredSearchPages.map(page => (

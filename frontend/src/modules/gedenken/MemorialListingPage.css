@@ -1,310 +1,305 @@
 /* frontend/src/modules/gedenken/MemorialListingPage.css */
-/* KORRIGIERT: Vollständige CSS-Datei für das Listing und die innovative, anpassbare Suche. */
+/* ERWEITERT: Stile für die neue, innovative Suchleiste hinzugefügt. */
 
+/* Page Wrapper */
 .listing-page-wrapper {
-    width: 100%;
-    overflow-x: hidden;
+    /* No padding/margin, sections will handle their own spacing */
 }
 
+/* Base Section Styling */
 .hero-listing-section,
 .search-listing-section {
-    padding: 6rem 2rem;
-    text-align: center;
+    height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    box-sizing: border-box;
+    position: relative;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    position: relative;
-    box-sizing: border-box;
 }
 
 .section-content {
-    max-width: 1400px;
+    width: 100%;
+    max-width: 1600px;
     margin: 0 auto;
-    position: relative;
-    z-index: 2;
+    text-align: center;
 }
 
-.hero-listing-section h1,
-.search-listing-section h2 {
-    font-size: 2.5rem;
-    font-weight: 300;
-    margin-bottom: 2rem;
-    color: inherit;
+.section-content h1, .section-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    margin-top: 0;
+    margin-bottom: 1.5rem; 
 }
 
+/* Hero Section Specifics */
 .carousel-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    width: 100%;
+    position: relative;
 }
 
 .carousel-arrow {
-    background: none;
+    background: transparent;
     border: none;
     font-size: 3rem;
-    color: var(--arrow-color, #3a3a3a);
     cursor: pointer;
-    padding: 0 1rem;
-    transition: transform 0.2s ease;
-    user-select: none;
+    padding: 0 2rem;
+    z-index: 10;
+    transition: transform 0.2s;
+    color: var(--arrow-color, #3a3a3a);
 }
 
 .carousel-arrow:hover {
-    transform: scale(1.1);
+    transform: scale(1.2);
 }
 
 .memorial-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
-    flex-grow: 1;
-}
-
-.search-results-grid {
-    margin-top: 2rem;
-    min-height: 200px; 
-}
-
-.memorial-card {
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-}
-
-.memorial-card.animate-in {
-    animation: fadeIn 0.5s ease-out forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.memorial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-}
-
-.card-image-wrapper {
     width: 100%;
-    padding-top: 125%; /* 4:5 Aspect Ratio */
-    position: relative;
-    background-color: #f0f0f0;
-}
-
-.card-image-wrapper img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.memorial-card:hover .card-image-wrapper img {
-    transform: scale(1.05);
-}
-
-.card-info {
-    padding: 1rem;
-}
-
-.card-info h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.2rem;
-    font-weight: 500;
-}
-
-.card-info p {
-    margin: 0;
-    font-size: 0.9rem;
-    opacity: 0.8;
+    max-width: 1400px;
 }
 
 .scroll-down-indicator {
     position: absolute;
-    bottom: 20px;
+    bottom: 2rem;
     left: 50%;
     transform: translateX(-50%) rotate(90deg);
-    font-size: 2.5rem;
-    color: var(--arrow-color, #3a3a3a);
+    font-size: 2rem;
     cursor: pointer;
     animation: bounce 2s infinite;
-    z-index: 3;
+    color: inherit;
 }
 
 @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateX(-50%) rotate(90deg) translateY(0);
-    }
-    40% {
-        transform: translateX(-50%) rotate(90deg) translateY(-15px);
-    }
-    60% {
-        transform: translateX(-50%) rotate(90deg) translateY(-7px);
-    }
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateX(-50%) rotate(90deg) translateY(0);
+  }
+  40% {
+    transform: translateX(-50%) rotate(90deg) translateY(-20px);
+  }
+  60% {
+    transform: translateX(-50%) rotate(90deg) translateY(-10px);
+  }
 }
 
-/* Innovative Search Bar Styles */
+/* Search Section Specifics */
+.search-listing-section {
+    background-color: #e5e0da; 
+}
+
+/* NEU: Stile für die innovative Suchleiste */
 .innovative-search-bar {
     position: relative;
-    max-width: 600px;
-    margin: 2rem auto 0;
+    max-width: 700px;
+    margin: 0 auto 1rem auto;
     display: flex;
     align-items: center;
-    background-color: #fff;
-    border-radius: 50px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 5px;
 }
 
 .search-input {
-    flex-grow: 1;
-    border: none;
+    width: 100%;
+    padding: 1.1rem 4rem 1.1rem 1.5rem; /* Platz für den Button */
+    font-size: 1.1rem;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-input:focus {
     outline: none;
-    background: transparent;
-    font-size: 1rem;
-    padding: 10px 20px;
+    border-color: #8c8073;
+    box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.2);
 }
 
 .filter-button {
-    background-color: var(--filter-button-color, #f0f0f0);
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #e5e0da;
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    color: #3a3a3a;
     transition: background-color 0.2s;
 }
-.filter-button svg {
-    stroke: var(--filter-button-icon-color, #555);
-}
-
 .filter-button:hover {
-    background-color: #e0e0e0;
+    background-color: #d1c9c1;
 }
 
 .filter-menu {
     position: absolute;
     top: 110%;
     right: 0;
-    background-color: var(--filter-menu-color, #fff);
-    color: var(--filter-menu-text-color, #333);
+    background-color: white;
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    z-index: 20;
     padding: 0.5rem;
-    z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    animation: slideDown 0.2s ease-out;
+    animation: fadeInMenu 0.2s ease-out;
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes fadeInMenu {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .filter-menu button {
     background: none;
     border: none;
-    padding: 0.75rem 1.5rem;
     text-align: left;
-    width: 100%;
+    padding: 0.75rem 1.5rem;
     cursor: pointer;
     border-radius: 6px;
-    transition: background-color 0.2s, color 0.2s;
-    font-size: 0.95rem;
-    color: inherit;
+    width: 100%;
 }
 
 .filter-menu button:hover {
-    background-color: rgba(0,0,0,0.05);
+    background-color: #f4f1ee;
 }
-
 .filter-menu button.active {
-    background-color: var(--filter-active-color, #8c8073);
-    color: var(--filter-active-text-color, #fff);
+    background-color: #8c8073;
+    color: white;
     font-weight: bold;
 }
 
+
 .search-helper-text {
-    margin-top: 1rem;
+    margin-bottom: 2rem;
+    opacity: 0.8;
+}
+
+.search-results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    max-width: 1600px;
+    margin: 0 auto;
+    min-height: 350px; 
+}
+
+/* Memorial Card (used in both sections) */
+.memorial-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+    text-decoration: none;
+    color: #3a3a3a;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.hero-listing-section .memorial-card {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.hero-listing-section .memorial-card:nth-child(1) { animation-delay: 0.05s; }
+.hero-listing-section .memorial-card:nth-child(2) { animation-delay: 0.1s; }
+.hero-listing-section .memorial-card:nth-child(3) { animation-delay: 0.15s; }
+.hero-listing-section .memorial-card:nth-child(4) { animation-delay: 0.2s; }
+.hero-listing-section .memorial-card:nth-child(5) { animation-delay: 0.25s; }
+.hero-listing-section .memorial-card:nth-child(6) { animation-delay: 0.3s; }
+.hero-listing-section .memorial-card:nth-child(7) { animation-delay: 0.35s; }
+.hero-listing-section .memorial-card:nth-child(8) { animation-delay: 0.4s; }
+
+
+.memorial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.card-image-wrapper {
+    height: 260px;
+    background-color: #f0f0f0;
+}
+
+.card-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-info {
+    padding: 1rem 1.5rem;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card-info h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.25rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.card-info p {
+    margin: 0;
+    color: #6b7280;
     font-size: 0.9rem;
-    opacity: 0.7;
 }
 
 .no-results {
-    margin-top: 2rem;
-    font-size: 1.1rem;
+    grid-column: 1 / -1; 
+    text-align: center;
+    font-size: 1.2rem;
+    color: #6b7280;
+    padding: 4rem 0;
 }
 
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .memorial-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+.loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-size: 1.5rem;
+}
+.error-message { 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-size: 1.5rem;
+    color: #b91c1c; 
+}
+.spinner {
+    animation: spin 1s linear infinite;
+    border-radius: 50%;
+    width: 6rem; height: 6rem;
+    border-top: 3px solid #6b7280;
+    border-bottom: 3px solid #6b7280;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-@media (max-width: 992px) {
-    .memorial-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .carousel-container {
-        flex-direction: column;
-    }
-    .carousel-arrow {
-        transform: rotate(90deg);
-        padding: 1rem 0;
-    }
-}
-
-@media (max-width: 768px) {
-    .hero-listing-section, .search-listing-section {
-        padding: 4rem 1rem;
-    }
-    .hero-listing-section h1, .search-listing-section h2 {
-        font-size: 2rem;
-    }
-    .memorial-grid {
-        gap: 1.5rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .memorial-grid {
-        grid-template-columns: 1fr;
-    }
-    .carousel-arrow {
-        display: none; /* Arrows can be hidden on mobile for swipe gestures */
-    }
-    .innovative-search-bar {
-        width: 100%;
-    }
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 

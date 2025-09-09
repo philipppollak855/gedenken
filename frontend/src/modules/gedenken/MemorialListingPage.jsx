@@ -1,5 +1,6 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// KORRIGIERT: Greift jetzt auf die verschachtelte Bild-URL zu.
+// ERWEITERT: Zusätzliche Suchfelder für Geburts-/Sterbedatum und Friedhof hinzugefügt.
+// Die Filterlogik wurde entsprechend angepasst.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -14,7 +15,6 @@ const MemorialCard = ({ page, animate }) => {
     return (
         <Link to={`/gedenken/${page.slug}`} className={`memorial-card ${animate ? 'animate-in' : ''}`}>
             <div className="card-image-wrapper">
-                {/* KORRIGIERT: Greift auf page.main_photo.url statt page.main_photo_url zu */}
                 <img src={page.main_photo?.url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Gedenkbild von ${page.first_name}`} />
             </div>
             <div className="card-info">
@@ -32,7 +32,13 @@ const MemorialListingPage = () => {
     const [settings, setSettings] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
+    
+    // NEU: Eigene State-Variablen für jedes Suchfeld
+    const [searchName, setSearchName] = useState('');
+    const [searchBirthDate, setSearchBirthDate] = useState('');
+    const [searchDeathDate, setSearchDeathDate] = useState('');
+    const [searchCemetery, setSearchCemetery] = useState('');
+    
     const [heroCurrentPage, setHeroCurrentPage] = useState(0);
     const [animateCards, setAnimateCards] = useState(false);
 
@@ -44,11 +50,12 @@ const MemorialListingPage = () => {
         apiCalled.current = true;
 
         const fetchData = async () => {
+            // ... (bestehender Code zum Laden der Daten bleibt unverändert)
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
             try {
-                const apiUrl = process.env.REACT_APP_API_URL;
+                const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
                 if (!apiUrl) throw new Error("API URL ist nicht definiert.");
 
                 const [pagesRes, settingsRes] = await Promise.all([
@@ -85,13 +92,26 @@ const MemorialListingPage = () => {
 
     const heroPageCount = Math.ceil(sortedPages.length / 8);
     const heroPaginatedPages = sortedPages.slice(heroCurrentPage * 8, (heroCurrentPage + 1) * 8);
-
+    
+    // ERWEITERT: Filterlogik berücksichtigt nun alle Suchfelder
     const filteredSearchPages = useMemo(() => {
-        if (!searchTerm) return [];
-        return pages.filter(page =>
-            `${page.first_name} ${page.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-        ).slice(0, 5);
-    }, [pages, searchTerm]);
+        const hasSearchTerm = searchName || searchBirthDate || searchDeathDate || searchCemetery;
+        if (!hasSearchTerm) return [];
+
+        const formatDateForSearch = (dateString) => {
+            if (!dateString) return '';
+            const [year, month, day] = dateString.split('-');
+            return `${day}.${month}.${year}`;
+        };
+
+        return pages.filter(page => {
+            const nameMatch = searchName ? `${page.first_name} ${page.last_name}`.toLowerCase().includes(searchName.toLowerCase()) : true;
+            const birthDateMatch = searchBirthDate ? formatDateForSearch(page.date_of_birth).includes(searchBirthDate) : true;
+            const deathDateMatch = searchDeathDate ? formatDateForSearch(page.date_of_death).includes(searchDeathDate) : true;
+            const cemeteryMatch = searchCemetery ? (page.cemetery || '').toLowerCase().includes(searchCemetery.toLowerCase()) : true;
+            return nameMatch && birthDateMatch && deathDateMatch && cemeteryMatch;
+        }).slice(0, 12); // Zeigt bis zu 12 Ergebnisse an
+    }, [pages, searchName, searchBirthDate, searchDeathDate, searchCemetery]);
 
     const handleHeroPageChange = (direction) => {
         setAnimateCards(false);
@@ -150,20 +170,46 @@ const MemorialListingPage = () => {
             <section ref={searchSectionRef} className="search-listing-section" style={searchStyle}>
                 <div className="section-content">
                     <h2>{settings.search_title || "Verstorbenen Suche"}</h2>
-                    <input
-                        type="text"
-                        placeholder="Namen suchen..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                    <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen Namen ein, um die Gedenkseiten zu durchsuchen."}</p>
+                    
+                    {/* NEU: Suchformular mit Grid-Layout */}
+                    <div className="search-form-grid">
+                        <input
+                            type="text"
+                            placeholder="Name..."
+                            value={searchName}
+                            onChange={(e) => setSearchName(e.target.value)}
+                            className="search-input"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Geburtsdatum (TT.MM.JJJJ)..."
+                            value={searchBirthDate}
+                            onChange={(e) => setSearchBirthDate(e.target.value)}
+                            className="search-input"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Sterbedatum (TT.MM.JJJJ)..."
+                            value={searchDeathDate}
+                            onChange={(e) => setSearchDeathDate(e.target.value)}
+                            className="search-input"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Friedhof..."
+                            value={searchCemetery}
+                            onChange={(e) => setSearchCemetery(e.target.value)}
+                            className="search-input"
+                        />
+                    </div>
+
+                    <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen oder mehrere Suchbegriffe ein."}</p>
                     <div className="memorial-grid search-results-grid">
-                        {searchTerm && filteredSearchPages.length > 0 ? (
+                        {(searchName || searchBirthDate || searchDeathDate || searchCemetery) && filteredSearchPages.length > 0 ? (
                             filteredSearchPages.map(page => (
                                 <MemorialCard key={page.slug} page={page} animate={true} />
                             ))
-                        ) : searchTerm && (
+                        ) : (searchName || searchBirthDate || searchDeathDate || searchCemetery) && (
                             <p className="no-results">Keine passenden Gedenkseiten gefunden.</p>
                         )}
                     </div>
@@ -174,4 +220,3 @@ const MemorialListingPage = () => {
 };
 
 export default MemorialListingPage;
-

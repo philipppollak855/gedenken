@@ -1,18 +1,18 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// ERWEITERT: Implementiert eine einzelne Suchleiste mit einem innovativen Filter-Button.
+// ERWEITERT: Wendet die dynamischen Farben aus den Admin-Einstellungen auf die Suchleiste an.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import './MemorialListingPage.css';
 
-const MemorialCard = ({ page, animate }) => {
+const MemorialCard = ({ page, animate, cardStyle }) => {
     const formatDate = (dateString) => {
         if (!dateString) return '';
         return new Date(dateString).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
     return (
-        <Link to={`/gedenken/${page.slug}`} className={`memorial-card ${animate ? 'animate-in' : ''}`}>
+        <Link to={`/gedenken/${page.slug}`} className={`memorial-card ${animate ? 'animate-in' : ''}`} style={cardStyle}>
             <div className="card-image-wrapper">
                 <img src={page.main_photo?.url || 'https://placehold.co/400x500/EFEFEF/AAAAAA&text=Foto'} alt={`Gedenkbild von ${page.first_name}`} />
             </div>
@@ -32,9 +32,8 @@ const MemorialListingPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // NEU: Zustand für den Suchbegriff und den aktiven Filter
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeFilter, setActiveFilter] = useState('name'); // 'name', 'birth_date', 'death_date', 'cemetery'
+    const [activeFilter, setActiveFilter] = useState('name');
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
     const [heroCurrentPage, setHeroCurrentPage] = useState(0);
@@ -44,7 +43,6 @@ const MemorialListingPage = () => {
     const apiCalled = useRef(false);
     const filterMenuRef = useRef(null);
 
-    // Effect to close filter menu on outside click
     useEffect(() => {
         function handleClickOutside(event) {
             if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
@@ -102,7 +100,6 @@ const MemorialListingPage = () => {
     const heroPageCount = Math.ceil(sortedPages.length / 8);
     const heroPaginatedPages = sortedPages.slice(heroCurrentPage * 8, (heroCurrentPage + 1) * 8);
     
-    // ERWEITERT: Filterlogik basiert auf dem aktiven Filter
     const filteredSearchPages = useMemo(() => {
         if (!searchTerm) return [];
 
@@ -166,10 +163,25 @@ const MemorialListingPage = () => {
     const searchStyle = {
         backgroundColor: settings.search_background_color || '#e5e0da',
         color: settings.search_text_color || '#3a3a3a',
+        '--search-filter-button-color': settings.search_filter_button_color,
+        '--search-filter-button-icon-color': settings.search_filter_button_icon_color,
+        '--search-filter-menu-color': settings.search_filter_menu_color,
+        '--search-filter-menu-text-color': settings.search_filter_menu_text_color,
+        '--search-filter-active-color': settings.search_filter_active_color,
+        '--search-filter-active-text-color': settings.search_filter_active_text_color,
     };
     if (settings.search_background_image?.url) {
         searchStyle.backgroundImage = `url(${settings.search_background_image.url})`;
     }
+
+    const cardStyle = {
+        backgroundColor: settings.listing_card_color || '#ffffff',
+        color: settings.listing_text_color || '#3a3a3a',
+    };
+    const searchCardStyle = {
+        backgroundColor: settings.expend_card_color || '#ffffff',
+        color: settings.expend_text_color || '#3a3a3a',
+    };
 
     return (
         <div className="listing-page-wrapper">
@@ -180,7 +192,7 @@ const MemorialListingPage = () => {
                         <button onClick={() => handleHeroPageChange('prev')} className="carousel-arrow">‹</button>
                         <div className="memorial-grid">
                             {heroPaginatedPages.map(page => (
-                                <MemorialCard key={page.slug} page={page} animate={animateCards} />
+                                <MemorialCard key={page.slug} page={page} animate={animateCards} cardStyle={cardStyle} />
                             ))}
                         </div>
                         <button onClick={() => handleHeroPageChange('next')} className="carousel-arrow">›</button>
@@ -195,7 +207,6 @@ const MemorialListingPage = () => {
                 <div className="section-content">
                     <h2>{settings.search_title || "Verstorbenen Suche"}</h2>
                     
-                    {/* NEU: Innovative Suchleiste mit Filter-Button */}
                     <div className="innovative-search-bar" ref={filterMenuRef}>
                         <input
                             type="text"
@@ -225,11 +236,11 @@ const MemorialListingPage = () => {
                         )}
                     </div>
 
-                    <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen Suchbegriff ein. Ã„ndern Sie bei Bedarf das Suchfeld mit dem Filter-Button."}</p>
+                    <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen Suchbegriff ein. Ändern Sie bei Bedarf das Suchfeld mit dem Filter-Button."}</p>
                     <div className="memorial-grid search-results-grid">
                         {searchTerm && filteredSearchPages.length > 0 ? (
                             filteredSearchPages.map(page => (
-                                <MemorialCard key={page.slug} page={page} animate={true} />
+                                <MemorialCard key={page.slug} page={page} animate={true} cardStyle={searchCardStyle} />
                             ))
                         ) : searchTerm && (
                             <p className="no-results">Keine passenden Gedenkseiten gefunden.</p>
@@ -242,4 +253,3 @@ const MemorialListingPage = () => {
 };
 
 export default MemorialListingPage;
-

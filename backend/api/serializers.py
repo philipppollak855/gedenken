@@ -1,5 +1,6 @@
 # backend/api/serializers.py
-# ERWEITERT: Der SiteSettingsSerializer wurde um die neuen Felder für die Such-Filter und "Mein Bereich" erweitert.
+# ERWEITERT: Der SiteSettingsSerializer wurde auf '__all__' umgestellt,
+# um alle neuen Felder für die Such-Filter automatisch einzuschließen.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -15,9 +16,19 @@ from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class MediaAssetSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = MediaAsset
         fields = ('title', 'url', 'asset_type')
+
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if obj.file_upload and request:
+            return request.build_absolute_uri(obj.file_upload.url)
+        if obj.file_url:
+            return obj.file_url
+        return None
 
 class MemorialPageListSerializer(serializers.ModelSerializer):
     main_photo = MediaAssetSerializer(read_only=True)
@@ -266,6 +277,7 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
 
+
 # --- NEUE SERIALIZER FÜR "MEIN BEREICH" ---
 
 class ManagedGedenkseiteSerializer(serializers.ModelSerializer):
@@ -283,4 +295,3 @@ class MeinBereichDataSerializer(serializers.Serializer):
     """
     own_page = ManagedGedenkseiteSerializer(read_only=True)
     managed_pages = ManagedGedenkseiteSerializer(many=True, read_only=True)
-

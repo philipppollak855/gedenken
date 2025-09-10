@@ -16,7 +16,7 @@ from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class MediaAssetSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
+    url = serializers.ReadOnlyField()
 
     class Meta:
         model = MediaAsset

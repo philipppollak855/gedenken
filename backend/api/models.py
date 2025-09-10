@@ -40,10 +40,13 @@ class MediaAsset(models.Model):
 
     @property
     def url(self):
-        # This property will be correctly resolved by the serializer context
+        if self.file_url:
+            return self.file_url
         if self.file_upload:
-            return self.file_upload.url
-        return self.file_url
+            backend_url = getattr(settings, 'BACKEND_URL', '').rstrip('/')
+            file_url = self.file_upload.url
+            return f"{backend_url}{file_url}"
+        return None
 
     def clean(self):
         if self.file_upload and self.file_url:

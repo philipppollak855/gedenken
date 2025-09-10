@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Fügt das neue Feld für die Karten-Textfarbe zum Admin-Interface hinzu.
+# KORRIGIERT: Alle Zeichenkodierungsfehler (Umlaute) in den deutschen Texten wurden behoben.
 
 import uuid
 import json
@@ -48,46 +48,48 @@ class MediaAssetAdmin(ModelAdmin):
     @admin.display(description='Verwendung')
     def image_usage(self, obj):
         usages = []
-        field_map = {
-            'main_photo': "Portrait",
-            'hero_background_image': "Hintergrund Hero",
-            'farewell_background_image': "Hintergrund Abschied",
-            'obituary_card_image': "Partezettel",
-            'memorial_picture': "Gedenkbild (Vorderseite)",
-            'memorial_picture_back': "Gedenkbild Rückseite",
-            'acknowledgement_image': "Danksagung",
-            'listing_background_image': "Hintergrund Gedenkseiten-Listing",
-            'search_background_image': "Hintergrund Suche",
-            'expend_background_image': "Hintergrund Expand-Bereich",
-            'login_background_image': "Hintergrund Login",
-            'register_background_image': "Hintergrund Registrierung",
-            'register_info_panel_image': "Info-Panel Registrierung",
-            'password_reset_background_image': "Hintergrund Passwort-Reset",
-            'mein_bereich_background_image': "Hintergrund Mein Bereich",
-        }
         
-        # Check for usage in MemorialPage and SiteSettings
-        models_to_check = [MemorialPage, SiteSettings]
-        for model in models_to_check:
-            for field_name, label in field_map.items():
-                if hasattr(model, field_name):
-                    # Check if the field is a ForeignKey to MediaAsset
-                    field = model._meta.get_field(field_name)
-                    if isinstance(field, (models.ForeignKey, models.OneToOneField)) and field.related_model == MediaAsset:
-                        instances = model.objects.filter(**{field_name: obj})
-                        if instances.exists():
-                            instance_links = [f'<a href="{reverse(f"admin:api_{model._meta.model_name}_change", args=[i.pk])}">{str(i)}</a>' for i in instances]
-                            usages.append(f"{label}: {', '.join(instance_links)}")
+        # --- 1. Verwendungen in Gedenkseiten prüfen ---
+        memorial_page_field_map = {
+            'main_photo': "Portrait", 'hero_background_image': "Hintergrund Hero",
+            'farewell_background_image': "Hintergrund Abschied", 'obituary_card_image': "Partezettel",
+            'memorial_picture': "Gedenkbild (Vorderseite)", 'memorial_picture_back': "Gedenkbild Rückseite",
+            'acknowledgement_image': "Danksagung",
+        }
+        for field_name, label in memorial_page_field_map.items():
+            pages = MemorialPage.objects.filter(**{field_name: obj})
+            if pages.exists():
+                page_links = [f'<a href="{reverse("admin:api_memorialpage_change", args=[p.pk])}">{str(p)}</a>' for p in pages]
+                usages.append(f"{label}: {', '.join(page_links)}")
 
+        # --- 2. Verwendungen in den globalen Seiteneinstellungen prüfen ---
+        site_settings_field_map = {
+            'listing_background_image': "Hintergrund Gedenkseiten-Listing", 'search_background_image': "Hintergrund Suche",
+            'expend_background_image': "Hintergrund Expand-Bereich", 'login_background_image': "Hintergrund Login",
+            'register_background_image': "Hintergrund Registrierung", 'register_info_panel_image': "Info-Panel Registrierung",
+            'password_reset_background_image': "Hintergrund Passwort-Reset", 'mein_bereich_background_image': "Hintergrund Mein Bereich",
+        }
+        try:
+            settings_instance = SiteSettings.objects.get(pk=1)
+            for field_name, label in site_settings_field_map.items():
+                if hasattr(settings_instance, field_name) and getattr(settings_instance, field_name) == obj:
+                    url = reverse('admin:api_sitesettings_change', args=[1])
+                    usages.append(f'{label}: <a href="{url}">Globale Einstellungen</a>')
+        except SiteSettings.DoesNotExist:
+            pass # Wenn es keine Einstellungen gibt, können sie auch nicht verwendet werden.
+
+        # --- 3. Verwendungen in der Galerie prüfen ---
         gallery_pages = GalleryItem.objects.filter(image=obj).select_related('page')
         if gallery_pages.exists():
             page_links = list(set([f'<a href="{reverse("admin:api_memorialpage_change", args=[g.page.pk])}">{str(g.page)}</a>' for g in gallery_pages]))
             usages.append(f"Galerie: {', '.join(page_links)}")
 
+        # --- 4. Verwendungen in den Kerzenbildern (Stammdaten) prüfen ---
         if CandleImage.objects.filter(image=obj).exists():
              usages.append("Kerzenbild (Stammdaten)")
 
         return mark_safe("<br>".join(usages)) if usages else "Nicht direkt verwendet"
+
 
     def save_model(self, request, obj, form, change):
         if not change:

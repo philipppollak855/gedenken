@@ -1,8 +1,8 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// KORRIGIERT: Suchergebnisse werden jetzt als einzeiliges Karussell mit Paginierung dargestellt.
+// KORRIGIERT: Scrollt den Suchbereich automatisch in die Mitte, wenn die Seite über /gedenken#suche aufgerufen wird.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './MemorialListingPage.css';
 
 const MemorialCard = ({ page, animate, cardStyle }) => {
@@ -36,7 +36,7 @@ const MemorialListingPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState('name');
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
-    const [searchCurrentPage, setSearchCurrentPage] = useState(0); // NEU: Paginierung für Suche
+    const [searchCurrentPage, setSearchCurrentPage] = useState(0);
 
     const [heroCurrentPage, setHeroCurrentPage] = useState(0);
     const [animateCards, setAnimateCards] = useState(false);
@@ -44,6 +44,7 @@ const MemorialListingPage = () => {
     const searchSectionRef = useRef(null);
     const apiCalled = useRef(false);
     const filterMenuRef = useRef(null);
+    const location = useLocation(); // NEU: useLocation Hook
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -54,6 +55,16 @@ const MemorialListingPage = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [filterMenuRef]);
+    
+    // NEU: useEffect zum Scrollen bei Anker-Navigation
+    useEffect(() => {
+        if (location.hash === '#suche' && searchSectionRef.current) {
+            // Ein kleiner Timeout stellt sicher, dass die Seite vollständig gerendert ist
+            setTimeout(() => {
+                searchSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }, [location.hash, isLoading]); // Abhängig von hash und isLoading
 
     useEffect(() => {
         if (apiCalled.current) return;
@@ -132,7 +143,6 @@ const MemorialListingPage = () => {
         });
     }, [pages, searchTerm, activeFilter]);
 
-    // NEU: Logik für Such-Paginierung
     const searchResultsPerPage = 4;
     const searchPageCount = Math.ceil(filteredSearchPages.length / searchResultsPerPage);
 
@@ -210,7 +220,7 @@ const MemorialListingPage = () => {
                         <button onClick={() => handleHeroPageChange('next')} className="carousel-arrow">›</button>
                     </div>
                 </div>
-                <div className="scroll-down-indicator" onClick={() => searchSectionRef.current?.scrollIntoView({ behavior: 'smooth' })}>
+                <div className="scroll-down-indicator" onClick={() => searchSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
                     ›
                 </div>
             </section>
@@ -251,7 +261,6 @@ const MemorialListingPage = () => {
 
                     <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen Suchbegriff ein. Ändern Sie bei Bedarf das Suchfeld mit dem Filter-Button."}</p>
                     
-                    {/* GEÄNDERT: Struktur für Suchergebnis-Karussell */}
                     <div className="search-carousel-container">
                         {searchTerm && searchPageCount > 1 && (
                             <button onClick={() => handleSearchPageChange('prev')} className="carousel-arrow">‹</button>

@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// KORRIGIERT: Paginierung zum Kerzen-Auswahlmodal hinzugefügt und Bestätigungsbutton zentriert.
+// KORRIGIERT: Paginierung im Kerzen-Auswahlmodal auf 12 Kerzen pro Seite (3x4 Raster) angepasst.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -368,10 +368,11 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
 
     const handleCandleSelectionPageChange = (direction) => {
         setCandleSelectionPage(prev => {
-            if (direction === 'next') {
-                return (prev + 1) % candleSelectionPageCount;
+            const newPage = direction === 'next' ? prev + 1 : prev - 1;
+            if (newPage >= 0 && newPage < candleSelectionPageCount) {
+                return newPage;
             }
-            return (prev - 1 + candleSelectionPageCount) % candleSelectionPageCount;
+            return prev;
         });
     };
 
@@ -576,7 +577,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                     <textarea placeholder="Oder eigene kurze Botschaft" value={candleMessage} onChange={(e) => setCandleMessage(e.target.value)} maxLength="100" rows="5"></textarea>
                                 </div>
                                 <div className="candle-form-right">
-                                    <button type="button" onClick={() => handleCandleSelectionPageChange('prev')} className="candle-selection-arrow left" disabled={candleSelectionPageCount <= 1}>‹</button>
+                                    <button type="button" onClick={() => handleCandleSelectionPageChange('prev')} className="candle-selection-arrow left" disabled={candleSelectionPage === 0}>‹</button>
                                     <div className="candle-selection">
                                         {availableCandles.slice(candleSelectionPage * candlesPerPageInModal, (candleSelectionPage + 1) * candlesPerPageInModal).map(candle => (
                                             <div 
@@ -588,7 +589,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                             </div>
                                         ))}
                                     </div>
-                                    <button type="button" onClick={() => handleCandleSelectionPageChange('next')} className="candle-selection-arrow right" disabled={candleSelectionPageCount <= 1}>›</button>
+                                    <button type="button" onClick={() => handleCandleSelectionPageChange('next')} className="candle-selection-arrow right" disabled={candleSelectionPage >= candleSelectionPageCount - 1}>›</button>
                                 </div>
                             </div>
                             <div className="popup-actions">

@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// KORRIGIERT: Dem Suchbereich wurde eine ID hinzugefügt, damit er vom Header aus angesteuert werden kann.
+// KORRIGIERT: Scrollt den Suchbereich automatisch in die Mitte, wenn die Seite über /gedenken#suche aufgerufen wird.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -44,6 +44,7 @@ const MemorialListingPage = () => {
     const searchSectionRef = useRef(null);
     const apiCalled = useRef(false);
     const filterMenuRef = useRef(null);
+    const location = useLocation(); // NEU: useLocation Hook
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -54,6 +55,16 @@ const MemorialListingPage = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [filterMenuRef]);
+    
+    // NEU: useEffect zum Scrollen bei Anker-Navigation
+    useEffect(() => {
+        if (location.hash === '#suche' && searchSectionRef.current) {
+            // Ein kleiner Timeout stellt sicher, dass die Seite vollständig gerendert ist
+            setTimeout(() => {
+                searchSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }, [location.hash, isLoading]); // Abhängig von hash und isLoading
 
     useEffect(() => {
         if (apiCalled.current) return;
@@ -214,7 +225,7 @@ const MemorialListingPage = () => {
                 </div>
             </section>
 
-            <section id="verstorbenen-suche-sektion" ref={searchSectionRef} className="search-listing-section" style={searchStyle}>
+            <section ref={searchSectionRef} className="search-listing-section" style={searchStyle}>
                 <div className="section-content">
                     <h2>{settings.search_title || "Verstorbenen Suche"}</h2>
                     

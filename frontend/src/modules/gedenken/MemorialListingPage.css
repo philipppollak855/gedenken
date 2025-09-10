@@ -1,9 +1,11 @@
 /* frontend/src/modules/gedenken/MemorialListingPage.css */
-/* ZURÜCKGESETZT: Scroll-Snapping entfernt, um normales Scroll-Verhalten wiederherzustellen. */
+/* KORRIGIERT: Scroll-Snapping entfernt, um normales Scroll-Verhalten zu ermöglichen. */
 
 /* Page Wrapper */
 .listing-page-wrapper {
-    /* Kein spezielles Scroll-Verhalten hier */
+    /* scroll-snap-type: y mandatory; ENTFERNT */
+    /* overflow-y: scroll; ENTFERNT */
+    /* height: 100vh; ENTFERNT */
 }
 
 /* Base Section Styling */
@@ -19,6 +21,7 @@
     position: relative;
     background-size: cover;
     background-position: center;
+    /* scroll-snap-align: center; ENTFERNT */
 }
 
 .section-content {

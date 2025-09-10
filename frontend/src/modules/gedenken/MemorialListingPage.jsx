@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/MemorialListingPage.jsx
-// KORRIGIERT: Behebt das Anzeige-Problem von Namen und Bildern im Karussell.
+// KORRIGIERT: Suchergebnisse werden jetzt als einzeiliges Karussell mit Paginierung dargestellt.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -33,10 +33,10 @@ const MemorialListingPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // NEU: Zustand für den Suchbegriff und den aktiven Filter
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeFilter, setActiveFilter] = useState('name'); // 'name', 'birth_date', 'death_date', 'cemetery'
+    const [activeFilter, setActiveFilter] = useState('name');
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+    const [searchCurrentPage, setSearchCurrentPage] = useState(0); // NEU: Paginierung für Suche
 
     const [heroCurrentPage, setHeroCurrentPage] = useState(0);
     const [animateCards, setAnimateCards] = useState(false);
@@ -45,7 +45,6 @@ const MemorialListingPage = () => {
     const apiCalled = useRef(false);
     const filterMenuRef = useRef(null);
 
-    // Effect to close filter menu on outside click
     useEffect(() => {
         function handleClickOutside(event) {
             if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
@@ -95,6 +94,10 @@ const MemorialListingPage = () => {
         };
         fetchData();
     }, []);
+    
+    useEffect(() => {
+        setSearchCurrentPage(0);
+    }, [searchTerm, activeFilter]);
 
     const sortedPages = useMemo(() => {
         return [...pages].sort((a, b) => new Date(b.date_of_death) - new Date(a.date_of_death));
@@ -103,7 +106,6 @@ const MemorialListingPage = () => {
     const heroPageCount = Math.ceil(sortedPages.length / 8);
     const heroPaginatedPages = sortedPages.slice(heroCurrentPage * 8, (heroCurrentPage + 1) * 8);
     
-    // ERWEITERT: Filterlogik basiert auf dem aktiven Filter
     const filteredSearchPages = useMemo(() => {
         if (!searchTerm) return [];
 
@@ -127,8 +129,19 @@ const MemorialListingPage = () => {
                 default:
                     return false;
             }
-        }).slice(0, 12);
+        });
     }, [pages, searchTerm, activeFilter]);
+
+    // NEU: Logik für Such-Paginierung
+    const searchResultsPerPage = 4;
+    const searchPageCount = Math.ceil(filteredSearchPages.length / searchResultsPerPage);
+
+    const handleSearchPageChange = (direction) => {
+        setSearchCurrentPage(prev => {
+            if (direction === 'next') return (prev + 1) % searchPageCount;
+            return (prev - 1 + searchPageCount) % searchPageCount;
+        });
+    };
 
     const handleHeroPageChange = (direction) => {
         setAnimateCards(false);
@@ -206,7 +219,6 @@ const MemorialListingPage = () => {
                 <div className="section-content">
                     <h2>{settings.search_title || "Verstorbenen Suche"}</h2>
                     
-                    {/* NEU: Innovative Suchleiste mit Filter-Button */}
                     <div className="innovative-search-bar" ref={filterMenuRef}>
                         <input
                             type="text"
@@ -238,18 +250,38 @@ const MemorialListingPage = () => {
                     </div>
 
                     <p className="search-helper-text">{settings.search_helper_text || "Geben Sie einen Suchbegriff ein. Ändern Sie bei Bedarf das Suchfeld mit dem Filter-Button."}</p>
-                    <div className="memorial-grid search-results-grid">
-                        {searchTerm && filteredSearchPages.length > 0 ? (
-                            filteredSearchPages.map(page => (
-                                <MemorialCard 
-                                    key={page.slug} 
-                                    page={page} 
-                                    animate={true} 
-                                    cardStyle={cardStyle}
-                                />
-                            ))
-                        ) : searchTerm && (
-                            <p className="no-results">Keine passenden Gedenkseiten gefunden.</p>
+                    
+                    {/* GEÄNDERT: Struktur für Suchergebnis-Karussell */}
+                    <div className="search-carousel-container">
+                        {searchTerm && searchPageCount > 1 && (
+                            <button onClick={() => handleSearchPageChange('prev')} className="carousel-arrow">‹</button>
+                        )}
+                        <div className="search-results-wrapper">
+                            {searchTerm && filteredSearchPages.length > 0 ? (
+                                <div className="search-results-carousel" style={{ transform: `translateX(-${searchCurrentPage * 100}%)` }}>
+                                    {Array.from({ length: searchPageCount }).map((_, pageIndex) => (
+                                        <div className="search-results-page" key={pageIndex}>
+                                            <div className="memorial-grid search-results-grid">
+                                                {filteredSearchPages
+                                                    .slice(pageIndex * searchResultsPerPage, (pageIndex + 1) * searchResultsPerPage)
+                                                    .map(page => (
+                                                        <MemorialCard
+                                                            key={page.slug}
+                                                            page={page}
+                                                            animate={true}
+                                                            cardStyle={cardStyle}
+                                                        />
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : searchTerm ? (
+                                <p className="no-results">Keine passenden Gedenkseiten gefunden.</p>
+                            ) : null}
+                        </div>
+                        {searchTerm && searchPageCount > 1 && (
+                            <button onClick={() => handleSearchPageChange('next')} className="carousel-arrow">›</button>
                         )}
                     </div>
                 </div>

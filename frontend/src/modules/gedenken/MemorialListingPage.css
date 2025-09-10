@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/MemorialListingPage.css */
-/* ERWEITERT: Stile für die neue, innovative Suchleiste hinzugefügt. */
+/* KORRIGIERT: Suchergebnisse werden jetzt als einzeiliges Karussell mit Paginierung dargestellt. */
 
 /* Page Wrapper */
 .listing-page-wrapper {
@@ -94,7 +94,7 @@
     background-color: #e5e0da; 
 }
 
-/* NEU: Stile für die innovative Suchleiste */
+/* Innovative Suchleiste */
 .innovative-search-bar {
     position: relative;
     max-width: 700px;
@@ -185,12 +185,37 @@
     opacity: 0.8;
 }
 
-.search-results-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    max-width: 1600px;
-    margin: 0 auto;
-    min-height: 350px; 
+/* GEÄNDERT: Stile für das Suchergebnis-Karussell */
+.search-carousel-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 350px;
 }
+
+.search-results-wrapper {
+    width: 100%;
+    max-width: 1400px;
+    overflow: hidden;
+}
+
+.search-results-carousel {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.search-results-page {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+    padding: 0 1rem;
+}
+
+.search-results-grid {
+    grid-template-columns: repeat(4, 1fr);
+    min-height: auto;
+}
+
 
 /* Memorial Card (used in both sections) */
 .memorial-card {
@@ -261,7 +286,7 @@
 }
 
 .no-results {
-    grid-column: 1 / -1; 
+    width: 100%;
     text-align: center;
     font-size: 1.2rem;
     color: #6b7280;

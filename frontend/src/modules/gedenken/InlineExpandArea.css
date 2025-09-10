@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* KORRIGIERT: Abstand zwischen den Reihen im Kerzen-Karussell vergrößert. */
+/* KORRIGIERT: Layout des Kerzen-Auswahlmodals, um das Abschneiden des Rasters zu verhindern. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -338,25 +338,28 @@
 .candle-form-right {
     flex: 1;
     display: flex;
-    align-items: center;
+    flex-direction: column; /* GEÄNDERT: von align-items: center zu column */
     min-height: 0;
     position: relative;
-    padding: 0 2.5rem; /* Platz für Pfeile */
+    padding: 0;
 }
 .candle-selection {
-    height: 330px; /* Feste Höhe für 3 Reihen */
-    flex-grow: 1;
+    width: 100%;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(3, 1fr); /* GEÄNDERT: 3 Reihen */
+    grid-template-rows: repeat(3, 1fr);
     gap: 0.5rem;
     padding: 0.5rem;
 }
 
+.candle-selection-paginator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 0.5rem;
+}
+
 .candle-selection-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     background: #f0f0f0;
     border-radius: 50%;
     border: 1px solid #ddd;
@@ -370,8 +373,6 @@
     color: #555;
     z-index: 10;
 }
-.candle-selection-arrow.left { left: 0; }
-.candle-selection-arrow.right { right: 0; }
 .candle-selection-arrow:disabled {
     opacity: 0.3;
     cursor: not-allowed;

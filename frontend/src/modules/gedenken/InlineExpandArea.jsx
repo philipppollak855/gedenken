@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// KORRIGIERT: Das Kerzenbild wird in der Listenansicht nicht mehr angezeigt und das Datum korrekt formatiert.
+// KORRIGIERT: Das Layout des Kerzen-Auswahlmodals wurde in ein zweispaltiges Design geändert.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -90,7 +90,6 @@ const MemorialCandleDisplay = ({ candle, onClick, isAnniversary, isBirthday }) =
     );
 };
 
-// NEU: Komponente für die Listenansicht der Kerzen
 const MemorialCandleListItem = ({ candle, onClick, style }) => (
     <div className="inline-condolence-list-item memorial-candle-list-item" style={style} onClick={onClick}>
         <div className="inline-list-item-header">
@@ -114,7 +113,7 @@ const SearchPopup = ({ onClose, pageData, onResultClick, searchType = 'condolenc
     const handleSearch = () => {
         const filtered = dataToSearch.filter(c => {
             const nameMatch = searchName ? c.guest_name.toLowerCase().includes(searchName.toLowerCase()) : true;
-            const textMatch = searchText ? c.message.toLowerCase().includes(searchText.toLowerCase()) : true;
+            const textMatch = searchText ? (c.message || '').toLowerCase().includes(searchText.toLowerCase()) : true;
             const dateMatch = searchDate ? new Date(c.created_at).toLocaleDateString('de-DE').includes(searchDate) : true;
             return nameMatch && textMatch && dateMatch;
         });
@@ -135,7 +134,7 @@ const SearchPopup = ({ onClose, pageData, onResultClick, searchType = 'condolenc
                     {results.map(item => (
                         <div key={item.condolence_id || item.candle_id} className="search-result-card" onClick={() => onResultClick(item)}>
                             <strong>{item.guest_name}</strong>
-                            <p>{item.message.substring(0, 50)}...</p>
+                            <p>{(item.message || '').substring(0, 50)}...</p>
                             <span>{new Date(item.created_at).toLocaleDateString('de-DE')}</span>
                         </div>
                     ))}
@@ -198,7 +197,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
     const [templates, setTemplates] = useState([]);
     const [message, setMessage] = useState('');
     
-    // NEU: Zustand für Kerzen-Ansicht
     const [candleView, setCandleView] = useState('cards');
     const [showCandlePopup, setShowCandlePopup] = useState(false);
     const [candleTemplates, setCandleTemplates] = useState([]);
@@ -222,7 +220,15 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                     api('/candle-images/')
                 ]);
                 if (templatesRes.ok) setCandleTemplates(await templatesRes.json());
-                if (imagesRes.ok) setCandleImages(await imagesRes.json());
+                if (imagesRes.ok) {
+                    const imagesData = await imagesRes.json();
+                    setCandleImages(imagesData);
+                    // Automatically select the first standard candle
+                    const firstStandardCandle = imagesData.find(c => c.type === 'standard');
+                    if (firstStandardCandle) {
+                        setSelectedCandleImageId(firstStandardCandle.id);
+                    }
+                }
             } catch (error) {
                 console.error("Fehler beim Laden der Kerzen-Daten:", error);
             }
@@ -543,34 +549,34 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             {showCandlePopup && (
                 <div className="popup-overlay" onClick={() => setShowCandlePopup(false)}>
                     <div className="popup-content candle-popup" onClick={e => e.stopPropagation()}>
-                        <div className="popup-header">
-                            <h3>Gedenkkerze anzünden</h3>
-                        </div>
-                        <p className="popup-helper-text">Wählen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft für die Angehörigen.</p>
                         <form onSubmit={handleCandleSubmit} className="popup-form">
-                            <div className="popup-scrollable-content">
-                                <div className="candle-selection">
-                                    {getAvailableCandles().map(candle => (
-                                        <div 
-                                            key={candle.id} 
-                                            className={`candle-option ${selectedCandleImageId === candle.id ? 'selected' : ''}`}
-                                            onClick={() => setSelectedCandleImageId(candle.id)}
-                                        >
-                                            <img src={candle.image?.url} alt={candle.name} />
-                                            <span>{candle.name}</span>
-                                        </div>
-                                    ))}
+                            <div className="popup-header">
+                                <h3>Gedenkkerze anzünden</h3>
+                            </div>
+                            <div className="candle-popup-body">
+                                <div className="candle-form-left">
+                                    <input type="text" name="guestName" placeholder="Ihr Name oder Familie" defaultValue={(user && user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : ''} required />
+                                    <select onChange={(e) => setCandleMessage(e.target.value)} defaultValue="">
+                                        <option value="" disabled>Nachrichtenvorlage auswählen...</option>
+                                        {candleTemplates.map(t => <option key={t.title} value={t.text}>{t.title}</option>)}
+                                    </select>
+                                    <textarea placeholder="Oder eigene kurze Botschaft" value={candleMessage} onChange={(e) => setCandleMessage(e.target.value)} maxLength="100" rows="5"></textarea>
                                 </div>
-
-                                <input type="text" name="guestName" placeholder="Ihr Name oder Familie" defaultValue={(user && user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : ''} required />
-                                <select onChange={(e) => setCandleMessage(e.target.value)} defaultValue="">
-                                    <option value="" disabled>Nachrichtenvorlage auswählen...</option>
-                                    {candleTemplates.map(t => <option key={t.title} value={t.text}>{t.title}</option>)}
-                                </select>
-                                <input type="text" placeholder="Oder eigene kurze Botschaft" value={candleMessage} onChange={(e) => setCandleMessage(e.target.value)} maxLength="100" />
+                                <div className="candle-form-right">
+                                    <div className="candle-selection">
+                                        {getAvailableCandles().map(candle => (
+                                            <div 
+                                                key={candle.id} 
+                                                className={`candle-option ${selectedCandleImageId === candle.id ? 'selected' : ''}`}
+                                                onClick={() => setSelectedCandleImageId(candle.id)}
+                                            >
+                                                <img src={candle.image?.url} alt={candle.name} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                             <div className="popup-actions">
-                                <button type="button" onClick={() => setShowCandlePopup(false)}>Abbrechen</button>
                                 <button type="submit">Kerze anzünden</button>
                             </div>
                         </form>

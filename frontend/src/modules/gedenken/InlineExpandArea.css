@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* HINZUGEFÜGT: Stile für die neue Listenansicht der Gedenkkerzen. */
+/* KORRIGIERT: Layout des Kerzen-Auswahlmodals auf ein zweispaltiges Design umgestellt. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -298,33 +298,67 @@
     flex-direction: column;
     max-height: 90vh;
 }
+
 .popup-content.candle-popup {
-    max-width: 700px;
+    max-width: 800px; /* GrÃ¶ÃŸere Breite fÃ¼r das neue Layout */
 }
 .popup-header {
     flex-shrink: 0;
+    text-align: center;
+    margin-bottom: 1rem;
 }
+
 .popup-form {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
 }
-.popup-scrollable-content {
+
+/* --- NEUES ZWEISPALTIGES LAYOUT FÃœR KERZEN-POPUP --- */
+.candle-popup-body {
+    display: flex;
+    gap: 2rem;
     flex-grow: 1;
-    overflow-y: auto;
-    padding: 1rem;
-    margin: 0 -1rem;
+    min-height: 0;
+    margin-bottom: 1.5rem;
 }
-.popup-scrollable-content::-webkit-scrollbar { width: 8px; }
-.popup-scrollable-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px;}
-.popup-scrollable-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px;}
-.popup-scrollable-content::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+.candle-form-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.candle-form-left textarea {
+    flex-grow: 1;
+    resize: none;
+}
+
+.candle-form-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.candle-selection {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+/* Scrollbar fÃ¼r Kerzenauswahl */
+.candle-selection::-webkit-scrollbar { width: 6px; }
+.candle-selection::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px;}
+.candle-selection::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px;}
+.candle-selection::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
 
 .popup-content h3 {
     margin-top: 0;
-    text-align: center;
     font-family: 'Playfair Display', serif;
 }
 .popup-content input, .popup-content textarea, .popup-content select {
@@ -340,27 +374,23 @@
 }
 .popup-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center; /* Button zentrieren */
     gap: 1rem;
     margin-top: 1rem;
     flex-shrink: 0;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
 }
 .popup-actions button {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    padding: 0.75rem 2rem; /* GrÃ¶ÃŸerer Button */
+    border-radius: 50px;
     border: none;
     cursor: pointer;
+    font-size: 1.1rem;
 }
 .popup-actions button[type="submit"] {
     background-color: #8c8073;
     color: white;
 }
-.popup-actions button[type="button"] {
-    background-color: #e5e7eb;
-    color: #3a3a3a;
-}
+
 
 .lightbox-overlay {
     position: fixed;
@@ -461,7 +491,7 @@
 }
 
 .memorial-candle-image-wrapper {
-    height: 100px; /* Kleinere Höhe für das Bild */
+    height: 100px; /* Kleinere HÃ¶he fÃ¼r das Bild */
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -507,7 +537,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 4; /* Beschränkt den Text auf max. 4 Zeilen */
+    -webkit-line-clamp: 4; /* BeschrÃ¤nkt den Text auf max. 4 Zeilen */
     -webkit-box-orient: vertical;
 }
 
@@ -570,24 +600,17 @@
     color: var(--subtle-text-color);
 }
 
-.candle-selection {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1.5rem 0;
-    flex-wrap: wrap;
-}
-
 .candle-option {
     cursor: pointer;
-    text-align: center;
     border: 2px solid transparent;
     border-radius: 4px;
-    padding: 0.5rem;
+    padding: 0.25rem;
     transition: all 0.2s;
+    aspect-ratio: 2/3; /* SeitenverhÃ¤ltnis fÃ¼r einheitliche GrÃ¶ÃŸe */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
 }
 
 .candle-option:hover {
@@ -597,21 +620,20 @@
 .candle-option.selected {
     border-color: #8c8073;
     background-color: #f4f1ee;
+    box-shadow: 0 0 0 2px #8c8073;
 }
 
 .candle-option img {
-    width: 80px;
-    height: 120px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
 }
 
 .candle-option span {
-    display: block;
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
+    display: none; /* Namen ausblenden, nur Bilder anzeigen */
 }
 
-/* --- NEUE STILE FÜR KERZEN-LISTENANSICHT --- */
+/* --- NEUE STILE FÃœR KERZEN-LISTENANSICHT --- */
 .memorial-candle-list-item {
     cursor: pointer;
 }

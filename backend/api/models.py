@@ -1,5 +1,5 @@
 # backend/api/models.py
-# ERWEITERT: Das SiteSettings-Modell wurde um Felder für die anpassbare Suchleiste erweitert.
+# ERWEITERT: Das SiteSettings-Modell wurde um ein Feld für die Textfarbe der Gedenkkarten erweitert.
 
 import uuid
 from django.db import models
@@ -40,13 +40,10 @@ class MediaAsset(models.Model):
 
     @property
     def url(self):
-        if self.file_url:
-            return self.file_url
+        # This property will be correctly resolved by the serializer context
         if self.file_upload:
-            backend_url = getattr(settings, 'BACKEND_URL', '').rstrip('/')
-            file_url = self.file_upload.url
-            return f"{backend_url}{file_url}"
-        return None
+            return self.file_upload.url
+        return self.file_url
 
     def clean(self):
         if self.file_upload and self.file_url:
@@ -277,11 +274,12 @@ class SiteSettings(models.Model):
         verbose_name_plural = "Globale Design-Einstellungen"
 
     # Gedenkseiten-Listing
-    listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir trauern um")
+    listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir gedenken")
     listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     listing_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Startseite")
     listing_card_color = models.CharField("Karten-Hintergrundfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
-    listing_text_color = models.CharField("Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+    listing_text_color = models.CharField("Titel-Textfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
+    listing_card_text_color = models.CharField("Karten-Textfarbe", max_length=7, blank=True, default="#3a3a3a", help_text="Hex-Code, z.B. #3a3a3a")
     listing_arrow_color = models.CharField("Pfeilfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #8c8073", default="#8c8073")
     
     # Suche
@@ -353,6 +351,7 @@ class SiteSettings(models.Model):
     mein_bereich_sidebar_active_text_color = models.CharField("Sidebar Aktiv Text", max_length=7, blank=True, default="#FFFFFF")
     mein_bereich_dashboard_title = models.CharField("Dashboard Titel", max_length=100, blank=True, default="Willkommen in Ihrem Bereich")
     mein_bereich_dashboard_subtitle = models.TextField("Dashboard Untertitel", blank=True, default="Hier haben Sie den Überblick und Zugriff auf alle Ihre persönlichen Daten, Vorsorge-Dokumente und Gedenkseiten.")
+
 
     def __str__(self):
         return "Globale Design-Einstellungen"

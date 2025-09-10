@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/MemorialListingPage.css */
-/* ERWEITERT: Verwendet jetzt CSS-Variablen für die Farben des neuen Filter-Menüs. */
+/* ERWEITERT: Stile für die neue, innovative Suchleiste hinzugefügt. */
 
 /* Page Wrapper */
 .listing-page-wrapper {
@@ -9,7 +9,7 @@
 /* Base Section Styling */
 .hero-listing-section,
 .search-listing-section {
-    height: calc(100vh - 80px);
+    min-height: calc(100vh - 80px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -94,7 +94,7 @@
     background-color: #e5e0da; 
 }
 
-/* NEU: Stile fÃ¼r die innovative Suchleiste */
+/* NEU: Stile für die innovative Suchleiste */
 .innovative-search-bar {
     position: relative;
     max-width: 700px;
@@ -105,7 +105,7 @@
 
 .search-input {
     width: 100%;
-    padding: 1.1rem 4rem 1.1rem 1.5rem; /* Platz fÃ¼r den Button */
+    padding: 1.1rem 4rem 1.1rem 1.5rem; /* Platz für den Button */
     font-size: 1.1rem;
     border-radius: 999px;
     border: 1px solid #ccc;
@@ -124,7 +124,7 @@
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    background-color: var(--search-filter-button-color, #e5e0da);
+    background-color: #e5e0da;
     border: none;
     border-radius: 50%;
     width: 45px;
@@ -133,18 +133,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--search-filter-button-icon-color, #3a3a3a);
+    color: #3a3a3a;
     transition: background-color 0.2s;
 }
 .filter-button:hover {
-    background-color: var(--search-filter-active-color, #d1c9c1);
+    background-color: #d1c9c1;
 }
 
 .filter-menu {
     position: absolute;
     top: 110%;
     right: 0;
-    background-color: var(--search-filter-menu-color, white);
+    background-color: white;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     z-index: 20;
@@ -167,15 +167,15 @@
     cursor: pointer;
     border-radius: 6px;
     width: 100%;
-    color: var(--search-filter-menu-text-color, #3a3a3a);
+    transition: background-color 0.2s;
 }
 
 .filter-menu button:hover {
-    background-color: rgba(0,0,0,0.05);
+    background-color: #f4f1ee;
 }
 .filter-menu button.active {
-    background-color: var(--search-filter-active-color, #8c8073);
-    color: var(--search-filter-active-text-color, white);
+    background-color: #8c8073;
+    color: white;
     font-weight: bold;
 }
 
@@ -194,10 +194,12 @@
 
 /* Memorial Card (used in both sections) */
 .memorial-card {
+    background-color: white;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     overflow: hidden;
     text-decoration: none;
+    color: #3a3a3a;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     display: flex;
     flex-direction: column;
@@ -248,12 +250,14 @@
     margin: 0 0 0.25rem 0;
     font-size: 1.25rem;
     font-family: 'Playfair Display', serif;
+    color: inherit; /* Nimmt die Farbe vom Elternelement an */
 }
 
 .card-info p {
     margin: 0;
-    color: #6b7280;
+    color: inherit; /* Nimmt die Farbe vom Elternelement an */
     font-size: 0.9rem;
+    opacity: 0.8;
 }
 
 .no-results {
@@ -301,3 +305,4 @@
     transform: translateY(0);
   }
 }
+

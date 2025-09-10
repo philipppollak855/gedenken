@@ -1,5 +1,5 @@
 # backend/api/admin.py
-# ERWEITERT: Das "Suche"-Fieldset in den SiteSettings wurde um die neuen Farboptionen für den Filter erweitert.
+# ERWEITERT: Fügt das neue Feld für die Karten-Textfarbe zum Admin-Interface hinzu.
 
 import uuid
 import json
@@ -14,7 +14,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path, reverse
 from django.shortcuts import render
-from django.db.models import Q, Count, ForeignKey, TextField, CharField
+from django.db.models import Q, Count, ForeignKey
 from django.utils.safestring import mark_safe
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem,
@@ -180,7 +180,7 @@ class SiteSettingsAdmin(ModelAdmin):
     )
     fieldsets = (
         ('Gedenkseiten-Listing', {
-            'fields': ('listing_title', 'listing_background_color', 'listing_background_image', 'listing_card_color', 'listing_text_color', 'listing_arrow_color')
+            'fields': ('listing_title', 'listing_background_color', 'listing_background_image', 'listing_card_color', 'listing_text_color', 'listing_card_text_color', 'listing_arrow_color')
         }),
         ('Suche', {
             'fields': ('search_title', 'search_helper_text', 'search_background_color', 'search_background_image', 'search_text_color',
@@ -421,7 +421,7 @@ class MemorialPageAdmin(ModelAdmin):
                 url = reverse('admin:api_user_change', args=(relative.pk,))
                 main_contact_str = " (Hauptansprechpartner)" if link.is_main_contact else ""
                 relationship_str = f" - {link.relationship}" if link.relationship else ""
-                html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative.get_full_name()} bearbeiten">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{main_contact_str}</li>'
+                html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative.get_full_name()} ansehen">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{main_contact_str}</li>'
         html_list += "</ul>"
         manage_url = reverse('admin:api_user_change', args=(user.pk,)) + '#familylink_set-group'
         html_button = f'<div style="margin-top: 1rem;"><a href="{manage_url}" class="button manage-button" data-modal-title="Angehörige für {user.get_full_name()} verwalten">Angehörige verwalten</a></div>'

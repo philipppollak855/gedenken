@@ -1,6 +1,6 @@
 # backend/api/serializers.py
-# ERWEITERT: Der SiteSettingsSerializer wurde auf '__all__' umgestellt,
-# um alle neuen Felder für die Such-Filter automatisch einzuschließen.
+# ERWEITERT: Der SiteSettingsSerializer wird um das neue Feld 'listing_card_text_color' erweitert.
+# KORRIGIERT: Stellt sicher, dass MediaAssetSerializer die volle URL zurückgibt.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -277,9 +277,6 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
         validated_data.pop('reporter_password2')
         return ReleaseRequest.objects.create(**validated_data)
 
-
-# --- NEUE SERIALIZER FÜR "MEIN BEREICH" ---
-
 class ManagedGedenkseiteSerializer(serializers.ModelSerializer):
     """
     Ein einfacher Serializer, der nur die nötigsten Infos für die Liste
@@ -295,3 +292,4 @@ class MeinBereichDataSerializer(serializers.Serializer):
     """
     own_page = ManagedGedenkseiteSerializer(read_only=True)
     managed_pages = ManagedGedenkseiteSerializer(many=True, read_only=True)
+

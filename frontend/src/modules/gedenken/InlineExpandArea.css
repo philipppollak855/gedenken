@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* KORRIGIERT: Das Layout der Kerzen-Karten wurde verbessert, um die Nachricht hervorzuheben und Bildgrößen zu vereinheitlichen. Das Raster wurde stabilisiert, um Überlappungen zu verhindern. */
+/* KORRIGIERT: Das Raster fÃ¼r Gedenkkerzen wurde an das der Kondolenzen angeglichen (4x2), um HÃ¶henprobleme zu beheben. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -435,8 +435,8 @@
     flex: 0 0 100%;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Stabile 5 Spalten */
-    grid-template-rows: repeat(2, 1fr);    /* GEÄNDERT: von 3 auf 2 Reihen, um die Höhe anzugleichen */
+    grid-template-columns: repeat(4, 1fr); /* GEÃ„NDERT: von 5 auf 4 Spalten */
+    grid-template-rows: repeat(2, 1fr);    /* Stabile 2 Reihen, passend zu Kondolenzen */
     gap: 1.5rem;
     padding: 0 4rem;
     height: 100%;
@@ -461,7 +461,7 @@
 }
 
 .memorial-candle-image-wrapper {
-    height: 100px; /* Kleinere Höhe für das Bild */
+    height: 100px; /* Kleinere HÃ¶he fÃ¼r das Bild */
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -507,7 +507,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 4; /* Beschränkt den Text auf max. 4 Zeilen */
+    -webkit-line-clamp: 4; /* BeschrÃ¤nkt den Text auf max. 4 Zeilen */
     -webkit-box-orient: vertical;
 }
 

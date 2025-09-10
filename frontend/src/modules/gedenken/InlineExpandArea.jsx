@@ -1,5 +1,6 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// KORRIGIERT: Das Layout des Kerzen-Auswahl-Modals wurde angepasst, um ein Scrollen bei vielen Kerzen zu ermöglichen.
+// KORRIGIERT: Die Paginierungslogik fÃ¼r Kerzen wurde an die der Kondolenzen angepasst (8 pro Seite).
+// AKTUALISIERT: Bild-URLs werden jetzt aus der neuen, verschachtelten API-Struktur geladen (z.B. item.image.url).
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -42,7 +43,7 @@ const CondolenceCard = ({ condolence, onClick, style }) => {
                 </p>
                 {isOverflowing && (
                     <div className="read-more-fade">
-                        klicken für weiterlesen
+                        klicken fÃ¼r weiterlesen
                     </div>
                 )}
             </div>
@@ -126,7 +127,7 @@ const SearchPopup = ({ onClose, pageData, onResultClick }) => {
                     ))}
                 </div>
                 <div className="popup-actions">
-                    <button type="button" onClick={onClose}>Schließen</button>
+                    <button type="button" onClick={onClose}>SchlieÃŸen</button>
                 </div>
             </div>
         </div>
@@ -145,7 +146,7 @@ const TimelineView = ({ timelineEvents, style }) => (
                 </div>
             ))
         ) : (
-            <p className="placeholder-content">Es wurden noch keine Einträge in der Chronik hinterlegt.</p>
+            <p className="placeholder-content">Es wurden noch keine EintrÃ¤ge in der Chronik hinterlegt.</p>
         )}
     </div>
 );
@@ -169,7 +170,7 @@ const StoriesView = ({ style }) => (
     <div className="inline-list-view" style={style}>
         <div className="placeholder-content">
             <h3>Geschichten & Anekdoten</h3>
-            <p>Hier könnten bald geteilte Geschichten und Erinnerungen erscheinen.</p>
+            <p>Hier kÃ¶nnten bald geteilte Geschichten und Erinnerungen erscheinen.</p>
         </div>
     </div>
 );
@@ -238,7 +239,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             : (currentPage - 1 + pageCount) % pageCount;
         setCurrentPage(newPage);
     };
-    const candlesPerPage = 15;
+    
+    // KORRIGIERT: Anzahl der Kerzen pro Seite auf 8 gesetzt
+    const candlesPerPage = 8;
     const candlePageCount = Math.ceil((pageData.candles?.length || 0) / candlesPerPage);
 
     const handleCandlePageChange = (direction) => {
@@ -264,8 +267,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
 
             if (response.ok) {
                 const successMessage = pageData.condolence_moderation === 'not_moderated'
-                    ? "Vielen Dank für Ihren Eintrag."
-                    : "Vielen Dank für Ihren Eintrag. Er wird nach Prüfung freigeschaltet.";
+                    ? "Vielen Dank fÃ¼r Ihren Eintrag."
+                    : "Vielen Dank fÃ¼r Ihren Eintrag. Er wird nach PrÃ¼fung freigeschaltet.";
                 alert(successMessage);
                 
                 setShowCondolencePopup(false);
@@ -284,7 +287,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
     const handleCandleSubmit = async (e) => {
         e.preventDefault();
         if (!selectedCandleImageId) {
-            alert("Bitte wählen Sie eine Kerze aus.");
+            alert("Bitte wÃ¤hlen Sie eine Kerze aus.");
             return;
         }
         const body = {
@@ -295,7 +298,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
         try {
             const response = await api(`/memorial-pages/${pageData.slug}/candles/`, { method: 'POST', body: JSON.stringify(body) });
             if (response.ok) {
-                alert("Vielen Dank, Ihre Kerze wurde angezündet.");
+                alert("Vielen Dank, Ihre Kerze wurde angezÃ¼ndet.");
                 setShowCandlePopup(false);
                 setCandleMessage('');
                 setSelectedCandleImageId(null);
@@ -304,7 +307,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                 alert(`Fehler: ${JSON.stringify(await response.json())}`);
             }
         } catch (error) {
-            console.error("Fehler beim Anzünden der Kerze:", error);
+            console.error("Fehler beim AnzÃ¼nden der Kerze:", error);
         }
     };
     
@@ -410,7 +413,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                              <button onClick={() => handleCandlePageChange('next')} className="inline-nav-arrow right" disabled={candlePageCount <= 1}><ArrowIcon direction="right" /></button>
                         </div>
                         <div className="inline-action-button-container">
-                            <button className="inline-prominent-button" onClick={() => setShowCandlePopup(true)}>Gedenkkerze anzünden</button>
+                            <button className="inline-prominent-button" onClick={() => setShowCandlePopup(true)}>Gedenkkerze anzÃ¼nden</button>
                         </div>
                     </>
                 );
@@ -433,7 +436,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                     />
                                 )
                             ) : (
-                                <p className="placeholder-content">Derzeit sind keine öffentlichen Termine bekannt.</p>
+                                <p className="placeholder-content">Derzeit sind keine Ã¶ffentlichen Termine bekannt.</p>
                             )}
                         </div>
                     </>
@@ -482,13 +485,13 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                 required 
                             />
                             <select onChange={handleTemplateChange} defaultValue="">
-                                <option value="" disabled>Oder eine Vorlage auswählen...</option>
+                                <option value="" disabled>Oder eine Vorlage auswÃ¤hlen...</option>
                                 {templates.map(t => <option key={t.title} value={t.text}>{t.title}</option>)}
                             </select>
                             <textarea 
                                 name="message" 
                                 rows="8" 
-                                placeholder="Ihre persönliche Nachricht..." 
+                                placeholder="Ihre persÃ¶nliche Nachricht..." 
                                 value={message} 
                                 onChange={(e) => setMessage(e.target.value)} 
                                 required
@@ -506,9 +509,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                 <div className="popup-overlay" onClick={() => setShowCandlePopup(false)}>
                     <div className="popup-content candle-popup" onClick={e => e.stopPropagation()}>
                         <div className="popup-header">
-                            <h3>Gedenkkerze anzünden</h3>
-                            <p className="popup-helper-text">Wählen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft für die Angehörigen.</p>
+                            <h3>Gedenkkerze anzÃ¼nden</h3>
                         </div>
+                        <p className="popup-helper-text">WÃ¤hlen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft fÃ¼r die AngehÃ¶rigen.</p>
                         <form onSubmit={handleCandleSubmit} className="popup-form">
                             <div className="popup-scrollable-content">
                                 <div className="candle-selection">
@@ -523,16 +526,17 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                         </div>
                                     ))}
                                 </div>
+
                                 <input type="text" name="guestName" placeholder="Ihr Name oder Familie" defaultValue={(user && user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : ''} required />
                                 <select onChange={(e) => setCandleMessage(e.target.value)} defaultValue="">
-                                    <option value="" disabled>Nachrichtenvorlage auswählen...</option>
+                                    <option value="" disabled>Nachrichtenvorlage auswÃ¤hlen...</option>
                                     {candleTemplates.map(t => <option key={t.title} value={t.text}>{t.title}</option>)}
                                 </select>
                                 <input type="text" placeholder="Oder eigene kurze Botschaft" value={candleMessage} onChange={(e) => setCandleMessage(e.target.value)} maxLength="100" />
                             </div>
                             <div className="popup-actions">
                                 <button type="button" onClick={() => setShowCandlePopup(false)}>Abbrechen</button>
-                                <button type="submit">Kerze anzünden</button>
+                                <button type="submit">Kerze anzÃ¼nden</button>
                             </div>
                         </form>
                     </div>
@@ -542,7 +546,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             {selectedCondolence && (
                  <div className="lightbox-overlay" onClick={() => setSelectedCondolence(null)}>
                     <div className="lightbox-content" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setSelectedCondolence(null)} className="close-button lightbox-close">×</button>
+                        <button onClick={() => setSelectedCondolence(null)} className="close-button lightbox-close">Ã—</button>
                         <div className="lightbox-main">
                             <h3>{selectedCondolence.guest_name}</h3>
                             <p>{selectedCondolence.message}</p>
@@ -555,14 +559,14 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             {selectedCandle && (
                  <div className="lightbox-overlay" onClick={() => setSelectedCandle(null)}>
                     <div className="lightbox-content candle-lightbox" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setSelectedCandle(null)} className="close-button lightbox-close">×</button>
+                        <button onClick={() => setSelectedCandle(null)} className="close-button lightbox-close">Ã—</button>
                         <div className="candle-lightbox-image-wrapper">
                             <img src={selectedCandle.candle_image?.image?.url} alt="Gedenkkerze" />
                         </div>
                         <div className="lightbox-main">
                             <h3>{selectedCandle.guest_name}</h3>
                             <p>{selectedCandle.message || "In stillem Gedenken."}</p>
-                            <span>Angezündet am {new Date(selectedCandle.created_at).toLocaleString('de-DE')}</span>
+                            <span>AngezÃ¼ndet am {new Date(selectedCandle.created_at).toLocaleString('de-DE')}</span>
                         </div>
                     </div>
                 </div>

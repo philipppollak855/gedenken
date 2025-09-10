@@ -1,6 +1,5 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// ERWEITERT: Fügt die Logik und das Markup für die neuen Sektionen "Chronik", "Galerie" und "Geschichten" hinzu.
-// AKTUALISIERT: Bild-URLs werden jetzt aus der neuen, verschachtelten API-Struktur geladen (z.B. item.image.url).
+// KORRIGIERT: Das Layout des Kerzen-Auswahl-Modals wurde angepasst, um ein Scrollen bei vielen Kerzen zu ermöglichen.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -506,29 +505,31 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             {showCandlePopup && (
                 <div className="popup-overlay" onClick={() => setShowCandlePopup(false)}>
                     <div className="popup-content candle-popup" onClick={e => e.stopPropagation()}>
-                        <h3>Gedenkkerze anzünden</h3>
-                        <p className="popup-helper-text">Wählen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft für die Angehörigen.</p>
-                        <form onSubmit={handleCandleSubmit}>
-                            <div className="candle-selection">
-                                {getAvailableCandles().map(candle => (
-                                    <div 
-                                        key={candle.id} 
-                                        className={`candle-option ${selectedCandleImageId === candle.id ? 'selected' : ''}`}
-                                        onClick={() => setSelectedCandleImageId(candle.id)}
-                                    >
-                                        <img src={candle.image?.url} alt={candle.name} />
-                                        <span>{candle.name}</span>
-                                    </div>
-                                ))}
+                        <div className="popup-header">
+                            <h3>Gedenkkerze anzünden</h3>
+                            <p className="popup-helper-text">Wählen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft für die Angehörigen.</p>
+                        </div>
+                        <form onSubmit={handleCandleSubmit} className="popup-form">
+                            <div className="popup-scrollable-content">
+                                <div className="candle-selection">
+                                    {getAvailableCandles().map(candle => (
+                                        <div 
+                                            key={candle.id} 
+                                            className={`candle-option ${selectedCandleImageId === candle.id ? 'selected' : ''}`}
+                                            onClick={() => setSelectedCandleImageId(candle.id)}
+                                        >
+                                            <img src={candle.image?.url} alt={candle.name} />
+                                            <span>{candle.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <input type="text" name="guestName" placeholder="Ihr Name oder Familie" defaultValue={(user && user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : ''} required />
+                                <select onChange={(e) => setCandleMessage(e.target.value)} defaultValue="">
+                                    <option value="" disabled>Nachrichtenvorlage auswählen...</option>
+                                    {candleTemplates.map(t => <option key={t.title} value={t.text}>{t.title}</option>)}
+                                </select>
+                                <input type="text" placeholder="Oder eigene kurze Botschaft" value={candleMessage} onChange={(e) => setCandleMessage(e.target.value)} maxLength="100" />
                             </div>
-
-                            <input type="text" name="guestName" placeholder="Ihr Name oder Familie" defaultValue={(user && user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : ''} required />
-                            <select onChange={(e) => setCandleMessage(e.target.value)} defaultValue="">
-                                <option value="" disabled>Nachrichtenvorlage auswählen...</option>
-                                {candleTemplates.map(t => <option key={t.title} value={t.text}>{t.title}</option>)}
-                            </select>
-                            <input type="text" placeholder="Oder eigene kurze Botschaft" value={candleMessage} onChange={(e) => setCandleMessage(e.target.value)} maxLength="100" />
-                            
                             <div className="popup-actions">
                                 <button type="button" onClick={() => setShowCandlePopup(false)}>Abbrechen</button>
                                 <button type="submit">Kerze anzünden</button>
@@ -579,4 +580,3 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
 };
 
 export default InlineExpandArea;
-

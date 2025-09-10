@@ -1,5 +1,6 @@
 # backend/api/models.py
-# ERWEITERT: Das SiteSettings-Modell wurde um ein Feld für die Textfarbe der Gedenkkarten erweitert.
+# KORRIGIERT: Die 'url' Eigenschaft im MediaAsset-Modell stellt sicher,
+# dass immer eine vollstÃ¤ndige URL mit dem BACKEND_URL-PrÃ¤fix erstellt wird.
 
 import uuid
 from django.db import models
@@ -11,9 +12,9 @@ from django.conf import settings
 
 class MediaFolder(models.Model):
     name = models.CharField("Ordnername", max_length=100)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', verbose_name="Übergeordneter Ordner")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', verbose_name="Ãœbergeordneter Ordner")
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
-    memorial_page = models.OneToOneField('MemorialPage', on_delete=models.SET_NULL, null=True, blank=True, related_name='media_folder', verbose_name="Zugehörige Gedenkseite")
+    memorial_page = models.OneToOneField('MemorialPage', on_delete=models.SET_NULL, null=True, blank=True, related_name='media_folder', verbose_name="ZugehÃ¶rige Gedenkseite")
 
     class Meta:
         verbose_name = "Medien-Ordner"
@@ -52,7 +53,7 @@ class MediaAsset(models.Model):
         if self.file_upload and self.file_url:
             raise ValidationError("Bitte geben Sie entweder einen Datei-Upload oder eine URL an, nicht beides.")
         if not self.file_upload and not self.file_url:
-            raise ValidationError("Sie müssen entweder eine Datei hochladen oder eine URL angeben.")
+            raise ValidationError("Sie mÃ¼ssen entweder eine Datei hochladen oder eine URL angeben.")
 
     def __str__(self):
         return self.title
@@ -64,7 +65,7 @@ class MediaAsset(models.Model):
 
 class EventLocation(models.Model):
     name = models.CharField("Name des Ortes", max_length=255, help_text="z.B. 'Pfarrkirche St. Stephan'")
-    address = models.CharField("Adresse (Straße, PLZ, Ort)", max_length=255)
+    address = models.CharField("Adresse (StraÃŸe, PLZ, Ort)", max_length=255)
 
     def __str__(self):
         return self.name
@@ -81,7 +82,7 @@ class UserManager(BaseUserManager):
             extra_fields['id'] = user_id
         
         if not email:
-            raise ValueError('Eine E-Mail-Adresse ist erforderlich (außer für die Rolle "Verstorbener").')
+            raise ValueError('Eine E-Mail-Adresse ist erforderlich (auÃŸer fÃ¼r die Rolle "Verstorbener").')
             
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
@@ -102,7 +103,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         
     class Role(models.TextChoices):
         VORSORGENDER = 'vorsorgender', 'Vorsorgender'
-        ANGEHOERIGER = 'angehoeriger', 'Angehöriger'
+        ANGEHOERIGER = 'angehoeriger', 'AngehÃ¶riger'
         VERSTORBENER = 'verstorbener', 'Verstorbener'
         GAST = 'gast', 'Gast'
         ADMINISTRATOR = 'administrator', 'Administrator'
@@ -113,11 +114,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField("Nachname", max_length=100, blank=True)
     role = models.CharField("Rolle", max_length=20, choices=Role.choices, default=Role.VORSORGENDER)
     consent_admin_access = models.BooleanField("Zustimmung Admin-Zugriff", default=False)
-    profile_completeness = models.IntegerField("Profil-Vollständigkeit", default=0)
+    profile_completeness = models.IntegerField("Profil-VollstÃ¤ndigkeit", default=0)
     is_active = models.BooleanField("Aktiv", default=True)
     is_staff = models.BooleanField("Mitarbeiter", default=False)
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
-    updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
+    updated_at = models.DateTimeField("Zuletzt geÃ¤ndert", auto_now=True)
     
     objects = UserManager()
     USERNAME_FIELD = 'email'
@@ -126,7 +127,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def clean(self):
         super().clean()
         if self.role != self.Role.VERSTORBENER and not self.email:
-            raise ValidationError({'email': 'Eine E-Mail-Adresse ist für diese Benutzerrolle erforderlich.'})
+            raise ValidationError({'email': 'Eine E-Mail-Adresse ist fÃ¼r diese Benutzerrolle erforderlich.'})
 
     def save(self, *args, **kwargs):
         if not self.email and self.role == self.Role.VERSTORBENER:
@@ -149,7 +150,7 @@ class MemorialPage(models.Model):
         ARCHIVED = 'archived', 'Archiviert'
 
     class BackgroundSize(models.TextChoices):
-        COVER = 'cover', 'Gestreckt (füllend)'
+        COVER = 'cover', 'Gestreckt (fÃ¼llend)'
         CONTAIN = 'contain', 'Eingepasst (komplett sichtbar)'
 
     class AcknowledgementType(models.TextChoices):
@@ -186,16 +187,16 @@ class MemorialPage(models.Model):
     donation_link = models.URLField("Spenden-Link", max_length=255, blank=True)
     donation_bank_details = models.TextField("Spenden-Bankverbindung", blank=True)
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
-    updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
+    updated_at = models.DateTimeField("Zuletzt geÃ¤ndert", auto_now=True)
     farewell_background_color = models.CharField("Hintergrundfarbe Abschied", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     farewell_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Abschied")
     farewell_background_size = models.CharField("Anpassung Hintergrundbild Abschied", max_length=10, choices=BackgroundSize.choices, default=BackgroundSize.COVER)
-    farewell_text_inverted = models.BooleanField("Textfarbe im Abschiedsbereich umkehren (für helle Hintergründe)", default=False)
+    farewell_text_inverted = models.BooleanField("Textfarbe im Abschiedsbereich umkehren (fÃ¼r helle HintergrÃ¼nde)", default=False)
     obituary_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Partezettel Bild")
     
     show_memorial_picture = models.BooleanField("Gedenkbild anzeigen", default=True)
     memorial_picture = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild Vorderseite")
-    memorial_picture_back = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild Rückseite")
+    memorial_picture_back = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Gedenkbild RÃ¼ckseite")
     
     acknowledgement_type = models.CharField("Art der Danksagung", max_length=5, choices=AcknowledgementType.choices, default=AcknowledgementType.NONE)
     acknowledgement_text = models.TextField("Danksagung (Text)", blank=True)
@@ -277,7 +278,7 @@ class SiteSettings(models.Model):
         verbose_name_plural = "Globale Design-Einstellungen"
 
     # Gedenkseiten-Listing
-    listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir gedenken")
+    listing_title = models.CharField("Titel Ã¼ber den Gedenkkarten", max_length=100, blank=True, default="Wir gedenken")
     listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")
     listing_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Startseite")
     listing_card_color = models.CharField("Karten-Hintergrundfarbe", max_length=7, blank=True, help_text="Hex-Code, z.B. #ffffff")
@@ -293,10 +294,10 @@ class SiteSettings(models.Model):
     search_text_color = models.CharField("Textfarbe Suche", max_length=7, blank=True, help_text="Hex-Code, z.B. #3a3a3a")
     search_filter_button_color = models.CharField("Filter-Button Hintergrund", max_length=7, blank=True, default="#e5e0da")
     search_filter_button_icon_color = models.CharField("Filter-Button Icon", max_length=7, blank=True, default="#3a3a3a")
-    search_filter_menu_color = models.CharField("Filter-Menü Hintergrund", max_length=7, blank=True, default="#FFFFFF")
-    search_filter_menu_text_color = models.CharField("Filter-Menü Text", max_length=7, blank=True, default="#3a3a3a")
-    search_filter_active_color = models.CharField("Filter-Menü Aktiv Hintergrund", max_length=7, blank=True, default="#8c8073")
-    search_filter_active_text_color = models.CharField("Filter-Menü Aktiv Text", max_length=7, blank=True, default="#FFFFFF")
+    search_filter_menu_color = models.CharField("Filter-MenÃ¼ Hintergrund", max_length=7, blank=True, default="#FFFFFF")
+    search_filter_menu_text_color = models.CharField("Filter-MenÃ¼ Text", max_length=7, blank=True, default="#3a3a3a")
+    search_filter_active_color = models.CharField("Filter-MenÃ¼ Aktiv Hintergrund", max_length=7, blank=True, default="#8c8073")
+    search_filter_active_text_color = models.CharField("Filter-MenÃ¼ Aktiv Text", max_length=7, blank=True, default="#FFFFFF")
 
 
     # Expand-Bereich
@@ -307,11 +308,11 @@ class SiteSettings(models.Model):
 
     # Globale Schriften
     font_family = models.CharField("Schriftart", max_length=100, choices=FontChoices.choices, default=FontChoices.ROBOTO)
-    font_size_base = models.CharField("Grundschriftgröße", max_length=10, blank=True, default="14px", help_text="CSS-Wert, z.B. 14px oder 0.9rem")
+    font_size_base = models.CharField("GrundschriftgrÃ¶ÃŸe", max_length=10, blank=True, default="14px", help_text="CSS-Wert, z.B. 14px oder 0.9rem")
 
     # Login-Seite
-    login_title = models.CharField("Titel Login-Seite", max_length=100, blank=True, default="Willkommen zurück")
-    login_subtitle = models.TextField("Untertitel Login-Seite", blank=True, default="Melden Sie sich an, um auf Ihr persönliches Vorsorge-Dashboard zuzugreifen und Gedenkseiten zu verwalten.")
+    login_title = models.CharField("Titel Login-Seite", max_length=100, blank=True, default="Willkommen zurÃ¼ck")
+    login_subtitle = models.TextField("Untertitel Login-Seite", blank=True, default="Melden Sie sich an, um auf Ihr persÃ¶nliches Vorsorge-Dashboard zuzugreifen und Gedenkseiten zu verwalten.")
     login_background_color = models.CharField("Hintergrundfarbe Login", max_length=7, blank=True, help_text="Hex-Code")
     login_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild Login")
     login_card_background_color = models.CharField("Hintergrundfarbe Login-Karte", max_length=7, blank=True, default="#FFFFFF")
@@ -331,9 +332,9 @@ class SiteSettings(models.Model):
     register_button_color = models.CharField("Button-Farbe Registrierung", max_length=7, blank=True, default="#8c8073")
     register_button_text_color = models.CharField("Button-Textfarbe Registrierung", max_length=7, blank=True, default="#FFFFFF")
 
-    # Passwort zurücksetzen
+    # Passwort zurÃ¼cksetzen
     password_reset_title = models.CharField("Titel (Passwort anfordern)", max_length=100, blank=True, default="Passwort vergessen?")
-    password_reset_subtitle = models.TextField("Untertitel (Passwort anfordern)", blank=True, default="Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link, um Ihr Passwort zurückzusetzen.")
+    password_reset_subtitle = models.TextField("Untertitel (Passwort anfordern)", blank=True, default="Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link, um Ihr Passwort zurÃ¼ckzusetzen.")
     password_reset_background_color = models.CharField("Hintergrundfarbe", max_length=7, blank=True, help_text="Hex-Code")
     password_reset_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild")
     password_reset_card_background_color = models.CharField("Karten-Hintergrundfarbe", max_length=7, blank=True, default="#FFFFFF")
@@ -342,7 +343,7 @@ class SiteSettings(models.Model):
     password_reset_button_text_color = models.CharField("Button-Textfarbe", max_length=7, blank=True, default="#FFFFFF")
     
     password_reset_confirm_title = models.CharField("Titel (Neues Passwort)", max_length=100, blank=True, default="Neues Passwort festlegen")
-    password_reset_confirm_subtitle = models.TextField("Untertitel (Neues Passwort)", blank=True, default="Bitte geben Sie Ihr neues Passwort ein und bestätigen Sie es.")
+    password_reset_confirm_subtitle = models.TextField("Untertitel (Neues Passwort)", blank=True, default="Bitte geben Sie Ihr neues Passwort ein und bestÃ¤tigen Sie es.")
 
     # Mein Bereich
     mein_bereich_background_color = models.CharField("Hintergrundfarbe (Seite)", max_length=7, blank=True, default="#f4f1ee")
@@ -353,7 +354,7 @@ class SiteSettings(models.Model):
     mein_bereich_sidebar_active_background_color = models.CharField("Sidebar Aktiv Hintergrund", max_length=7, blank=True, default="#8c8073")
     mein_bereich_sidebar_active_text_color = models.CharField("Sidebar Aktiv Text", max_length=7, blank=True, default="#FFFFFF")
     mein_bereich_dashboard_title = models.CharField("Dashboard Titel", max_length=100, blank=True, default="Willkommen in Ihrem Bereich")
-    mein_bereich_dashboard_subtitle = models.TextField("Dashboard Untertitel", blank=True, default="Hier haben Sie den Überblick und Zugriff auf alle Ihre persönlichen Daten, Vorsorge-Dokumente und Gedenkseiten.")
+    mein_bereich_dashboard_subtitle = models.TextField("Dashboard Untertitel", blank=True, default="Hier haben Sie den Ãœberblick und Zugriff auf alle Ihre persÃ¶nlichen Daten, Vorsorge-Dokumente und Gedenkseiten.")
 
 
     def __str__(self):
@@ -383,7 +384,7 @@ class CondolenceTemplate(models.Model):
         verbose_name_plural = "Kondolenz-Vorlagen"
         ordering = ['title']
 
-    title = models.CharField("Titel (für Dropdown)", max_length=100, unique=True)
+    title = models.CharField("Titel (fÃ¼r Dropdown)", max_length=100, unique=True)
     text = models.TextField("Vorlagen-Text")
 
     def __str__(self):
@@ -392,7 +393,7 @@ class CondolenceTemplate(models.Model):
 class DigitalLegacyItem(models.Model):
     class Meta:
         verbose_name = "Digitaler Nachlass Eintrag"
-        verbose_name_plural = "Digitale Nachlass Einträge"
+        verbose_name_plural = "Digitale Nachlass EintrÃ¤ge"
     item_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='legacy_items', verbose_name="Benutzer")
     category = models.CharField("Kategorie", max_length=100)
@@ -402,12 +403,12 @@ class DigitalLegacyItem(models.Model):
     instruction = models.TextField("Anweisung")
     notes = models.TextField("Notizen", blank=True)
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
-    updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
+    updated_at = models.DateTimeField("Zuletzt geÃ¤ndert", auto_now=True)
 
 class FinancialItem(models.Model):
     class Meta:
         verbose_name = "Finanz-Eintrag"
-        verbose_name_plural = "Finanz-Einträge"
+        verbose_name_plural = "Finanz-EintrÃ¤ge"
     item_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='financial_items', verbose_name="Benutzer")
     product_type = models.CharField("Produktart", max_length=100)
@@ -419,7 +420,7 @@ class FinancialItem(models.Model):
 class InsuranceItem(models.Model):
     class Meta:
         verbose_name = "Versicherungs-Eintrag"
-        verbose_name_plural = "Versicherungs-Einträge"
+        verbose_name_plural = "Versicherungs-EintrÃ¤ge"
     item_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='insurance_items', verbose_name="Benutzer")
     insurance_type = models.CharField("Versicherungsart", max_length=100)
@@ -431,13 +432,13 @@ class InsuranceItem(models.Model):
 class ContractItem(models.Model):
     class Meta:
         verbose_name = "Vertrags-Eintrag"
-        verbose_name_plural = "Vertrags-Einträge"
+        verbose_name_plural = "Vertrags-EintrÃ¤ge"
     item_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contract_items', verbose_name="Benutzer")
     contract_type = models.CharField("Vertragsart", max_length=100)
     provider = models.CharField("Anbieter", max_length=255)
     contract_number = models.CharField("Vertragsnummer", max_length=255, blank=True)
-    notice_period = models.CharField("Kündigungsfrist", max_length=255, blank=True)
+    notice_period = models.CharField("KÃ¼ndigungsfrist", max_length=255, blank=True)
     notes = models.TextField("Notizen", blank=True)
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
 
@@ -457,18 +458,18 @@ class Document(models.Model):
 class LastWishes(models.Model):
     class Meta:
         verbose_name = "Letzter Wunsch"
-        verbose_name_plural = "Letzte Wünsche"
+        verbose_name_plural = "Letzte WÃ¼nsche"
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='last_wishes', verbose_name="Benutzer")
     burial_type = models.CharField("Bestattungsart", max_length=100, blank=True)
     burial_location = models.CharField("Bestattungsort", max_length=255, blank=True)
     ceremony_type = models.CharField("Zeremonie-Art", max_length=100, blank=True)
     ceremony_details = models.TextField("Details zur Zeremonie", blank=True)
-    music_wishes = models.JSONField("Musikwünsche", default=list, blank=True)
-    speaker_wishes = models.TextField("Rednerwünsche", blank=True)
-    flower_wishes = models.TextField("Blumenwünsche", blank=True)
-    updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
+    music_wishes = models.JSONField("MusikwÃ¼nsche", default=list, blank=True)
+    speaker_wishes = models.TextField("RednerwÃ¼nsche", blank=True)
+    flower_wishes = models.TextField("BlumenwÃ¼nsche", blank=True)
+    updated_at = models.DateTimeField("Zuletzt geÃ¤ndert", auto_now=True)
     def __str__(self):
-        return f"Letzte Wünsche von {self.user.email}"
+        return f"Letzte WÃ¼nsche von {self.user.email}"
 
 class TimelineEvent(models.Model):
     class Meta:
@@ -485,7 +486,7 @@ class TimelineEvent(models.Model):
 class GalleryItem(models.Model):
     class Meta:
         verbose_name = "Galerie-Eintrag"
-        verbose_name_plural = "Galerie-Einträge"
+        verbose_name_plural = "Galerie-EintrÃ¤ge"
         ordering = ['-created_at']
     item_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     page = models.ForeignKey(MemorialPage, on_delete=models.CASCADE, related_name='gallery_items')
@@ -511,7 +512,7 @@ class CandleImage(models.Model):
         verbose_name_plural = "Kerzenbilder (Sammlung)"
 
 class CandleMessageTemplate(models.Model):
-    title = models.CharField("Titel (für Dropdown)", max_length=100, unique=True)
+    title = models.CharField("Titel (fÃ¼r Dropdown)", max_length=100, unique=True)
     text = models.CharField("Vorlagen-Text", max_length=100)
 
     def __str__(self):
@@ -531,9 +532,9 @@ class MemorialCandle(models.Model):
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='candles')
     guest_name = models.CharField("Name des Gastes", max_length=255, blank=True)
     message = models.CharField("Kurze Nachricht", max_length=100, blank=True)
-    is_private = models.BooleanField("Nur für Familie", default=False)
+    is_private = models.BooleanField("Nur fÃ¼r Familie", default=False)
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
-    candle_image = models.ForeignKey(CandleImage, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Ausgewähltes Kerzenbild")
+    candle_image = models.ForeignKey(CandleImage, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="AusgewÃ¤hltes Kerzenbild")
 
 class ReleaseRequest(models.Model):
     class Meta:
@@ -559,13 +560,13 @@ class ReleaseRequest(models.Model):
 
 class FamilyLink(models.Model):
     class Meta:
-        verbose_name = "Angehörigen-Verknüpfung"
-        verbose_name_plural = "Angehörigen-Verknüpfungen"
+        verbose_name = "AngehÃ¶rigen-VerknÃ¼pfung"
+        verbose_name_plural = "AngehÃ¶rigen-VerknÃ¼pfungen"
         unique_together = ('deceased_user', 'relative_user')
         
     link_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     deceased_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_deceased', verbose_name="Verstorbener")
-    relative_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_relative', verbose_name="Angehöriger")
+    relative_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_relative', verbose_name="AngehÃ¶riger")
     relationship = models.CharField("Verwandtschaftsbezeichnung", max_length=100, blank=True, help_text="z.B. Sohn, Ehefrau, Guter Freund")
     is_main_contact = models.BooleanField("Hauptansprechpartner", default=False)
     
@@ -574,10 +575,10 @@ class FamilyLink(models.Model):
     can_edit_precaution_data = models.BooleanField("Vorsorge bearbeiten", default=False)
     
     power_of_attorney = models.FileField("Vollmacht (PDF, JPG, PNG)", upload_to='power_of_attorney/%Y/%m/', blank=True, null=True)
-    is_validated_by_admin = models.BooleanField("Vom Admin validiert", default=False, help_text="Admin bestätigt die Berechtigung (auch ohne Vollmacht-Upload).")
+    is_validated_by_admin = models.BooleanField("Vom Admin validiert", default=False, help_text="Admin bestÃ¤tigt die Berechtigung (auch ohne Vollmacht-Upload).")
 
     def __str__(self):
-        return f"{self.relative_user} ist Angehöriger von {self.deceased_user}"
+        return f"{self.relative_user} ist AngehÃ¶riger von {self.deceased_user}"
 
 class MemorialEvent(models.Model):
     class Meta:
@@ -585,9 +586,9 @@ class MemorialEvent(models.Model):
         verbose_name_plural = "Termine"
         ordering = ['date']
 
-    page = models.ForeignKey(MemorialPage, on_delete=models.CASCADE, related_name='events', verbose_name="Zugehörige Gedenkseite")
+    page = models.ForeignKey(MemorialPage, on_delete=models.CASCADE, related_name='events', verbose_name="ZugehÃ¶rige Gedenkseite")
     
-    is_public = models.BooleanField("Termin öffentlich anzeigen", default=True, help_text="Wenn deaktiviert, ist der gesamte Termin nicht sichtbar.")
+    is_public = models.BooleanField("Termin Ã¶ffentlich anzeigen", default=True, help_text="Wenn deaktiviert, ist der gesamte Termin nicht sichtbar.")
     title = models.CharField("Titel des Termins", max_length=255, help_text="z.B. 'Trauerfeier', 'Beisetzung', 'Rosenkranz'")
     date = models.DateTimeField("Datum und Uhrzeit")
     
@@ -601,12 +602,12 @@ class MemorialEvent(models.Model):
     condolence_note = models.CharField("Hinweis zu Kondolenzbezeugungen", max_length=255, blank=True, default="Von Beileidsbezeugungen am Grab bitten wir Abstand zu nehmen.", help_text="z.B. 'Von Beileidsbezeugungen am Grab bitten wir Abstand zu nehmen.'")
 
     show_donation_info = models.BooleanField("Spendeninformationen anzeigen", default=False)
-    donation_for = models.CharField("Spende zugunsten von", max_length=255, blank=True, help_text="z.B. 'Krebshilfe Österreich', 'Tierheim St. Pölten'")
+    donation_for = models.CharField("Spende zugunsten von", max_length=255, blank=True, help_text="z.B. 'Krebshilfe Ã–sterreich', 'Tierheim St. PÃ¶lten'")
     
-    description = models.TextField("Weitere Details", blank=True, help_text="Platz für zusätzliche Informationen, z.B. zum anschließenden Leichenschmaus.")
+    description = models.TextField("Weitere Details", blank=True, help_text="Platz fÃ¼r zusÃ¤tzliche Informationen, z.B. zum anschlieÃŸenden Leichenschmaus.")
 
     def __str__(self):
-        return f"{self.title} für {self.page.first_name} {self.page.last_name}"
+        return f"{self.title} fÃ¼r {self.page.first_name} {self.page.last_name}"
 
 class EventAttendance(models.Model):
     class Meta:

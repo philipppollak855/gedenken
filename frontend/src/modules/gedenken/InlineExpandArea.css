@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* KORRIGIERT: Layout des Kerzen-Auswahlmodals auf ein zweispaltiges Design umgestellt. */
+/* KORRIGIERT: Paginierung zum Kerzen-Auswahlmodal hinzugefügt und Button zentriert. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -300,7 +300,7 @@
 }
 
 .popup-content.candle-popup {
-    max-width: 800px; /* GrÃ¶ÃŸere Breite fÃ¼r das neue Layout */
+    max-width: 800px; /* Größere Breite für das neue Layout */
 }
 .popup-header {
     flex-shrink: 0;
@@ -315,13 +315,13 @@
     min-height: 0;
 }
 
-/* --- NEUES ZWEISPALTIGES LAYOUT FÃœR KERZEN-POPUP --- */
+/* --- NEUES ZWEISPALTIGES LAYOUT FÜR KERZEN-POPUP --- */
 .candle-popup-body {
     display: flex;
     gap: 2rem;
     flex-grow: 1;
     min-height: 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .candle-form-left {
@@ -339,22 +339,43 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    position: relative; /* Für Paginierungs-Pfeile */
+    padding: 0 2.5rem; /* Platz für Pfeile */
 }
 .candle-selection {
+    height: 400px; /* Feste Höhe, um Layout zu stabilisieren */
     flex-grow: 1;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
     gap: 0.5rem;
-    overflow-y: auto;
     border: 1px solid #eee;
     padding: 0.5rem;
     border-radius: 4px;
 }
-/* Scrollbar fÃ¼r Kerzenauswahl */
-.candle-selection::-webkit-scrollbar { width: 6px; }
-.candle-selection::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px;}
-.candle-selection::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px;}
-.candle-selection::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+.candle-selection-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #f0f0f0;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #555;
+}
+.candle-selection-arrow.left { left: 0; }
+.candle-selection-arrow.right { right: 0; }
+.candle-selection-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
 
 
 .popup-content h3 {
@@ -378,13 +399,16 @@
     gap: 1rem;
     margin-top: 1rem;
     flex-shrink: 0;
+    width: 100%;
 }
 .popup-actions button {
-    padding: 0.75rem 2rem; /* GrÃ¶ÃŸerer Button */
+    padding: 0.75rem 2rem; /* Größerer Button */
     border-radius: 50px;
     border: none;
     cursor: pointer;
     font-size: 1.1rem;
+    width: 100%;
+    max-width: 400px;
 }
 .popup-actions button[type="submit"] {
     background-color: #8c8073;
@@ -491,7 +515,7 @@
 }
 
 .memorial-candle-image-wrapper {
-    height: 100px; /* Kleinere HÃ¶he fÃ¼r das Bild */
+    height: 100px; 
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -502,7 +526,7 @@
 .memorial-candle img {
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain; /* Verhindert Verzerrung von GIFs/PNGs */
+    object-fit: contain; 
 }
 
 .candle-info {
@@ -537,7 +561,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 4; /* BeschrÃ¤nkt den Text auf max. 4 Zeilen */
+    -webkit-line-clamp: 4; 
     -webkit-box-orient: vertical;
 }
 
@@ -546,7 +570,7 @@
     font-weight: 500;
 }
 
-.candle-info span { /* Datum */
+.candle-info span { 
     font-size: 0.8rem;
     color: var(--subtle-text-color);
     margin-top: 0.75rem;
@@ -606,7 +630,7 @@
     border-radius: 4px;
     padding: 0.25rem;
     transition: all 0.2s;
-    aspect-ratio: 2/3; /* SeitenverhÃ¤ltnis fÃ¼r einheitliche GrÃ¶ÃŸe */
+    aspect-ratio: 2/3; 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -630,18 +654,18 @@
 }
 
 .candle-option span {
-    display: none; /* Namen ausblenden, nur Bilder anzeigen */
+    display: none; 
 }
 
-/* --- NEUE STILE FÃœR KERZEN-LISTENANSICHT --- */
+/* --- NEUE STILE FÜR KERZEN-LISTENANSICHT --- */
 .memorial-candle-list-item {
     cursor: pointer;
 }
 .candle-list-item-content {
-    /* Diese Klasse wird nicht mehr benÃ¶tigt, da das Bild entfernt wurde. */
+   
 }
 .candle-list-item-image {
-   display: none; /* Versteckt das Bild in der Listenansicht */
+   display: none; 
 }
 .memorial-candle-list-item p {
     margin: 0;

@@ -205,6 +205,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
     const [candleMessage, setCandleMessage] = useState('');
     const [selectedCandle, setSelectedCandle] = useState(null);
     const [candleCurrentPage, setCandleCurrentPage] = useState(0);
+    const [candleSelectionPage, setCandleSelectionPage] = useState(0);
 
     const [showSearchPopup, setShowSearchPopup] = useState(false);
     const [searchType, setSearchType] = useState('condolences');
@@ -360,6 +361,19 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
         if (isBirthday) return candleImages.filter(c => c.type === 'birthday' || c.type === 'standard');
         if (isAnniversary) return candleImages.filter(c => c.type === 'anniversary' || c.type === 'standard');
         return candleImages.filter(c => c.type === 'standard');
+    };
+    
+    const availableCandles = getAvailableCandles();
+    const candlesPerPageInModal = 16;
+    const candleSelectionPageCount = Math.ceil(availableCandles.length / candlesPerPageInModal);
+
+    const handleCandleSelectionPageChange = (direction) => {
+        setCandleSelectionPage(prev => {
+            if (direction === 'next') {
+                return (prev + 1) % candleSelectionPageCount;
+            }
+            return (prev - 1 + candleSelectionPageCount) % candleSelectionPageCount;
+        });
     };
 
     const areaStyle = {
@@ -563,8 +577,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                     <textarea placeholder="Oder eigene kurze Botschaft" value={candleMessage} onChange={(e) => setCandleMessage(e.target.value)} maxLength="100" rows="5"></textarea>
                                 </div>
                                 <div className="candle-form-right">
+                                    <button type="button" onClick={() => handleCandleSelectionPageChange('prev')} className="candle-selection-arrow left" disabled={candleSelectionPageCount <= 1}>‹</button>
                                     <div className="candle-selection">
-                                        {getAvailableCandles().map(candle => (
+                                        {availableCandles.slice(candleSelectionPage * candlesPerPageInModal, (candleSelectionPage + 1) * candlesPerPageInModal).map(candle => (
                                             <div 
                                                 key={candle.id} 
                                                 className={`candle-option ${selectedCandleImageId === candle.id ? 'selected' : ''}`}
@@ -574,6 +589,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                             </div>
                                         ))}
                                     </div>
+                                    <button type="button" onClick={() => handleCandleSelectionPageChange('next')} className="candle-selection-arrow right" disabled={candleSelectionPageCount <= 1}>›</button>
                                 </div>
                             </div>
                             <div className="popup-actions">

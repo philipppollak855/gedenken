@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* KORRIGIERT: Das Layout der Kerzen-Karten wurde verbessert, um die Nachricht hervorzuheben und Bildgrößen zu vereinheitlichen. */
+/* KORRIGIERT: Das Layout der Kerzen-Karten wurde verbessert, um die Nachricht hervorzuheben und Bildgrößen zu vereinheitlichen. Das Raster wurde stabilisiert, um Überlappungen zu verhindern. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -430,12 +430,13 @@
     color: #666;
 }
 
+/* --- KORRIGIERTES KERZEN-LAYOUT --- */
 .memorial-candle-page {
     flex: 0 0 100%;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    grid-auto-rows: 1fr;
+    grid-template-columns: repeat(5, 1fr); /* Stabile 5 Spalten */
+    grid-template-rows: repeat(3, 1fr);    /* Stabile 3 Reihen */
     gap: 1.5rem;
     padding: 0 4rem;
     height: 100%;
@@ -460,7 +461,7 @@
 }
 
 .memorial-candle-image-wrapper {
-    height: 140px;
+    height: 100px; /* Kleinere HÃ¶he fÃ¼r das Bild */
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -471,12 +472,7 @@
 .memorial-candle img {
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
-    transition: transform 0.2s;
-}
-
-.memorial-candle:hover img {
-    transform: scale(1.05);
+    object-fit: contain; /* Verhindert Verzerrung von GIFs/PNGs */
 }
 
 .candle-info {
@@ -488,6 +484,9 @@
 
 .candle-main-content {
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .candle-info strong {
@@ -505,10 +504,10 @@
     margin: 0;
     font-size: 1rem;
     line-height: 1.4;
-    -webkit-line-clamp: 4;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
+    -webkit-line-clamp: 4; /* BeschrÃ¤nkt den Text auf max. 4 Zeilen */
     -webkit-box-orient: vertical;
 }
 
@@ -517,7 +516,7 @@
     font-weight: 500;
 }
 
-.candle-info span {
+.candle-info span { /* Datum */
     font-size: 0.8rem;
     color: var(--subtle-text-color);
     margin-top: 0.75rem;

@@ -1,6 +1,5 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// KORRIGIERT: Umlaut- & Zeichenfehler behoben (z.B. Ã— zu ×).
-// HINZUGEFÃœGT: Listenansicht und Suchfunktion fÃ¼r Gedenkkerzen, analog zur Kondolenz-Ansicht.
+// KORRIGIERT: Das Kerzenbild wird in der Listenansicht nicht mehr angezeigt und das Datum korrekt formatiert.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -96,12 +95,9 @@ const MemorialCandleListItem = ({ candle, onClick, style }) => (
     <div className="inline-condolence-list-item memorial-candle-list-item" style={style} onClick={onClick}>
         <div className="inline-list-item-header">
             <h4>{candle.guest_name}</h4>
-            <span>{new Date(candle.created_at).toLocaleString('de-DE')}</span>
+            <span>{new Date(candle.created_at).toLocaleDateString('de-DE')}</span>
         </div>
-        <div className="candle-list-item-content">
-            <img src={candle.candle_image?.image?.url || 'https://placehold.co/100x150/ffffff/3a3a3a?text=?'} alt="Gedenkkerze" className="candle-list-item-image" />
-            <p>{candle.message || "In stillem Gedenken."}</p>
-        </div>
+        <p>{candle.message || "In stillem Gedenken."}</p>
     </div>
 );
 

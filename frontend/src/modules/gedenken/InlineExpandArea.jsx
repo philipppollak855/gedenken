@@ -1,6 +1,6 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// KORRIGIERT: Die Paginierungslogik fÃ¼r Kerzen wurde an die der Kondolenzen angepasst (8 pro Seite).
-// AKTUALISIERT: Bild-URLs werden jetzt aus der neuen, verschachtelten API-Struktur geladen (z.B. item.image.url).
+// KORRIGIERT: Umlaut- & Zeichenfehler behoben (z.B. Ã— zu ×).
+// HINZUGEFÃœGT: Listenansicht und Suchfunktion fÃ¼r Gedenkkerzen, analog zur Kondolenz-Ansicht.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -43,7 +43,7 @@ const CondolenceCard = ({ condolence, onClick, style }) => {
                 </p>
                 {isOverflowing && (
                     <div className="read-more-fade">
-                        klicken fÃ¼r weiterlesen
+                        klicken für weiterlesen
                     </div>
                 )}
             </div>
@@ -91,14 +91,32 @@ const MemorialCandleDisplay = ({ candle, onClick, isAnniversary, isBirthday }) =
     );
 };
 
-const SearchPopup = ({ onClose, pageData, onResultClick }) => {
+// NEU: Komponente für die Listenansicht der Kerzen
+const MemorialCandleListItem = ({ candle, onClick, style }) => (
+    <div className="inline-condolence-list-item memorial-candle-list-item" style={style} onClick={onClick}>
+        <div className="inline-list-item-header">
+            <h4>{candle.guest_name}</h4>
+            <span>{new Date(candle.created_at).toLocaleString('de-DE')}</span>
+        </div>
+        <div className="candle-list-item-content">
+            <img src={candle.candle_image?.image?.url || 'https://placehold.co/100x150/ffffff/3a3a3a?text=?'} alt="Gedenkkerze" className="candle-list-item-image" />
+            <p>{candle.message || "In stillem Gedenken."}</p>
+        </div>
+    </div>
+);
+
+
+const SearchPopup = ({ onClose, pageData, onResultClick, searchType = 'condolences' }) => {
     const [searchName, setSearchName] = useState('');
     const [searchText, setSearchText] = useState('');
     const [searchDate, setSearchDate] = useState('');
     const [results, setResults] = useState([]);
+    
+    const dataToSearch = searchType === 'candles' ? pageData.candles : pageData.condolences;
+    const placeholderText = searchType === 'candles' ? 'Nachricht' : 'Text';
 
     const handleSearch = () => {
-        const filtered = pageData.condolences.filter(c => {
+        const filtered = dataToSearch.filter(c => {
             const nameMatch = searchName ? c.guest_name.toLowerCase().includes(searchName.toLowerCase()) : true;
             const textMatch = searchText ? c.message.toLowerCase().includes(searchText.toLowerCase()) : true;
             const dateMatch = searchDate ? new Date(c.created_at).toLocaleDateString('de-DE').includes(searchDate) : true;
@@ -113,21 +131,21 @@ const SearchPopup = ({ onClose, pageData, onResultClick }) => {
                 <h3>Eintrag suchen</h3>
                 <div className="search-form">
                     <input type="text" value={searchName} onChange={e => setSearchName(e.target.value)} placeholder="Nach Name suchen..." />
-                    <input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Nach Text suchen..." />
+                    <input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder={`Nach ${placeholderText} suchen...`} />
                     <input type="text" value={searchDate} onChange={e => setSearchDate(e.target.value)} placeholder="Nach Datum suchen (TT.MM.JJJJ)..." />
                     <button onClick={handleSearch}>Suchen</button>
                 </div>
                 <div className="search-results">
-                    {results.map(condolence => (
-                        <div key={condolence.condolence_id} className="search-result-card" onClick={() => onResultClick(condolence)}>
-                            <strong>{condolence.guest_name}</strong>
-                            <p>{condolence.message.substring(0, 50)}...</p>
-                            <span>{new Date(condolence.created_at).toLocaleDateString('de-DE')}</span>
+                    {results.map(item => (
+                        <div key={item.condolence_id || item.candle_id} className="search-result-card" onClick={() => onResultClick(item)}>
+                            <strong>{item.guest_name}</strong>
+                            <p>{item.message.substring(0, 50)}...</p>
+                            <span>{new Date(item.created_at).toLocaleDateString('de-DE')}</span>
                         </div>
                     ))}
                 </div>
                 <div className="popup-actions">
-                    <button type="button" onClick={onClose}>SchlieÃŸen</button>
+                    <button type="button" onClick={onClose}>Schließen</button>
                 </div>
             </div>
         </div>
@@ -146,7 +164,7 @@ const TimelineView = ({ timelineEvents, style }) => (
                 </div>
             ))
         ) : (
-            <p className="placeholder-content">Es wurden noch keine EintrÃ¤ge in der Chronik hinterlegt.</p>
+            <p className="placeholder-content">Es wurden noch keine Einträge in der Chronik hinterlegt.</p>
         )}
     </div>
 );
@@ -170,7 +188,7 @@ const StoriesView = ({ style }) => (
     <div className="inline-list-view" style={style}>
         <div className="placeholder-content">
             <h3>Geschichten & Anekdoten</h3>
-            <p>Hier kÃ¶nnten bald geteilte Geschichten und Erinnerungen erscheinen.</p>
+            <p>Hier könnten bald geteilte Geschichten und Erinnerungen erscheinen.</p>
         </div>
     </div>
 );
@@ -184,6 +202,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
     const [templates, setTemplates] = useState([]);
     const [message, setMessage] = useState('');
     
+    // NEU: Zustand für Kerzen-Ansicht
+    const [candleView, setCandleView] = useState('cards');
     const [showCandlePopup, setShowCandlePopup] = useState(false);
     const [candleTemplates, setCandleTemplates] = useState([]);
     const [candleImages, setCandleImages] = useState([]);
@@ -193,6 +213,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
     const [candleCurrentPage, setCandleCurrentPage] = useState(0);
 
     const [showSearchPopup, setShowSearchPopup] = useState(false);
+    const [searchType, setSearchType] = useState('condolences');
 
     const api = useApi();
     const { user } = useContext(AuthContext);
@@ -240,7 +261,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
         setCurrentPage(newPage);
     };
     
-    // KORRIGIERT: Anzahl der Kerzen pro Seite auf 8 gesetzt
     const candlesPerPage = 8;
     const candlePageCount = Math.ceil((pageData.candles?.length || 0) / candlesPerPage);
 
@@ -267,8 +287,8 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
 
             if (response.ok) {
                 const successMessage = pageData.condolence_moderation === 'not_moderated'
-                    ? "Vielen Dank fÃ¼r Ihren Eintrag."
-                    : "Vielen Dank fÃ¼r Ihren Eintrag. Er wird nach PrÃ¼fung freigeschaltet.";
+                    ? "Vielen Dank für Ihren Eintrag."
+                    : "Vielen Dank für Ihren Eintrag. Er wird nach Prüfung freigeschaltet.";
                 alert(successMessage);
                 
                 setShowCondolencePopup(false);
@@ -287,7 +307,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
     const handleCandleSubmit = async (e) => {
         e.preventDefault();
         if (!selectedCandleImageId) {
-            alert("Bitte wÃ¤hlen Sie eine Kerze aus.");
+            alert("Bitte wählen Sie eine Kerze aus.");
             return;
         }
         const body = {
@@ -298,7 +318,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
         try {
             const response = await api(`/memorial-pages/${pageData.slug}/candles/`, { method: 'POST', body: JSON.stringify(body) });
             if (response.ok) {
-                alert("Vielen Dank, Ihre Kerze wurde angezÃ¼ndet.");
+                alert("Vielen Dank, Ihre Kerze wurde angezündet.");
                 setShowCandlePopup(false);
                 setCandleMessage('');
                 setSelectedCandleImageId(null);
@@ -307,7 +327,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                 alert(`Fehler: ${JSON.stringify(await response.json())}`);
             }
         } catch (error) {
-            console.error("Fehler beim AnzÃ¼nden der Kerze:", error);
+            console.error("Fehler beim Anzünden der Kerze:", error);
         }
     };
     
@@ -315,9 +335,17 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
         setSelectedCondolence(condolence);
     };
 
-    const handleSearchResultClick = (condolence) => {
+    const openCandleLightbox = (candle) => {
+        setSelectedCandle(candle);
+    }
+    
+    const handleSearchResultClick = (item) => {
         setShowSearchPopup(false);
-        openCondolenceLightbox(condolence);
+        if (searchType === 'condolences') {
+            openCondolenceLightbox(item);
+        } else {
+            openCandleLightbox(item);
+        }
     };
 
     const today = new Date();
@@ -350,7 +378,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                             <div>
                                 <button onClick={() => setCondolenceView('cards')} className={condolenceView === 'cards' ? 'active' : ''}>Karten</button>
                                 <button onClick={() => setCondolenceView('list')} className={condolenceView === 'list' ? 'active' : ''}>Liste</button>
-                                <button onClick={() => setShowSearchPopup(true)} className="nav-button">Eintrag suchen</button>
+                                <button onClick={() => { setSearchType('condolences'); setShowSearchPopup(true); }} className="nav-button">Eintrag suchen</button>
                             </div>
                         </div>
                         {condolenceView === 'cards' ? (
@@ -385,35 +413,46 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                     <>
                         <div className="inline-view-controls">
                             <h3>Gedenkkerzen ({pageData.candle_count || 0})</h3>
-                        </div>
-                        <div className="inline-cards-view">
-                             <button onClick={() => handleCandlePageChange('prev')} className="inline-nav-arrow left" disabled={candlePageCount <= 1}><ArrowIcon direction="left" /></button>
-                             <div className="inline-condolence-carousel" style={{ transform: `translateX(-${candleCurrentPage * 100}%)` }}>
-                                 {Array.from({ length: candlePageCount || 1 }).map((_, pageIndex) => (
-                                     <div className="memorial-candle-page" key={pageIndex}>
-                                         {pageData.candles.slice(pageIndex * candlesPerPage, (pageIndex + 1) * candlesPerPage).map(candle => {
-                                             const candleDate = new Date(candle.created_at);
-                                             const candleIsBirthday = candleDate.getDate() === new Date(pageData.date_of_birth).getDate() && candleDate.getMonth() === new Date(pageData.date_of_birth).getMonth();
-                                             const candleYearsSinceDeath = candleDate.getFullYear() - new Date(pageData.date_of_death).getFullYear();
-                                             const candleIsAnniversary = candleDate.getDate() === new Date(pageData.date_of_death).getDate() && candleDate.getMonth() === new Date(pageData.date_of_death).getMonth() && candleYearsSinceDeath > 0;
-
-                                             return (
-                                                 <MemorialCandleDisplay 
-                                                     key={candle.candle_id} 
-                                                     candle={candle} 
-                                                     onClick={() => setSelectedCandle(candle)}
-                                                     isBirthday={candleIsBirthday}
-                                                     isAnniversary={candleIsAnniversary ? candleYearsSinceDeath : null}
-                                                 />
-                                             );
-                                         })}
-                                     </div>
-                                 ))}
+                            <div>
+                                <button onClick={() => setCandleView('cards')} className={candleView === 'cards' ? 'active' : ''}>Karten</button>
+                                <button onClick={() => setCandleView('list')} className={candleView === 'list' ? 'active' : ''}>Liste</button>
+                                <button onClick={() => { setSearchType('candles'); setShowSearchPopup(true); }} className="nav-button">Eintrag suchen</button>
                             </div>
-                             <button onClick={() => handleCandlePageChange('next')} className="inline-nav-arrow right" disabled={candlePageCount <= 1}><ArrowIcon direction="right" /></button>
                         </div>
+                        {candleView === 'cards' ? (
+                            <div className="inline-cards-view">
+                                <button onClick={() => handleCandlePageChange('prev')} className="inline-nav-arrow left" disabled={candlePageCount <= 1}><ArrowIcon direction="left" /></button>
+                                <div className="inline-condolence-carousel" style={{ transform: `translateX(-${candleCurrentPage * 100}%)` }}>
+                                    {Array.from({ length: candlePageCount || 1 }).map((_, pageIndex) => (
+                                        <div className="memorial-candle-page" key={pageIndex}>
+                                            {pageData.candles.slice(pageIndex * candlesPerPage, (pageIndex + 1) * candlesPerPage).map(candle => {
+                                                const candleDate = new Date(candle.created_at);
+                                                const candleIsBirthday = candleDate.getDate() === new Date(pageData.date_of_birth).getDate() && candleDate.getMonth() === new Date(pageData.date_of_birth).getMonth();
+                                                const candleYearsSinceDeath = candleDate.getFullYear() - new Date(pageData.date_of_death).getFullYear();
+                                                const candleIsAnniversary = candleDate.getDate() === new Date(pageData.date_of_death).getDate() && candleDate.getMonth() === new Date(pageData.date_of_death).getMonth() && candleYearsSinceDeath > 0;
+
+                                                return (
+                                                    <MemorialCandleDisplay 
+                                                        key={candle.candle_id} 
+                                                        candle={candle} 
+                                                        onClick={() => openCandleLightbox(candle)}
+                                                        isBirthday={candleIsBirthday}
+                                                        isAnniversary={candleIsAnniversary ? candleYearsSinceDeath : null}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => handleCandlePageChange('next')} className="inline-nav-arrow right" disabled={candlePageCount <= 1}><ArrowIcon direction="right" /></button>
+                            </div>
+                         ) : (
+                            <div className="inline-list-view">
+                                {pageData.candles.map(c => <MemorialCandleListItem key={c.candle_id} candle={c} onClick={() => openCandleLightbox(c)} style={cardStyle} />)}
+                            </div>
+                        )}
                         <div className="inline-action-button-container">
-                            <button className="inline-prominent-button" onClick={() => setShowCandlePopup(true)}>Gedenkkerze anzÃ¼nden</button>
+                            <button className="inline-prominent-button" onClick={() => setShowCandlePopup(true)}>Gedenkkerze anzünden</button>
                         </div>
                     </>
                 );
@@ -436,7 +475,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                     />
                                 )
                             ) : (
-                                <p className="placeholder-content">Derzeit sind keine Ã¶ffentlichen Termine bekannt.</p>
+                                <p className="placeholder-content">Derzeit sind keine öffentlichen Termine bekannt.</p>
                             )}
                         </div>
                     </>
@@ -485,13 +524,13 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                                 required 
                             />
                             <select onChange={handleTemplateChange} defaultValue="">
-                                <option value="" disabled>Oder eine Vorlage auswÃ¤hlen...</option>
+                                <option value="" disabled>Oder eine Vorlage auswählen...</option>
                                 {templates.map(t => <option key={t.title} value={t.text}>{t.title}</option>)}
                             </select>
                             <textarea 
                                 name="message" 
                                 rows="8" 
-                                placeholder="Ihre persÃ¶nliche Nachricht..." 
+                                placeholder="Ihre persönliche Nachricht..." 
                                 value={message} 
                                 onChange={(e) => setMessage(e.target.value)} 
                                 required
@@ -509,9 +548,9 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                 <div className="popup-overlay" onClick={() => setShowCandlePopup(false)}>
                     <div className="popup-content candle-popup" onClick={e => e.stopPropagation()}>
                         <div className="popup-header">
-                            <h3>Gedenkkerze anzÃ¼nden</h3>
+                            <h3>Gedenkkerze anzünden</h3>
                         </div>
-                        <p className="popup-helper-text">WÃ¤hlen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft fÃ¼r die AngehÃ¶rigen.</p>
+                        <p className="popup-helper-text">Wählen Sie eine Kerze aus und hinterlassen Sie eine kurze Botschaft für die Angehörigen.</p>
                         <form onSubmit={handleCandleSubmit} className="popup-form">
                             <div className="popup-scrollable-content">
                                 <div className="candle-selection">
@@ -529,14 +568,14 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
 
                                 <input type="text" name="guestName" placeholder="Ihr Name oder Familie" defaultValue={(user && user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : ''} required />
                                 <select onChange={(e) => setCandleMessage(e.target.value)} defaultValue="">
-                                    <option value="" disabled>Nachrichtenvorlage auswÃ¤hlen...</option>
+                                    <option value="" disabled>Nachrichtenvorlage auswählen...</option>
                                     {candleTemplates.map(t => <option key={t.title} value={t.text}>{t.title}</option>)}
                                 </select>
                                 <input type="text" placeholder="Oder eigene kurze Botschaft" value={candleMessage} onChange={(e) => setCandleMessage(e.target.value)} maxLength="100" />
                             </div>
                             <div className="popup-actions">
                                 <button type="button" onClick={() => setShowCandlePopup(false)}>Abbrechen</button>
-                                <button type="submit">Kerze anzÃ¼nden</button>
+                                <button type="submit">Kerze anzünden</button>
                             </div>
                         </form>
                     </div>
@@ -546,7 +585,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             {selectedCondolence && (
                  <div className="lightbox-overlay" onClick={() => setSelectedCondolence(null)}>
                     <div className="lightbox-content" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setSelectedCondolence(null)} className="close-button lightbox-close">Ã—</button>
+                        <button onClick={() => setSelectedCondolence(null)} className="close-button lightbox-close">×</button>
                         <div className="lightbox-main">
                             <h3>{selectedCondolence.guest_name}</h3>
                             <p>{selectedCondolence.message}</p>
@@ -559,14 +598,14 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
             {selectedCandle && (
                  <div className="lightbox-overlay" onClick={() => setSelectedCandle(null)}>
                     <div className="lightbox-content candle-lightbox" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setSelectedCandle(null)} className="close-button lightbox-close">Ã—</button>
+                        <button onClick={() => setSelectedCandle(null)} className="close-button lightbox-close">×</button>
                         <div className="candle-lightbox-image-wrapper">
                             <img src={selectedCandle.candle_image?.image?.url} alt="Gedenkkerze" />
                         </div>
                         <div className="lightbox-main">
                             <h3>{selectedCandle.guest_name}</h3>
                             <p>{selectedCandle.message || "In stillem Gedenken."}</p>
-                            <span>AngezÃ¼ndet am {new Date(selectedCandle.created_at).toLocaleString('de-DE')}</span>
+                            <span>Angezündet am {new Date(selectedCandle.created_at).toLocaleString('de-DE')}</span>
                         </div>
                     </div>
                 </div>
@@ -577,6 +616,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                     onClose={() => setShowSearchPopup(false)}
                     pageData={pageData}
                     onResultClick={handleSearchResultClick}
+                    searchType={searchType}
                 />
             )}
         </>

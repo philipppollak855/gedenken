@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* KORRIGIERT: Das Raster fÃ¼r Gedenkkerzen wurde an das der Kondolenzen angeglichen (4x2), um HÃ¶henprobleme zu beheben. */
+/* HINZUGEFÃœGT: Stile fÃ¼r die neue Listenansicht der Gedenkkerzen. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -435,8 +435,8 @@
     flex: 0 0 100%;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* GEÃ„NDERT: von 5 auf 4 Spalten */
-    grid-template-rows: repeat(2, 1fr);    /* Stabile 2 Reihen, passend zu Kondolenzen */
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
     gap: 1.5rem;
     padding: 0 4rem;
     height: 100%;
@@ -461,7 +461,7 @@
 }
 
 .memorial-candle-image-wrapper {
-    height: 100px; /* Kleinere HÃ¶he fÃ¼r das Bild */
+    height: 100px; /* Kleinere Höhe für das Bild */
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -507,7 +507,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 4; /* BeschrÃ¤nkt den Text auf max. 4 Zeilen */
+    -webkit-line-clamp: 4; /* Beschränkt den Text auf max. 4 Zeilen */
     -webkit-box-orient: vertical;
 }
 
@@ -609,6 +609,27 @@
     display: block;
     font-size: 0.8rem;
     margin-top: 0.25rem;
+}
+
+/* --- NEUE STILE FÜR KERZEN-LISTENANSICHT --- */
+.memorial-candle-list-item {
+    cursor: pointer;
+}
+.candle-list-item-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+}
+.candle-list-item-image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 120px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+.memorial-candle-list-item p {
+    margin: 0;
+    line-height: 1.6;
 }
 
 .event-list {

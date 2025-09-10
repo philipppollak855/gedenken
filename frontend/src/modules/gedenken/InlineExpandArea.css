@@ -1,5 +1,5 @@
 /* frontend/src/modules/gedenken/InlineExpandArea.css */
-/* KORRIGIERT: Karussell zentriert und Vollbildansicht der Kerzen optisch verbessert. */
+/* KORRIGIERT: Abstand zwischen den Reihen im Kerzen-Karussell vergrößert. */
 
 .inline-expand-area {
     padding: 2rem;
@@ -490,7 +490,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 1.5rem;
+    gap: 2.5rem 1.5rem; /* GEÄNDERT: 2.5rem für Reihenabstand */
     padding: 0 4rem;
     height: 100%;
 }

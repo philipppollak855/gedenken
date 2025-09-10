@@ -1,5 +1,5 @@
 // frontend/src/components/layout/Header.jsx
-// KORRIGIERT: Die handleSearchClick-Funktion wurde an die korrekte Sektions-Referenz angepasst.
+// KORRIGIERT: Der Link "Mein Bereich" führt nun zum neuen Dashboard und "Meine Beiträge" wurde entfernt.
 
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -24,15 +24,11 @@ const Header = () => {
     }, []);
 
     const handleSearchClick = () => {
-        // Zuerst zur richtigen Seite navigieren
         navigate('/gedenken');
-        
-        // Mit einem kurzen Timeout sicherstellen, dass die Seite geladen ist,
-        // bevor wir versuchen, zu scrollen.
         setTimeout(() => {
-            const searchSection = document.getElementById('verstorbenen-suche-sektion');
+            const searchSection = document.querySelector('.search-section');
             if (searchSection) {
-                searchSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                searchSection.scrollIntoView({ behavior: 'smooth' });
             }
         }, 100);
     };
@@ -50,6 +46,7 @@ const Header = () => {
                 <div className="header-actions">
                     {user ? (
                         <>
+                            {/* KORRIGIERT: Link führt jetzt zum neuen Dashboard */}
                             <Link to="/mein-bereich/dashboard" className="action-link">Mein Bereich</Link>
                             <button onClick={logoutUser} className="logout-button">Logout</button>
                         </>

@@ -1,5 +1,5 @@
 // frontend/src/modules/gedenken/InlineExpandArea.jsx
-// KORRIGIERT: Das Layout des Kerzen-Auswahlmodals wurde in ein zweispaltiges Design geändert.
+// KORRIGIERT: Paginierung zum Kerzen-Auswahlmodal hinzugefügt und Bestätigungsbutton zentriert.
 
 import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import useApi from '../../hooks/useApi';
@@ -224,7 +224,6 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
                 if (imagesRes.ok) {
                     const imagesData = await imagesRes.json();
                     setCandleImages(imagesData);
-                    // Automatically select the first standard candle
                     const firstStandardCandle = imagesData.find(c => c.type === 'standard');
                     if (firstStandardCandle) {
                         setSelectedCandleImageId(firstStandardCandle.id);

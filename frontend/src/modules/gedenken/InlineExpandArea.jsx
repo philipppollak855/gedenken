@@ -363,7 +363,7 @@ const InlineExpandArea = ({ view, pageData, settings, onDataReload, onAttendClic
     };
     
     const availableCandles = getAvailableCandles();
-    const candlesPerPageInModal = 16;
+    const candlesPerPageInModal = 12; // GEÄNDERT: von 16 auf 12 (4x3 Raster)
     const candleSelectionPageCount = Math.ceil(availableCandles.length / candlesPerPageInModal);
 
     const handleCandleSelectionPageChange = (direction) => {

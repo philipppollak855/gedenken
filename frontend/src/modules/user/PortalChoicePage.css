@@ -1,9 +1,21 @@
 /* frontend/src/modules/user/PortalChoicePage.css */
-/* NEUE DATEI: Styles für die neue Auswahlseite nach dem Login. */
+/* REDESIGNED: Komplett überarbeitetes CSS für ein modernes Zwei-Säulen-Layout. */
 
 .portal-choice-container {
-    padding: 4rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 80px); /* Volle Höhe abzüglich Header */
+    padding: 2rem;
+    box-sizing: border-box;
+    overflow: hidden; /* Verhindert das Scrollen */
+}
+
+.portal-choice-header {
     text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeInDown 0.8s ease-out;
 }
 
 .portal-choice-title {
@@ -11,77 +23,163 @@
     font-size: 2.8rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    color: var(--title-color, #3a3a3a);
+    color: var(--title-color);
 }
 
 .portal-choice-subtitle {
     font-size: 1.1rem;
     max-width: 600px;
-    margin: 0 auto 3rem auto;
-    color: var(--subtitle-color, #6b7280);
+    margin: 0 auto;
+    color: var(--subtitle-color);
     line-height: 1.6;
 }
 
 .portal-choice-grid {
     display: flex;
     justify-content: center;
-    gap: 3rem;
-    flex-wrap: wrap;
+    align-items: stretch; /* Säulen haben die gleiche Höhe */
+    gap: 2rem;
+    width: 100%;
+    max-width: 1100px;
+    height: 55vh; /* Feste Höhe für die Säulen */
+    min-height: 450px;
+    animation: fadeInUp 0.8s ease-out 0.2s;
+    animation-fill-mode: backwards;
 }
 
-.choice-card {
-    display: block;
-    width: 320px;
-    text-decoration: none;
-    background-color: #fff;
+.portal-column {
+    position: relative;
+    flex: 1;
     border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 20px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden; /* Wichtig für den Slide-In Effekt */
+    text-decoration: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
 }
 
-.choice-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.08), 0 20px 40px rgba(0,0,0,0.08);
+.portal-column:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-.choice-card-image-wrapper {
-    height: 200px;
+.portal-column-background {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
     background-size: cover;
     background-position: center;
+    z-index: 1;
+    transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.choice-card-content {
-    padding: 1.5rem;
+.portal-column:hover .portal-column-background {
+    transform: scale(1.05);
 }
 
-.choice-card-content h2 {
+.portal-column-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
+    z-index: 2;
+    transition: background 0.4s ease;
+}
+
+.portal-column-sidetext {
+    position: absolute;
+    left: -50px;
+    top: 45%;
+    transform: translateY(-50%) rotate(-90deg);
+    transform-origin: center;
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 3rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 8px;
+    white-space: nowrap;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+/* Der Seitentext blendet aus, wenn der Inhalt einslidet */
+.portal-column:hover .portal-column-sidetext {
+    opacity: 0;
+}
+
+.portal-column-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 4; /* Über dem Seitentext */
+    padding: 2rem;
+    color: #ffffff;
+    box-sizing: border-box;
+    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Startpositionen außerhalb des sichtbaren Bereichs */
+.portal-column--gedenken .portal-column-content {
+    transform: translateX(-101%);
+}
+
+.portal-column--vorsorge .portal-column-content {
+    transform: translateX(101%);
+}
+
+/* Position im sichtbaren Bereich bei Hover */
+.portal-column:hover .portal-column-content {
+    transform: translateX(0);
+}
+
+
+.portal-column-content h2 {
     font-family: 'Playfair Display', serif;
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1.8rem;
-    color: var(--card-title-color, #3a3a3a);
+    font-size: 2.5rem;
+    margin: 0 0 0.5rem;
+    line-height: 1.2;
 }
 
-.choice-card-content p {
-    margin-bottom: 0;
-    color: var(--card-subtitle-color, #6b7280);
-    font-size: 0.95rem;
+.portal-column-content p {
+    font-size: 1rem;
     line-height: 1.5;
+    opacity: 0.9;
+    margin: 0;
 }
 
-@media (max-width: 768px) {
+/* Animationen */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 900px) {
     .portal-choice-grid {
         flex-direction: column;
-        align-items: center;
-        gap: 2rem;
+        height: auto;
+        gap: 1.5rem;
+        max-width: 450px;
     }
-    .choice-card {
-        width: 100%;
-        max-width: 380px;
+    .portal-column {
+        min-height: 250px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
     }
-    .portal-choice-title {
-        font-size: 2.2rem;
+    .portal-column-sidetext {
+        display: none;
+    }
+    /* Auf Mobilgeräten ist der Inhalt immer sichtbar, kein Slide-In */
+    .portal-column-content {
+        position: relative;
+        transform: none !important;
     }
 }
 

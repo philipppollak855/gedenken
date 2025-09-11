@@ -1,0 +1,83 @@
+/* frontend/src/modules/user/Dashboard.css */
+/* NEUE DATEI: Geteilte Styles für das Gedenken- und Vorsorge-Dashboard.
+   Basiert auf den ursprünglichen Sidebar-Styles aus MeinBereich.css. */
+
+.dashboard-layout {
+    display: flex;
+    min-height: inherit; /* Nimmt die Höhe vom übergeordneten Container */
+}
+
+.dashboard-sidebar {
+    flex: 0 0 260px;
+    background-color: var(--sidebar-bg);
+    padding: 2rem 0;
+    border-right: 1px solid #e9ecef;
+}
+
+.dashboard-sidebar nav {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-sidebar nav a {
+    padding: 1rem 2rem;
+    text-decoration: none;
+    color: var(--sidebar-text);
+    font-weight: 500;
+    border-left: 4px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.dashboard-sidebar nav a:hover {
+    background-color: rgba(0,0,0,0.05);
+    border-left-color: #ccc;
+}
+
+.dashboard-sidebar nav a.active {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    border-left-color: var(--sidebar-active-bg);
+    font-weight: 700;
+}
+
+.dashboard-content {
+    flex-grow: 1;
+    /* Das Padding wurde aus .mein-bereich-content hierher verschoben */
+    padding: 2rem 3rem;
+    overflow-y: auto;
+}
+
+@media (max-width: 992px) {
+    .dashboard-layout {
+        flex-direction: column;
+    }
+    .dashboard-sidebar {
+        flex: 0 0 auto;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 0;
+    }
+    .dashboard-sidebar nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0 1rem;
+    }
+    .dashboard-sidebar nav a {
+        border-left: none;
+        border-bottom: 4px solid transparent;
+        white-space: nowrap;
+    }
+    .dashboard-sidebar nav a:hover {
+        border-left: none;
+        border-bottom-color: #ccc;
+    }
+    .dashboard-sidebar nav a.active {
+        border-left: none;
+        border-bottom-color: var(--sidebar-active-bg);
+    }
+    .dashboard-content {
+        padding: 1.5rem;
+    }
+}
+

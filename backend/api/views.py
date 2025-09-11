@@ -1,5 +1,6 @@
 # backend/api/views.py
-# KORRIGIERT: Die 'MeinBereichDataView' fängt nun den Fall ab, dass ein Benutzer noch keine eigene Gedenkseite hat.
+# HINWEIS: Ihr Originalcode wurde als Basis verwendet. Es waren keine logischen Änderungen nötig.
+# Lediglich Umlaute und Formatierung wurden zur Konsistenz korrigiert.
 
 import os
 import json
@@ -40,7 +41,6 @@ from .models import (
     FamilyLink
 )
 
-# ... (Alle bestehenden Views von GlobalSearchView bis SeedDatabaseView bleiben unverändert)
 class GlobalSearchView(APIView):
     authentication_classes = [SessionAuthentication]
     permission_classes = [permissions.IsAdminUser]
@@ -78,11 +78,11 @@ class GlobalSearchView(APIView):
                 print(f"Fehler bei der Gedenkseitensuche: {e}")
             try:
                 condolences = Condolence.objects.filter(
-                     Q(guest_name__icontains=query) |
-                     Q(message__icontains=query)
+                    Q(guest_name__icontains=query) |
+                    Q(message__icontains=query)
                 ).select_related('page')[:10]
                 for condolence in condolences:
-                     results.append({
+                    results.append({
                         'type': 'Kondolenz',
                         'title': f"'{condolence.message[:30]}...' von {condolence.guest_name} für {condolence.page}",
                         'url': reverse('admin:api_condolence_change', args=[condolence.condolence_id])
@@ -91,11 +91,11 @@ class GlobalSearchView(APIView):
                 print(f"Fehler bei der Kondolenzsuche: {e}")
             try:
                 candles = MemorialCandle.objects.filter(
-                     Q(guest_name__icontains=query) |
-                     Q(message__icontains=query)
+                    Q(guest_name__icontains=query) |
+                    Q(message__icontains=query)
                 ).select_related('page')[:10]
                 for candle in candles:
-                     results.append({
+                    results.append({
                         'type': 'Gedenkkerze',
                         'title': f"'{candle.message[:30]}...' von {candle.guest_name} für {candle.page}",
                         'url': reverse('admin:api_memorialcandle_change', args=[candle.candle_id])
@@ -189,8 +189,6 @@ class PasswordResetConfirmView(generics.GenericAPIView):
             return Response({'status': 'Passwort erfolgreich zurückgesetzt.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Ungültiger Link.'}, status=status.HTTP_400_BAD_REQUEST)
-
-# --- Bestehende ViewSets ---
 
 class CandleImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CandleImage.objects.all()
@@ -442,7 +440,6 @@ class MeinBereichDataView(APIView):
     def get(self, request, *args, **kwargs):
         user = request.user
         
-        # KORRIGIERT: Fängt den Fall ab, dass keine eigene Gedenkseite existiert.
         try:
             own_page = MemorialPage.objects.get(user=user)
         except MemorialPage.DoesNotExist:

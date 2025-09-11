@@ -1,0 +1,87 @@
+/* frontend/src/modules/user/PortalChoicePage.css */
+/* NEUE DATEI: Styles für die neue Auswahlseite nach dem Login. */
+
+.portal-choice-container {
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.portal-choice-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--title-color, #3a3a3a);
+}
+
+.portal-choice-subtitle {
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 3rem auto;
+    color: var(--subtitle-color, #6b7280);
+    line-height: 1.6;
+}
+
+.portal-choice-grid {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+.choice-card {
+    display: block;
+    width: 320px;
+    text-decoration: none;
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.choice-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.08), 0 20px 40px rgba(0,0,0,0.08);
+}
+
+.choice-card-image-wrapper {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+}
+
+.choice-card-content {
+    padding: 1.5rem;
+}
+
+.choice-card-content h2 {
+    font-family: 'Playfair Display', serif;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    color: var(--card-title-color, #3a3a3a);
+}
+
+.choice-card-content p {
+    margin-bottom: 0;
+    color: var(--card-subtitle-color, #6b7280);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .portal-choice-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+    .choice-card {
+        width: 100%;
+        max-width: 380px;
+    }
+    .portal-choice-title {
+        font-size: 2.2rem;
+    }
+}
+

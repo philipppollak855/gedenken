@@ -1,35 +1,33 @@
 // frontend/src/modules/user/MeinBereich.jsx
-// Vollständiger Code der Layout-Komponente für "Mein Bereich".
+// HINWEIS: Diese Komponente wurde grundlegend umgebaut. Sie dient nun als allgemeines Layout
+// für den "Mein Bereich", enthält die Logik für den Hintergrund und einen neuen Header zum
+// Wechseln zwischen den Portalen. Die alte Sidebar wurde entfernt.
 
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 
 const MeinBereich = () => {
-    const [data, setData] = useState({ own_page: null, managed_pages: [] });
     const [settings, setSettings] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const api = useApi();
+    const location = useLocation();
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchSettings = async () => {
             try {
-                const [dataRes, settingsRes] = await Promise.all([
-                    api('/mein-bereich-data/'),
-                    api('/settings/')
-                ]);
-
-                if (dataRes.ok) setData(await dataRes.json());
-                if (settingsRes.ok) setSettings(await settingsRes.json());
-
+                const settingsRes = await api('/settings/');
+                if (settingsRes.ok) {
+                    setSettings(await settingsRes.json());
+                }
             } catch (error) {
-                console.error("Fehler beim Laden der Daten für 'Mein Bereich':", error);
+                console.error("Fehler beim Laden der Einstellungen für 'Mein Bereich':", error);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchData();
+        fetchSettings();
     }, [api]);
 
     const containerStyle = {
@@ -41,33 +39,27 @@ const MeinBereich = () => {
         '--sidebar-active-bg': settings.mein_bereich_sidebar_active_background_color || '#8c8073',
         '--sidebar-active-text': settings.mein_bereich_sidebar_active_text_color || '#FFFFFF',
     };
+    
+    // Der Portal-Wechsler wird nur angezeigt, wenn man sich in einem der Dashboards befindet
+    const showPortalSwitcher = location.pathname.startsWith('/mein-bereich/gedenken') || location.pathname.startsWith('/mein-bereich/vorsorge');
 
     if (isLoading) {
-        return <div>Lade Mein Bereich...</div>;
+        return <div className="loading-container">Lade Mein Bereich...</div>;
     }
 
     return (
         <div className="mein-bereich-page" style={containerStyle}>
-            <div className="mein-bereich-layout">
-                <aside className="mein-bereich-sidebar">
-                    <nav>
-                        <NavLink to="/mein-bereich/dashboard">Dashboard</NavLink>
-                        <NavLink to="/mein-bereich/vorsorge">Meine Vorsorge</NavLink>
-                        <NavLink to={data.own_page ? `/gedenken/${data.own_page.slug}/verwalten` : "/mein-bereich/gedenkseite-erstellen"}>Meine Gedenkseite</NavLink>
-                        <NavLink to="/mein-bereich/daten">Meine Daten</NavLink>
-                        <NavLink to="/mein-bereich/medien">Meine Medien</NavLink>
-                        <NavLink to="/mein-bereich/beitraege">Meine Beiträge</NavLink>
-                        {data.managed_pages && data.managed_pages.length > 0 && (
-                            <NavLink to="/mein-bereich/verwaltete-seiten">Verwaltete Seiten</NavLink>
-                        )}
-                        <NavLink to="/mein-bereich/angehoerige">Angehörige verwalten</NavLink>
-                        <NavLink to="/mein-bereich/gespeicherte-seiten">Gespeicherte Seiten</NavLink>
-                        <NavLink to="/mein-bereich/konto">Konto verwalten</NavLink>
-                    </nav>
-                </aside>
-                <main className="mein-bereich-content">
-                    <Outlet context={{ settings, data }} />
-                </main>
+            <div className="mein-bereich-container">
+                {showPortalSwitcher && (
+                    <header className="portal-switcher-header">
+                        <nav className="portal-switcher-nav">
+                            <NavLink to="/mein-bereich/gedenken">Gedenken</NavLink>
+                            <NavLink to="/mein-bereich/vorsorge">Vorsorge</NavLink>
+                        </nav>
+                    </header>
+                )}
+                {/* Der Outlet rendert hier entweder die PortalChoicePage oder die Dashboards */}
+                <Outlet context={{ settings }} />
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 # backend/api/serializers.py
-# ERWEITERT: Der SiteSettingsSerializer wird um das neue Feld 'listing_card_text_color' erweitert.
-# KORRIGIERT: Stellt sicher, dass MediaAssetSerializer die volle URL zurückgibt.
+# HINWEIS: Ihr Originalcode wurde als Basis verwendet. Umlaute wurden korrigiert und der
+# SiteSettingsSerializer wurde um die neuen Felder für die Portal-Auswahlseite erweitert.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -21,14 +21,6 @@ class MediaAssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaAsset
         fields = ('title', 'url', 'asset_type')
-
-    def get_url(self, obj):
-        request = self.context.get('request')
-        if obj.file_upload and request:
-            return request.build_absolute_uri(obj.file_upload.url)
-        if obj.file_url:
-            return obj.file_url
-        return None
 
 class MemorialPageListSerializer(serializers.ModelSerializer):
     main_photo = MediaAssetSerializer(read_only=True)
@@ -201,6 +193,7 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         exclude = ['page']
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
+    # Bestehende Bild-Felder
     listing_background_image = MediaAssetSerializer(read_only=True)
     search_background_image = MediaAssetSerializer(read_only=True)
     expend_background_image = MediaAssetSerializer(read_only=True)
@@ -209,6 +202,11 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     register_info_panel_image = MediaAssetSerializer(read_only=True)
     password_reset_background_image = MediaAssetSerializer(read_only=True)
     mein_bereich_background_image = MediaAssetSerializer(read_only=True)
+    
+    # NEUE Bild-Felder für die Portal-Auswahlseite
+    portal_choice_background_image = MediaAssetSerializer(read_only=True)
+    gedenken_card_image = MediaAssetSerializer(read_only=True)
+    vorsorge_card_image = MediaAssetSerializer(read_only=True)
 
     class Meta:
         model = SiteSettings

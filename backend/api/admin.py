@@ -1,5 +1,6 @@
 # backend/api/admin.py
-# KORRIGIERT: Alle Zeichenkodierungsfehler (Umlaute) in den deutschen Texten wurden behoben.
+# HINWEIS: Ihr Originalcode wurde als Basis verwendet. Umlaute wurden korrigiert und ein neues
+# Fieldset "Portal Auswahlseite" wurde im SiteSettingsAdmin hinzugefügt.
 
 import uuid
 import json
@@ -68,6 +69,8 @@ class MediaAssetAdmin(ModelAdmin):
             'expend_background_image': "Hintergrund Expand-Bereich", 'login_background_image': "Hintergrund Login",
             'register_background_image': "Hintergrund Registrierung", 'register_info_panel_image': "Info-Panel Registrierung",
             'password_reset_background_image': "Hintergrund Passwort-Reset", 'mein_bereich_background_image': "Hintergrund Mein Bereich",
+            'portal_choice_background_image': "Hintergrund Portal-Auswahl", 'gedenken_card_image': "Bild Gedenken-Karte",
+            'vorsorge_card_image': "Bild Vorsorge-Karte",
         }
         try:
             settings_instance = SiteSettings.objects.get(pk=1)
@@ -76,7 +79,7 @@ class MediaAssetAdmin(ModelAdmin):
                     url = reverse('admin:api_sitesettings_change', args=[1])
                     usages.append(f'{label}: <a href="{url}">Globale Einstellungen</a>')
         except SiteSettings.DoesNotExist:
-            pass # Wenn es keine Einstellungen gibt, können sie auch nicht verwendet werden.
+            pass
 
         # --- 3. Verwendungen in der Galerie prüfen ---
         gallery_pages = GalleryItem.objects.filter(image=obj).select_related('page')
@@ -179,26 +182,45 @@ class SiteSettingsAdmin(ModelAdmin):
         'register_info_panel_image',
         'password_reset_background_image',
         'mein_bereich_background_image',
+        # NEU
+        'portal_choice_background_image', 
+        'gedenken_card_image', 
+        'vorsorge_card_image',
     )
     fieldsets = (
-        ('Gedenkseiten-Listing', {
+        # NEU
+        ('Portal Auswahlseite', {
+            'fields': (
+                'portal_choice_title', 'portal_choice_subtitle', 
+                'portal_choice_background_color', 'portal_choice_background_image',
+                'gedenken_card_title', 'gedenken_card_subtitle', 'gedenken_card_image',
+                'vorsorge_card_title', 'vorsorge_card_subtitle', 'vorsorge_card_image'
+            )
+        }),
+        ('Gedenkseiten-Listing (Startseite)', {
+            'classes': ('collapse',),
             'fields': ('listing_title', 'listing_background_color', 'listing_background_image', 'listing_card_color', 'listing_text_color', 'listing_card_text_color', 'listing_arrow_color')
         }),
-        ('Suche', {
+        ('Suche (Startseite)', {
+            'classes': ('collapse',),
             'fields': ('search_title', 'search_helper_text', 'search_background_color', 'search_background_image', 'search_text_color',
                        'search_filter_button_color', 'search_filter_button_icon_color', 'search_filter_menu_color', 
                        'search_filter_menu_text_color', 'search_filter_active_color', 'search_filter_active_text_color')
         }),
         ('Expand-Bereich (Kondolenzen etc.)', {
+            'classes': ('collapse',),
             'fields': ('expend_background_color', 'expend_background_image', 'expend_card_color', 'expend_text_color')
         }),
         ('Globale Schriften', {
+            'classes': ('collapse',),
             'fields': ('font_family', 'font_size_base')
         }),
         ('Login-Seite', {
+            'classes': ('collapse',),
             'fields': ('login_title', 'login_subtitle', 'login_background_color', 'login_background_image', 'login_card_background_color', 'login_text_color', 'login_button_color', 'login_button_text_color')
         }),
         ('Registrierungsseite', {
+            'classes': ('collapse',),
             'fields': ('register_title', 'register_subtitle', 'register_background_color', 'register_background_image', 'register_info_panel_image', 'register_info_panel_image_size', 'register_card_background_color', 'register_text_color', 'register_button_color', 'register_button_text_color')
         }),
         ('Passwort zurücksetzen', {

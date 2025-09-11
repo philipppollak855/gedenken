@@ -1,6 +1,6 @@
 # backend/api/admin.py
-# ERWEITERT: Der SiteSettingsAdmin wurde um ein neues Fieldset für die
-# Personalisierung des Headers erweitert.
+# ERWEITERT: Das Fieldset für die Portal-Auswahlseite wurde um die neuen Farbfelder
+# für Titel und Untertitel ergänzt.
 
 import uuid
 import json
@@ -176,7 +176,7 @@ class MemorialCandleAdmin(ModelAdmin): pass
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin):
     raw_id_fields = (
-        'header_logo_image', # NEU
+        'header_logo_image',
         'listing_background_image', 
         'search_background_image', 
         'expend_background_image', 
@@ -190,7 +190,6 @@ class SiteSettingsAdmin(ModelAdmin):
         'vorsorge_card_image',
     )
     fieldsets = (
-        # NEU
         ('Header / Navigation', {
             'classes': ('collapse',),
             'fields': (
@@ -203,8 +202,8 @@ class SiteSettingsAdmin(ModelAdmin):
         }),
         ('Portal Auswahlseite', {
             'fields': (
-                'portal_choice_title', 
-                'portal_choice_subtitle', 
+                ('portal_choice_title', 'portal_choice_title_color'),
+                ('portal_choice_subtitle', 'portal_choice_subtitle_color'),
                 'portal_choice_background_color', 
                 'portal_choice_background_image',
             )

@@ -1,6 +1,7 @@
 // frontend/src/modules/user/PortalChoicePage.jsx
 // ERWEITERT: Die Komponente ist nun vollständig über den Admin-Bereich personalisierbar.
 // Alle Texte, Farben, Schriftgrößen und Hintergründe werden dynamisch aus den API-Settings geladen.
+// KORRIGIERT: Verwendet die neuen Farbfelder für Titel/Untertitel und reine Hex-Farbcodes.
 
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
@@ -13,54 +14,34 @@ const PortalChoicePage = () => {
 
     // Allgemeines Seiten-Styling
     const pageStyle = {
-        '--title-color': settings.login_text_color || '#3a3a3a',
-        '--subtitle-color': settings.login_text_color || '#6b7280',
+        '--title-color': settings.portal_choice_title_color || '#3a3a3a',
+        '--subtitle-color': settings.portal_choice_subtitle_color || '#6b7280',
     };
 
     // Styling für die Gedenken-Säule
     const gedenkenColumnStyle = {
-        backgroundColor: settings.gedenken_card_background_color || '#8c8073',
-    };
-    const gedenkenBackgroundStyle = {
-        backgroundImage: settings.gedenken_card_image ? `url(${settings.gedenken_card_image.url})` : 'none',
-    };
-    const gedenkenSidetextStyle = {
-        color: settings.gedenken_card_sidetext_color || 'rgba(255, 255, 255, 0.4)',
-        fontSize: settings.gedenken_card_sidetext_size || '3.2rem',
-    };
-    const gedenkenContentStyle = {
-        backgroundColor: settings.gedenken_card_content_background || 'rgba(0, 0, 0, 0.5)',
-    };
-    const gedenkenTitleStyle = {
-        color: settings.gedenken_card_title_color || '#FFFFFF',
-        fontSize: settings.gedenken_card_title_size || '2.5rem',
-    };
-    const gedenkenDetailsStyle = {
-        color: settings.gedenken_card_details_text_color || '#FFFFFF',
-        fontSize: settings.gedenken_card_details_text_size || '0.95rem',
+        '--card-bg-color': settings.gedenken_card_background_color || '#8c8073',
+        '--card-bg-image': settings.gedenken_card_image ? `url(${settings.gedenken_card_image.url})` : 'none',
+        '--sidetext-color': settings.gedenken_card_sidetext_color || '#FFFFFF',
+        '--sidetext-size': settings.gedenken_card_sidetext_size || '3.2rem',
+        '--content-bg': settings.gedenken_card_content_background || '#3a3a3a',
+        '--title-card-color': settings.gedenken_card_title_color || '#FFFFFF',
+        '--title-card-size': settings.gedenken_card_title_size || '2.5rem',
+        '--details-text-color': settings.gedenken_card_details_text_color || '#FFFFFF',
+        '--details-text-size': settings.gedenken_card_details_text_size || '0.95rem',
     };
 
     // Styling für die Vorsorge-Säule
     const vorsorgeColumnStyle = {
-        backgroundColor: settings.vorsorge_card_background_color || '#6d6d6d',
-    };
-    const vorsorgeBackgroundStyle = {
-        backgroundImage: settings.vorsorge_card_image ? `url(${settings.vorsorge_card_image.url})` : 'none',
-    };
-    const vorsorgeSidetextStyle = {
-        color: settings.vorsorge_card_sidetext_color || 'rgba(255, 255, 255, 0.4)',
-        fontSize: settings.vorsorge_card_sidetext_size || '3.2rem',
-    };
-    const vorsorgeContentStyle = {
-        backgroundColor: settings.vorsorge_card_content_background || 'rgba(0, 0, 0, 0.5)',
-    };
-    const vorsorgeTitleStyle = {
-        color: settings.vorsorge_card_title_color || '#FFFFFF',
-        fontSize: settings.vorsorge_card_title_size || '2.5rem',
-    };
-    const vorsorgeDetailsStyle = {
-        color: settings.vorsorge_card_details_text_color || '#FFFFFF',
-        fontSize: settings.vorsorge_card_details_text_size || '0.95rem',
+        '--card-bg-color': settings.vorsorge_card_background_color || '#6d6d6d',
+        '--card-bg-image': settings.vorsorge_card_image ? `url(${settings.vorsorge_card_image.url})` : 'none',
+        '--sidetext-color': settings.vorsorge_card_sidetext_color || '#FFFFFF',
+        '--sidetext-size': settings.vorsorge_card_sidetext_size || '3.2rem',
+        '--content-bg': settings.vorsorge_card_content_background || '#3a3a3a',
+        '--title-card-color': settings.vorsorge_card_title_color || '#FFFFFF',
+        '--title-card-size': settings.vorsorge_card_title_size || '2.5rem',
+        '--details-text-color': settings.vorsorge_card_details_text_color || '#FFFFFF',
+        '--details-text-size': settings.vorsorge_card_details_text_size || '0.95rem',
     };
     
     // Standard-HTML für die Beschreibung, falls im Admin nichts eingetragen ist
@@ -81,15 +62,15 @@ const PortalChoicePage = () => {
             <div className="portal-choice-grid">
                 {/* Gedenken-Säule */}
                 <Link to="/mein-bereich/gedenken" className="portal-column portal-column--gedenken" style={gedenkenColumnStyle}>
-                    <div className="portal-column-background" style={gedenkenBackgroundStyle}></div>
+                    <div className="portal-column-background"></div>
                     <div className="portal-column-overlay"></div>
-                    <div className="portal-column-sidetext" style={gedenkenSidetextStyle}>
+                    <div className="portal-column-sidetext">
                         <span>{settings.gedenken_card_sidetext || 'Gedenken'}</span>
                     </div>
-                    <div className="portal-column-content" style={gedenkenContentStyle}>
-                        <h2 style={gedenkenTitleStyle}>{settings.gedenken_card_title || 'Gedenken'}</h2>
+                    <div className="portal-column-content">
+                        <h2>{settings.gedenken_card_title || 'Gedenken'}</h2>
                         <div 
-                            style={gedenkenDetailsStyle}
+                            className="portal-column-details"
                             dangerouslySetInnerHTML={{ __html: settings.gedenken_card_details_text || defaultGedenkenDetails }}
                         />
                     </div>
@@ -97,15 +78,15 @@ const PortalChoicePage = () => {
 
                 {/* Vorsorge-Säule */}
                 <Link to="/mein-bereich/vorsorge" className="portal-column portal-column--vorsorge" style={vorsorgeColumnStyle}>
-                    <div className="portal-column-background" style={vorsorgeBackgroundStyle}></div>
+                    <div className="portal-column-background"></div>
                     <div className="portal-column-overlay"></div>
-                     <div className="portal-column-sidetext" style={vorsorgeSidetextStyle}>
+                    <div className="portal-column-sidetext">
                         <span>{settings.vorsorge_card_sidetext || 'Vorsorge'}</span>
                     </div>
-                    <div className="portal-column-content" style={vorsorgeContentStyle}>
-                        <h2 style={vorsorgeTitleStyle}>{settings.vorsorge_card_title || 'Vorsorge'}</h2>
+                    <div className="portal-column-content">
+                        <h2>{settings.vorsorge_card_title || 'Vorsorge'}</h2>
                         <div
-                            style={vorsorgeDetailsStyle}
+                            className="portal-column-details"
                             dangerouslySetInnerHTML={{ __html: settings.vorsorge_card_details_text || defaultVorsorgeDetails }}
                         />
                     </div>

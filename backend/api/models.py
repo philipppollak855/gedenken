@@ -1,6 +1,6 @@
 # backend/api/models.py
-# ERWEITERT: Die SiteSettings-Klasse wurde um Felder für die
-# vollständige Personalisierung des Headers erweitert (Logo, Titel, Buttons).
+# ERWEITERT: Zusätzliche Felder für die Personalisierung von Titeln im Header und auf der Auswahlseite.
+# KORRIGIERT: Alle RGBA-Farbfelder wurden auf reine Hex-Code-Felder umgestellt.
 
 import uuid
 from django.db import models
@@ -276,8 +276,8 @@ class SiteSettings(models.Model):
     class Meta:
         verbose_name = "Globale Design-Einstellungen"
         verbose_name_plural = "Globale Design-Einstellungen"
-
-    # --- NEU: Header / Navigation ---
+        
+    # --- Header / Navigation ---
     header_logo_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Logo-Bild (ersetzt Text)")
     header_logo_height = models.CharField("Logo-Höhe", max_length=10, blank=True, default="40px", help_text="CSS-Wert, z.B. 40px")
     header_site_title_text = models.CharField("Seiten-Titel (Text)", max_length=100, blank=True, default="Gedenken & Vorsorge")
@@ -287,13 +287,15 @@ class SiteSettings(models.Model):
 
     # --- Portal Auswahlseite (Allgemein) ---
     portal_choice_title = models.CharField("Titel (Auswahlseite)", max_length=100, blank=True, default="Mein Bereich")
+    portal_choice_title_color = models.CharField("Farbe Titel", max_length=7, blank=True, default="#3a3a3a")
     portal_choice_subtitle = models.TextField("Untertitel (Auswahlseite)", blank=True, default="Bitte wählen Sie den Bereich aus, den Sie verwalten möchten.")
+    portal_choice_subtitle_color = models.CharField("Farbe Untertitel", max_length=7, blank=True, default="#6b7280")
     portal_choice_background_color = models.CharField("Hintergrundfarbe (Auswahlseite)", max_length=7, blank=True, default="#f4f1ee")
     portal_choice_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Auswahlseite)")
     
     # --- Gedenken-Säule ---
     gedenken_card_sidetext = models.CharField("Seitentext (Gedenken-Säule)", max_length=50, blank=True, default="Gedenken")
-    gedenken_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=30, blank=True, default="rgba(255, 255, 255, 0.4)")
+    gedenken_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=7, blank=True, default="#FFFFFF")
     gedenken_card_sidetext_size = models.CharField("Schriftgröße Seitentext", max_length=10, blank=True, default="3.2rem")
     gedenken_card_background_color = models.CharField("Hintergrundfarbe (Gedenken-Säule)", max_length=7, blank=True, default="#8c8073")
     gedenken_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Gedenken-Säule)")
@@ -303,11 +305,11 @@ class SiteSettings(models.Model):
     gedenken_card_details_text = models.TextField("Detaillierte Beschreibung (Gedenken)", blank=True, default="<ul><li><strong>Gedenkseiten verwalten:</strong> Erstellen und pflegen Sie eine persönliche Seite.</li><li><strong>Angehörige einladen:</strong> Vergeben Sie Berechtigungen.</li><li><strong>Meine Beiträge:</strong> Sehen Sie all Ihre Kondolenzen und Gedenkkerzen.</li></ul>")
     gedenken_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
     gedenken_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
-    gedenken_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="rgba(0, 0, 0, 0.5)")
+    gedenken_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=7, blank=True, default="#3a3a3a")
 
     # --- Vorsorge-Säule ---
     vorsorge_card_sidetext = models.CharField("Seitentext (Vorsorge-Säule)", max_length=50, blank=True, default="Vorsorge")
-    vorsorge_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=30, blank=True, default="rgba(255, 255, 255, 0.4)")
+    vorsorge_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=7, blank=True, default="#FFFFFF")
     vorsorge_card_sidetext_size = models.CharField("Schriftgröße Seitentext", max_length=10, blank=True, default="3.2rem")
     vorsorge_card_background_color = models.CharField("Hintergrundfarbe (Vorsorge-Säule)", max_length=7, blank=True, default="#6d6d6d")
     vorsorge_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Vorsorge-Säule)")
@@ -317,7 +319,7 @@ class SiteSettings(models.Model):
     vorsorge_card_details_text = models.TextField("Detaillierte Beschreibung (Vorsorge)", blank=True, default="<ul><li><strong>Meine Vorsorge:</strong> Regeln Sie alles Wichtige von Verträgen bis zum digitalen Nachlass.</li><li><strong>Eigene Gedenkseite:</strong> Gestalten Sie zu Lebzeiten Ihre persönliche Gedenkseite.</li><li><strong>Wichtige Medien:</strong> Verwalten Sie sicher alle Dokumente und Bilder.</li></ul>")
     vorsorge_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
     vorsorge_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
-    vorsorge_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="rgba(0, 0, 0, 0.5)")
+    vorsorge_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=7, blank=True, default="#3a3a3a")
 
     # Gedenkseiten-Listing
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir gedenken")
@@ -664,5 +666,4 @@ class EventAttendance(models.Model):
 
     def __str__(self):
         return f"{self.guest_name} nimmt an {self.event.title} teil"
-
 

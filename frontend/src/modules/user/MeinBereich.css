@@ -1,17 +1,22 @@
 /* frontend/src/modules/user/MeinBereich.css */
-/* KORRIGIERT: Die Seitenhöhe ist jetzt exakt 100vh, um Scrollen zu verhindern. */
+/* KORRIGIERT: Die Positionierung wurde auf 'absolute' umgestellt,
+   um die Höhe exakt an den Platz UNTERHALB des Headers anzupassen. */
 
 .mein-bereich-page {
-    padding-top: 80px; /* Platz für den fixen Header */
-    height: 100vh;
+    position: absolute;
+    top: 80px; /* Startet exakt unter dem 80px hohen Header */
+    left: 0;
+    right: 0;
+    bottom: 0; /* Endet am unteren Rand des Bildschirms */
+    
+    display: flex;
+    flex-direction: column;
+    
     background-color: var(--bg-color);
     background-image: var(--bg-image);
     background-size: cover;
     background-position: center;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; 
+    overflow: hidden; /* Verhindert jegliches Scrollen auf dieser Ebene */
 }
 
 .mein-bereich-container {

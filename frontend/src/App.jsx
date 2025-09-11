@@ -1,7 +1,6 @@
 // frontend/src/App.jsx
-// HINWEIS: Das Routing für den "/mein-bereich" wurde komplett umgebaut, um die neue
-// Struktur mit Auswahlseite und den zwei Säulen "Gedenken" und "Vorsorge" abzubilden.
-// KORRIGIERT: Das globale Padding wurde entfernt, um das Höhenproblem zu beheben.
+// KORRIGIERT: Die Route für "/gedenken" wurde in den "page-with-padding"-Container
+// verschoben, um das Höhenproblem zu beheben.
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -46,19 +45,19 @@ function App() {
     <Router>
       <AuthProvider>
         <Header />
-        {/* KORREKTUR: Der Wrapper Div wurde hier entfernt, das Padding wird jetzt pro Route gesteuert */}
         <Routes>
           {/* Routen, die das Padding benötigen */}
           <Route path="/" element={<div className="page-with-padding"><HomePage /></div>} />
           <Route path="/gedenken/:slug" element={<div className="page-with-padding"><MemorialPage /></div>} />
+          {/* KORRIGIERT: Diese Route benötigt ebenfalls das Padding */}
+          <Route path="/gedenken" element={<div className="page-with-padding"><MemorialListingPage /></div>} />
           
           {/* Vollbild-Routen, die KEIN extra Padding benötigen */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegistrationPage />} />
           <Route path="/password-reset" element={<PasswordResetRequestPage />} />
           <Route path="/password-reset-confirm/:uid/:token/" element={<PasswordResetConfirmPage />} />
-          <Route path="/gedenken" element={<MemorialListingPage />} />
-
+          
           {/* "Mein Bereich" ist eine Vollbild-Route */}
           <Route path="/mein-bereich" element={<PrivateRoute><MeinBereich /></PrivateRoute>}>
               <Route index element={<Navigate to="auswahl" replace />} />

@@ -1,6 +1,6 @@
 # backend/api/serializers.py
-# ERWEITERT: Der SiteSettingsSerializer wurde um das neue Feld 'header_logo_image'
-# erweitert, um die vollständige Bild-URL bereitzustellen.
+# HINWEIS: Basiert auf Ihrem Originalcode. Der SiteSettingsSerializer ist bereits
+# korrekt konfiguriert, um alle neuen Personalisierungs-Felder zu unterstützen.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -193,9 +193,7 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         exclude = ['page']
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
-    # NEU
     header_logo_image = MediaAssetSerializer(read_only=True)
-    
     listing_background_image = MediaAssetSerializer(read_only=True)
     search_background_image = MediaAssetSerializer(read_only=True)
     expend_background_image = MediaAssetSerializer(read_only=True)

@@ -1,18 +1,17 @@
 // frontend/src/modules/user/MeinBereich.jsx
-// HINWEIS: Diese Komponente wurde grundlegend umgebaut. Sie dient nun als allgemeines Layout
-// für den "Mein Bereich", enthält die Logik für den Hintergrund und einen neuen Header zum
-// Wechseln zwischen den Portalen. Die alte Sidebar wurde entfernt.
+// KORRIGIERT: Wendet den zentrierten Container nur noch auf den Dashboard-Seiten an,
+// nicht mehr auf der Vollbild-Auswahlseite, um das Hintergrundproblem zu beheben.
 
 import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation, NavLink } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 
 const MeinBereich = () => {
     const [settings, setSettings] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    const location = useLocation(); // Hook, um den aktuellen Pfad zu bekommen
     const api = useApi();
-    const location = useLocation();
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -29,10 +28,14 @@ const MeinBereich = () => {
         };
         fetchSettings();
     }, [api]);
+    
+    // Prüfen, ob wir uns auf der Auswahlseite befinden
+    const isChoicePage = location.pathname === '/mein-bereich/auswahl';
 
-    const containerStyle = {
+    // Allgemeiner Seitenhintergrund, der immer gilt
+    const pageStyle = {
         '--bg-color': settings.mein_bereich_background_color || '#f4f1ee',
-        '--bg-image': settings.mein_bereich_background_image ? `url(${settings.mein_bereich_background_image.url})` : 'none',
+        '--bg-image': !isChoicePage && settings.mein_bereich_background_image ? `url(${settings.mein_bereich_background_image.url})` : 'none',
         '--container-bg': settings.mein_bereich_container_background_color || '#FFFFFF',
         '--sidebar-bg': settings.mein_bereich_sidebar_background_color || '#f8f9fa',
         '--sidebar-text': settings.mein_bereich_sidebar_text_color || '#3a3a3a',
@@ -40,27 +43,36 @@ const MeinBereich = () => {
         '--sidebar-active-text': settings.mein_bereich_sidebar_active_text_color || '#FFFFFF',
     };
     
-    // Der Portal-Wechsler wird nur angezeigt, wenn man sich in einem der Dashboards befindet
-    const showPortalSwitcher = location.pathname.startsWith('/mein-bereich/gedenken') || location.pathname.startsWith('/mein-bereich/vorsorge');
+    // Bestimmen, welcher Navigations-Header angezeigt werden soll
+    const isDashboard = location.pathname.startsWith('/mein-bereich/gedenken') || location.pathname.startsWith('/mein-bereich/vorsorge');
 
     if (isLoading) {
-        return <div className="loading-container">Lade Mein Bereich...</div>;
+        return <div style={{paddingTop: '80px'}}>Lade Mein Bereich...</div>;
     }
 
     return (
-        <div className="mein-bereich-page" style={containerStyle}>
-            <div className="mein-bereich-container">
-                {showPortalSwitcher && (
-                    <header className="portal-switcher-header">
-                        <nav className="portal-switcher-nav">
-                            <NavLink to="/mein-bereich/gedenken">Gedenken</NavLink>
-                            <NavLink to="/mein-bereich/vorsorge">Vorsorge</NavLink>
-                        </nav>
-                    </header>
-                )}
-                {/* Der Outlet rendert hier entweder die PortalChoicePage oder die Dashboards */}
+        <div className="mein-bereich-page" style={pageStyle}>
+            {/* Der Portal-Wechsler wird nur auf den Dashboard-Seiten angezeigt */}
+            {isDashboard && (
+                <div className="portal-switcher-header">
+                    <nav className="portal-switcher-nav">
+                        <NavLink to="/mein-bereich/gedenken">Gedenken</NavLink>
+                        <span>|</span>
+                        <NavLink to="/mein-bereich/vorsorge">Vorsorge</NavLink>
+                        <span>|</span>
+                        <Link to="/mein-bereich/auswahl">Zurück zur Auswahl</Link>
+                    </nav>
+                </div>
+            )}
+
+            {/* Der Container wird nur gerendert, wenn es NICHT die Auswahlseite ist */}
+            {isChoicePage ? (
                 <Outlet context={{ settings }} />
-            </div>
+            ) : (
+                <div className="mein-bereich-container">
+                    <Outlet context={{ settings }} />
+                </div>
+            )}
         </div>
     );
 };

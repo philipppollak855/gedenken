@@ -1,7 +1,6 @@
 // frontend/src/modules/user/PortalChoicePage.jsx
 // ERWEITERT: Die Komponente ist nun vollständig über den Admin-Bereich personalisierbar.
-// Alle Texte, Farben, Schriftgrößen und Hintergründe werden dynamisch aus den API-Settings geladen.
-// KORRIGIERT: Verwendet die neuen Farbfelder für Titel/Untertitel und reine Hex-Farbcodes.
+// KORRIGIERT: Wendet nun das spezifische Hintergrundbild für die Auswahlseite korrekt an.
 
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
@@ -12,8 +11,10 @@ const PortalChoicePage = () => {
 
     // --- Dynamische Stile basierend auf den Admin-Einstellungen ---
 
-    // Allgemeines Seiten-Styling
+    // Allgemeines Seiten-Styling, inklusive des spezifischen Hintergrunds
     const pageStyle = {
+        backgroundColor: settings.portal_choice_background_color || '#f4f1ee',
+        backgroundImage: settings.portal_choice_background_image ? `url(${settings.portal_choice_background_image.url})` : 'none',
         '--title-color': settings.portal_choice_title_color || '#3a3a3a',
         '--subtitle-color': settings.portal_choice_subtitle_color || '#6b7280',
     };

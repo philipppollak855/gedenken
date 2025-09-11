@@ -1,27 +1,23 @@
 // frontend/src/modules/user/PortalChoicePage.jsx
-// REDESIGNED: Die Struktur wurde komplett überarbeitet, um ein modernes Zwei-Säulen-Layout
-// für die Auswahl zwischen "Gedenken" und "Vorsorge" zu ermöglichen.
+// ERWEITERT: Die Beschreibungen für "Gedenken" und "Vorsorge" wurden um
+// eine detaillierte Auflistung der Kernfunktionen erweitert.
 
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import './PortalChoicePage.css'; // Zugehörige CSS-Datei für das neue Design
+import './PortalChoicePage.css';
 
 const PortalChoicePage = () => {
-    // Holt die globalen Design-Einstellungen aus dem übergeordneten Layout
     const { settings } = useOutletContext();
 
-    // Dynamische Style-Variablen für die Seite, basierend auf den Admin-Einstellungen
     const pageStyle = {
         '--title-color': settings.login_text_color || '#3a3a3a',
         '--subtitle-color': settings.login_text_color || '#6b7280',
     };
 
-    // Stile für die "Gedenken"-Säule
     const gedenkenStyle = {
         backgroundImage: settings.gedenken_card_image ? `url(${settings.gedenken_card_image.url})` : 'none',
     };
 
-    // Stile für die "Vorsorge"-Säule
     const vorsorgeStyle = {
         backgroundImage: settings.vorsorge_card_image ? `url(${settings.vorsorge_card_image.url})` : 'none',
     };
@@ -47,7 +43,12 @@ const PortalChoicePage = () => {
                     </div>
                     <div className="portal-column-content">
                         <h2>{settings.gedenken_card_title || 'Gedenken'}</h2>
-                        <p>{settings.gedenken_card_subtitle || 'Verwalten Sie Gedenkseiten und teilen Sie Erinnerungen.'}</p>
+                        {/* NEU: Detaillierte Beschreibung */}
+                        <ul>
+                            <li><strong>Gedenkseiten verwalten:</strong> Erstellen und pflegen Sie eine persönliche Seite für einen geliebten Menschen.</li>
+                            <li><strong>Angehörige einladen:</strong> Vergeben Sie Berechtigungen an Familie und Freunde.</li>
+                            <li><strong>Meine Beiträge:</strong> Sehen Sie all Ihre Kondolenzen und Gedenkkerzen an einem Ort.</li>
+                        </ul>
                     </div>
                 </Link>
 
@@ -60,7 +61,12 @@ const PortalChoicePage = () => {
                     </div>
                     <div className="portal-column-content">
                         <h2>{settings.vorsorge_card_title || 'Vorsorge'}</h2>
-                        <p>{settings.vorsorge_card_subtitle || 'Treffen Sie Vorkehrungen und sichern Sie Ihr digitales Erbe.'}</p>
+                        {/* NEU: Detaillierte Beschreibung */}
+                        <ul>
+                            <li><strong>Meine Vorsorge:</strong> Regeln Sie alles Wichtige von Verträgen bis zum digitalen Nachlass.</li>
+                            <li><strong>Eigene Gedenkseite:</strong> Gestalten Sie zu Lebzeiten Ihre persönliche Gedenkseite.</li>
+                            <li><strong>Wichtige Medien:</strong> Verwalten Sie sicher alle Dokumente und Bilder an einem zentralen Ort.</li>
+                        </ul>
                     </div>
                 </Link>
             </div>

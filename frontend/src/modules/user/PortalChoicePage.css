@@ -1,22 +1,23 @@
 /* frontend/src/modules/user/PortalChoicePage.css */
-/* FINAL: CSS ist jetzt vollständig dynamisch und nutzt CSS-Variablen
-   für die Personalisierung aus dem Admin-Bereich. */
+/* KORRIGIERT: Die Höhenberechnung wurde final angepasst, um die Header-Höhe exakt zu berücksichtigen. */
 
 .portal-choice-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: calc(100vh - 80px); /* Volle Höhe abzüglich Header */
+    flex-grow: 1; 
     padding: 2rem;
     box-sizing: border-box;
-    overflow: hidden; /* Verhindert das Scrollen */
+    overflow: hidden; 
+    width: 100%;
 }
 
 .portal-choice-header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem; /* Etwas reduziert für mehr Platz */
     animation: fadeInDown 0.8s ease-out;
+    flex-shrink: 0; /* Verhindert, dass der Header schrumpft */
 }
 
 .portal-choice-title {
@@ -24,26 +25,27 @@
     font-size: 2.8rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    color: var(--title-color);
+    color: var(--title-color, #3a3a3a);
 }
 
 .portal-choice-subtitle {
     font-size: 1.1rem;
     max-width: 600px;
     margin: 0 auto;
-    color: var(--subtitle-color);
+    color: var(--subtitle-color, #6b7280);
     line-height: 1.6;
 }
 
 .portal-choice-grid {
     display: flex;
     justify-content: center;
-    align-items: stretch;
+    align-items: stretch; 
     gap: 2rem;
     width: 100%;
     max-width: 1100px;
-    height: 55vh;
-    min-height: 450px;
+    /* KORREKTUR: Feste Höhe entfernt, wächst jetzt flexibel */
+    flex-grow: 1;
+    min-height: 450px; /* Behält eine Mindesthöhe bei */
     animation: fadeInUp 0.8s ease-out 0.2s;
     animation-fill-mode: backwards;
 }
@@ -52,12 +54,12 @@
     position: relative;
     flex: 1;
     border-radius: 12px;
-    overflow: hidden;
+    overflow: hidden; 
     text-decoration: none;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
-    background-color: var(--column-bg-color); /* Dynamische Hintergrundfarbe */
+    background-color: var(--card-bg-color); 
 }
 
 .portal-column:hover {
@@ -72,7 +74,7 @@
     background-position: center;
     z-index: 1;
     transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-    background-image: var(--column-bg-image); /* Dynamisches Hintergrundbild */
+    background-image: var(--card-bg-image); 
 }
 
 .portal-column:hover .portal-column-background {
@@ -93,7 +95,7 @@
     top: 45%;
     transform: translateY(-50%) rotate(-90deg);
     transform-origin: center;
-    font-weight: 900;
+    font-weight: 900; 
     text-transform: uppercase;
     letter-spacing: 6px;
     white-space: nowrap;
@@ -101,8 +103,7 @@
     pointer-events: none;
     opacity: 1;
     transition: opacity 0.4s ease, transform 0.4s ease;
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    /* Dynamische Stile für Seitentext */
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
     color: var(--sidetext-color);
     font-size: var(--sidetext-size);
 }
@@ -121,7 +122,7 @@
     padding: 2rem;
     box-sizing: border-box;
     transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    background-color: var(--content-bg); /* Dynamischer Hintergrund für Beschreibung */
+    background-color: var(--content-bg);
 }
 
 .portal-column--gedenken .portal-column-content {
@@ -140,15 +141,8 @@
     font-family: 'Playfair Display', serif;
     margin: 0 0 1rem;
     line-height: 1.2;
-    /* Dynamische Stile für Titel */
-    color: var(--title-color);
-    font-size: var(--title-size);
-}
-
-.portal-column-content div {
-    /* Dynamische Stile für Beschreibungstext */
-    color: var(--details-color);
-    font-size: var(--details-size);
+    color: var(--title-card-color);
+    font-size: var(--title-card-size);
 }
 
 .portal-column-content ul {
@@ -156,6 +150,8 @@
     padding: 0;
     margin: 0;
     text-align: left;
+    color: var(--details-text-color);
+    font-size: var(--details-text-size);
 }
 
 .portal-column-content li {
@@ -176,7 +172,6 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
-/* Animationen */
 @keyframes fadeInDown {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -187,10 +182,10 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive Anpassungen */
 @media (max-width: 900px) {
     .portal-choice-grid {
         flex-direction: column;
+        flex-grow: 0; /* Auf Mobilgeräten nicht wachsen */
         height: auto;
         gap: 1.5rem;
         max-width: 450px;
@@ -207,6 +202,7 @@
     .portal-column-content {
         position: relative;
         transform: none !important;
+        background: rgba(0,0,0,0.3);
         border-radius: 0 0 12px 12px;
     }
 }

@@ -1,6 +1,6 @@
 # backend/api/models.py
-# KORREKTUR: Die max_length für die RGBA-Farbfelder wurde von 20 auf 30 erhöht,
-# um den "value too long" Migrationsfehler zu beheben.
+# ERWEITERT: Die SiteSettings-Klasse wurde um Felder für die
+# vollständige Personalisierung des Headers erweitert (Logo, Titel, Buttons).
 
 import uuid
 from django.db import models
@@ -276,6 +276,14 @@ class SiteSettings(models.Model):
     class Meta:
         verbose_name = "Globale Design-Einstellungen"
         verbose_name_plural = "Globale Design-Einstellungen"
+
+    # --- NEU: Header / Navigation ---
+    header_logo_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Logo-Bild (ersetzt Text)")
+    header_logo_height = models.CharField("Logo-Höhe", max_length=10, blank=True, default="40px", help_text="CSS-Wert, z.B. 40px")
+    header_site_title_text = models.CharField("Seiten-Titel (Text)", max_length=100, blank=True, default="Gedenken & Vorsorge")
+    header_site_title_color = models.CharField("Farbe Seiten-Titel", max_length=7, blank=True, default="#3a3a3a")
+    header_site_title_size = models.CharField("Schriftgröße Seiten-Titel", max_length=10, blank=True, default="1.5rem")
+    header_button_text_size = models.CharField("Schriftgröße Buttons", max_length=10, blank=True, default="1rem")
 
     # --- Portal Auswahlseite (Allgemein) ---
     portal_choice_title = models.CharField("Titel (Auswahlseite)", max_length=100, blank=True, default="Mein Bereich")
@@ -656,4 +664,5 @@ class EventAttendance(models.Model):
 
     def __str__(self):
         return f"{self.guest_name} nimmt an {self.event.title} teil"
+
 

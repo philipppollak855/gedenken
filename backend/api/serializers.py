@@ -1,6 +1,6 @@
 # backend/api/serializers.py
-# HINWEIS: Basiert auf Ihrem Originalcode. Der SiteSettingsSerializer ist bereits
-# korrekt konfiguriert, um alle neuen Personalisierungs-Felder zu unterstützen.
+# ERWEITERT: Der SiteSettingsSerializer wurde um das neue Feld 'header_logo_image'
+# erweitert, um die vollständige Bild-URL bereitzustellen.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -193,7 +193,9 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         exclude = ['page']
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
-    # Bestehende Bild-Felder
+    # NEU
+    header_logo_image = MediaAssetSerializer(read_only=True)
+    
     listing_background_image = MediaAssetSerializer(read_only=True)
     search_background_image = MediaAssetSerializer(read_only=True)
     expend_background_image = MediaAssetSerializer(read_only=True)
@@ -202,8 +204,6 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     register_info_panel_image = MediaAssetSerializer(read_only=True)
     password_reset_background_image = MediaAssetSerializer(read_only=True)
     mein_bereich_background_image = MediaAssetSerializer(read_only=True)
-    
-    # NEUE Bild-Felder für die Portal-Auswahlseite
     portal_choice_background_image = MediaAssetSerializer(read_only=True)
     gedenken_card_image = MediaAssetSerializer(read_only=True)
     vorsorge_card_image = MediaAssetSerializer(read_only=True)

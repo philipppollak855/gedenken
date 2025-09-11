@@ -1,5 +1,5 @@
 /* frontend/src/components/layout/Header.css */
-/* Stellt sicher, dass die Navigation fixiert ist. */
+/* ERWEITERT: Anpassungen für ein flexibles Logo (Bild oder Text). */
 
 .main-header {
     background-color: #f4f1ee;
@@ -39,11 +39,22 @@
 
 .logo {
     font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
     font-weight: 700;
     color: #3a3a3a;
     text-decoration: none;
+    /* NEU: Stellt sicher, dass Bild oder Text vertikal zentriert sind */
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
+
+/* NEU: Stellt sicher, dass das Logo nicht die Header-Höhe sprengt */
+.logo img {
+    max-height: 80%; /* Etwas Puffer zur Header-Kante */
+    width: auto;
+    object-fit: contain;
+}
+
 
 .main-nav {
     display: flex;
@@ -51,13 +62,13 @@
     gap: 2rem;
 }
 
+/* KORRIGIERT: Feste Schriftgröße entfernt, wird jetzt dynamisch gesetzt */
 .main-nav a, .main-nav .nav-button {
     text-decoration: none;
     color: #6d6d6d;
     font-weight: 500;
     transition: color 0.2s;
     font-family: inherit;
-    font-size: 1rem;
 }
 
 .main-nav a:hover, .main-nav .nav-button:hover {
@@ -83,6 +94,7 @@
     font-weight: 500;
 }
 
+/* KORRIGIERT: Feste Schriftgröße entfernt */
 .logout-button {
     background-color: #8c8073;
     color: white;

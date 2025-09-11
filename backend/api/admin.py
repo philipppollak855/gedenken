@@ -1,6 +1,6 @@
 # backend/api/admin.py
-# ERWEITERT: Der SiteSettingsAdmin wurde um detaillierte, gruppierte Fieldsets für
-# die vollständige Personalisierung der Portal-Auswahlseite erweitert.
+# ERWEITERT: Der SiteSettingsAdmin wurde um ein neues Fieldset für die
+# Personalisierung des Headers erweitert.
 
 import uuid
 import json
@@ -63,11 +63,17 @@ class MediaAssetAdmin(ModelAdmin):
                 usages.append(f"{label}: {', '.join(page_links)}")
 
         site_settings_field_map = {
-            'listing_background_image': "Hintergrund Gedenkseiten-Listing", 'search_background_image': "Hintergrund Suche",
-            'expend_background_image': "Hintergrund Expand-Bereich", 'login_background_image': "Hintergrund Login",
-            'register_background_image': "Hintergrund Registrierung", 'register_info_panel_image': "Info-Panel Registrierung",
-            'password_reset_background_image': "Hintergrund Passwort-Reset", 'mein_bereich_background_image': "Hintergrund Mein Bereich",
-            'portal_choice_background_image': "Hintergrund Portal-Auswahl", 'gedenken_card_image': "Hintergrundbild Gedenken-Säule",
+            'header_logo_image': "Header Logo",
+            'listing_background_image': "Hintergrund Gedenkseiten-Listing", 
+            'search_background_image': "Hintergrund Suche",
+            'expend_background_image': "Hintergrund Expand-Bereich", 
+            'login_background_image': "Hintergrund Login",
+            'register_background_image': "Hintergrund Registrierung", 
+            'register_info_panel_image': "Info-Panel Registrierung",
+            'password_reset_background_image': "Hintergrund Passwort-Reset", 
+            'mein_bereich_background_image': "Hintergrund Mein Bereich",
+            'portal_choice_background_image': "Hintergrund Portal-Auswahl", 
+            'gedenken_card_image': "Hintergrundbild Gedenken-Säule",
             'vorsorge_card_image': "Hintergrundbild Vorsorge-Säule",
         }
         try:
@@ -170,6 +176,7 @@ class MemorialCandleAdmin(ModelAdmin): pass
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin):
     raw_id_fields = (
+        'header_logo_image', # NEU
         'listing_background_image', 
         'search_background_image', 
         'expend_background_image', 
@@ -183,6 +190,17 @@ class SiteSettingsAdmin(ModelAdmin):
         'vorsorge_card_image',
     )
     fieldsets = (
+        # NEU
+        ('Header / Navigation', {
+            'classes': ('collapse',),
+            'fields': (
+                'header_logo_image', 
+                'header_logo_height',
+                'header_site_title_text',
+                ('header_site_title_color', 'header_site_title_size'),
+                'header_button_text_size',
+            )
+        }),
         ('Portal Auswahlseite', {
             'fields': (
                 'portal_choice_title', 

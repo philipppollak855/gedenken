@@ -1,15 +1,36 @@
 // frontend/src/components/layout/Header.jsx
-// KORRIGIERT: Der Link "Mein Bereich" führt nun zum neuen Dashboard und "Meine Beiträge" wurde entfernt.
+// ERWEITERT: Der Header ist nun vollständig über den Admin-Bereich anpassbar.
+// KORRIGIERT: Der "Mein Bereich"-Link führt zur neuen Auswahlseite.
 
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../../context/AuthContext';
+import useApi from '../../hooks/useApi'; // hook for authenticated API calls
 import './Header.css';
 
 const Header = () => {
     const { user, logoutUser } = useContext(AuthContext);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [settings, setSettings] = useState({});
     const navigate = useNavigate();
+    const api = useApi(); // non-authenticated api hook
+
+    useEffect(() => {
+        // Fetch settings on component mount
+        const fetchSettings = async () => {
+            try {
+                // Using a non-authenticated fetch here since settings are public
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/settings/`);
+                if (response.ok) {
+                    setSettings(await response.json());
+                }
+            } catch (error) {
+                console.error("Fehler beim Laden der Design-Einstellungen für den Header:", error);
+            }
+        };
+        fetchSettings();
+    }, []);
+
 
     useEffect(() => {
         const handleScroll = () => {
@@ -33,25 +54,57 @@ const Header = () => {
         }, 100);
     };
 
+    // --- Dynamic Styles from Settings ---
+    const siteTitleStyle = {
+        color: settings.header_site_title_color || '#3a3a3a',
+        fontSize: settings.header_site_title_size || '1.5rem',
+    };
+
+    const logoStyle = {
+        height: settings.header_logo_height || '40px',
+    };
+
+    const buttonStyle = {
+        fontSize: settings.header_button_text_size || '1rem',
+    };
+
     return (
         <header className={`main-header ${isScrolled ? 'scrolled' : ''}`}>
             <div className="header-container">
                 <Link to="/" className="logo">
-                    Bestattung Stranz - Gedenken & Vorsorgen
+                    {settings.header_logo_image ? (
+                        <img 
+                            src={settings.header_logo_image.url} 
+                            alt={settings.header_site_title_text || 'Logo'} 
+                            style={logoStyle} 
+                        />
+                    ) : (
+                        <span style={siteTitleStyle}>
+                            {settings.header_site_title_text || 'Gedenken & Vorsorge'}
+                        </span>
+                    )}
                 </Link>
                 <nav className="main-nav">
-                    <Link to="/gedenken">GEDENKEN</Link>
-                    <button onClick={handleSearchClick} className="nav-button">Verstorbenen Suche</button>
+                    <Link to="/gedenken" style={buttonStyle}>GEDENKEN</Link>
+                    <button onClick={handleSearchClick} className="nav-button" style={buttonStyle}>
+                        Verstorbenen Suche
+                    </button>
                 </nav>
                 <div className="header-actions">
                     {user ? (
                         <>
-                            {/* KORRIGIERT: Link führt jetzt zum neuen Dashboard */}
-                            <Link to="/mein-bereich/dashboard" className="action-link">Mein Bereich</Link>
-                            <button onClick={logoutUser} className="logout-button">Logout</button>
+                            {/* KORRIGIERT: Link führt jetzt zur neuen Auswahlseite */}
+                            <Link to="/mein-bereich/auswahl" className="action-link" style={buttonStyle}>
+                                Mein Bereich
+                            </Link>
+                            <button onClick={logoutUser} className="logout-button" style={buttonStyle}>
+                                Logout
+                            </button>
                         </>
                     ) : (
-                        <Link to="/login" className="action-link">Login</Link>
+                        <Link to="/login" className="action-link" style={buttonStyle}>
+                            Login
+                        </Link>
                     )}
                 </div>
             </div>
@@ -60,4 +113,3 @@ const Header = () => {
 };
 
 export default Header;
-

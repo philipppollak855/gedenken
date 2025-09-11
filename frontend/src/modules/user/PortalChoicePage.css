@@ -1,5 +1,5 @@
 /* frontend/src/modules/user/PortalChoicePage.css */
-/* HINWEIS: Diese Datei ist bereits korrekt und wird hier zur Vollständigkeit aufgeführt. */
+/* KORRIGIERT: Padding wurde vom äußeren Container auf einen neuen inneren Container verschoben. */
 
 .portal-choice-container {
     display: flex;
@@ -7,11 +7,25 @@
     align-items: center;
     justify-content: center;
     flex-grow: 1; 
-    padding: 2rem;
     box-sizing: border-box;
     overflow: hidden; 
     width: 100%;
+    background-size: cover;
+    background-position: center;
 }
+
+/* NEU: Innerer Container für das Padding */
+.portal-choice-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
 
 .portal-choice-header {
     text-align: center;
@@ -144,7 +158,7 @@
     font-size: var(--title-card-size);
 }
 
-.portal-column-content ul {
+.portal-column-content .portal-column-details {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -153,7 +167,13 @@
     font-size: var(--details-text-size);
 }
 
-.portal-column-content li {
+.portal-column-details ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.portal-column-details li {
     margin-bottom: 0.6rem;
     opacity: 0.9;
     position: relative;
@@ -161,7 +181,7 @@
     line-height: 1.5;
 }
 
-.portal-column-content li::before {
+.portal-column-details li::before {
     content: '›';
     position: absolute;
     left: 0;

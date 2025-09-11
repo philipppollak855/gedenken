@@ -1,6 +1,6 @@
 // frontend/src/modules/user/PortalChoicePage.jsx
-// ERWEITERT: Die Komponente ist nun vollständig über den Admin-Bereich personalisierbar.
-// KORRIGIERT: Wendet nun das spezifische Hintergrundbild für die Auswahlseite korrekt an.
+// KORRIGIERT: Eine neue innere Container-div wurde hinzugefügt, um das Padding zu verwalten,
+// sodass das Hintergrundbild die volle Breite einnehmen kann.
 
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
@@ -51,47 +51,49 @@ const PortalChoicePage = () => {
 
     return (
         <div className="portal-choice-container" style={pageStyle}>
-            <div className="portal-choice-header">
-                <h1 className="portal-choice-title">
-                    {settings.portal_choice_title || 'Mein Bereich'}
-                </h1>
-                <p className="portal-choice-subtitle">
-                    {settings.portal_choice_subtitle || 'Bitte wählen Sie den Bereich aus, den Sie verwalten möchten.'}
-                </p>
-            </div>
+            <div className="portal-choice-inner">
+                <div className="portal-choice-header">
+                    <h1 className="portal-choice-title">
+                        {settings.portal_choice_title || 'Mein Bereich'}
+                    </h1>
+                    <p className="portal-choice-subtitle">
+                        {settings.portal_choice_subtitle || 'Bitte wählen Sie den Bereich aus, den Sie verwalten möchten.'}
+                    </p>
+                </div>
 
-            <div className="portal-choice-grid">
-                {/* Gedenken-Säule */}
-                <Link to="/mein-bereich/gedenken" className="portal-column portal-column--gedenken" style={gedenkenColumnStyle}>
-                    <div className="portal-column-background"></div>
-                    <div className="portal-column-overlay"></div>
-                    <div className="portal-column-sidetext">
-                        <span>{settings.gedenken_card_sidetext || 'Gedenken'}</span>
-                    </div>
-                    <div className="portal-column-content">
-                        <h2>{settings.gedenken_card_title || 'Gedenken'}</h2>
-                        <div 
-                            className="portal-column-details"
-                            dangerouslySetInnerHTML={{ __html: settings.gedenken_card_details_text || defaultGedenkenDetails }}
-                        />
-                    </div>
-                </Link>
+                <div className="portal-choice-grid">
+                    {/* Gedenken-Säule */}
+                    <Link to="/mein-bereich/gedenken" className="portal-column portal-column--gedenken" style={gedenkenColumnStyle}>
+                        <div className="portal-column-background"></div>
+                        <div className="portal-column-overlay"></div>
+                        <div className="portal-column-sidetext">
+                            <span>{settings.gedenken_card_sidetext || 'Gedenken'}</span>
+                        </div>
+                        <div className="portal-column-content">
+                            <h2>{settings.gedenken_card_title || 'Gedenken'}</h2>
+                            <div 
+                                className="portal-column-details"
+                                dangerouslySetInnerHTML={{ __html: settings.gedenken_card_details_text || defaultGedenkenDetails }}
+                            />
+                        </div>
+                    </Link>
 
-                {/* Vorsorge-Säule */}
-                <Link to="/mein-bereich/vorsorge" className="portal-column portal-column--vorsorge" style={vorsorgeColumnStyle}>
-                    <div className="portal-column-background"></div>
-                    <div className="portal-column-overlay"></div>
-                    <div className="portal-column-sidetext">
-                        <span>{settings.vorsorge_card_sidetext || 'Vorsorge'}</span>
-                    </div>
-                    <div className="portal-column-content">
-                        <h2>{settings.vorsorge_card_title || 'Vorsorge'}</h2>
-                        <div
-                            className="portal-column-details"
-                            dangerouslySetInnerHTML={{ __html: settings.vorsorge_card_details_text || defaultVorsorgeDetails }}
-                        />
-                    </div>
-                </Link>
+                    {/* Vorsorge-Säule */}
+                    <Link to="/mein-bereich/vorsorge" className="portal-column portal-column--vorsorge" style={vorsorgeColumnStyle}>
+                        <div className="portal-column-background"></div>
+                        <div className="portal-column-overlay"></div>
+                        <div className="portal-column-sidetext">
+                            <span>{settings.vorsorge_card_sidetext || 'Vorsorge'}</span>
+                        </div>
+                        <div className="portal-column-content">
+                            <h2>{settings.vorsorge_card_title || 'Vorsorge'}</h2>
+                            <div
+                                className="portal-column-details"
+                                dangerouslySetInnerHTML={{ __html: settings.vorsorge_card_details_text || defaultVorsorgeDetails }}
+                            />
+                        </div>
+                    </Link>
+                </div>
             </div>
         </div>
     );

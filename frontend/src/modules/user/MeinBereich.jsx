@@ -1,9 +1,8 @@
 // frontend/src/modules/user/MeinBereich.jsx
-// KORRIGIERT: Wendet den zentrierten Container nur noch auf den Dashboard-Seiten an,
-// nicht mehr auf der Vollbild-Auswahlseite, um das Hintergrundproblem zu beheben.
+// KORRIGIERT: Der fehlende 'Link'-Import wurde hinzugefügt, um den Netlify-Build-Fehler zu beheben.
 
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, Link } from 'react-router-dom'; // 'Link' hinzugefügt
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 

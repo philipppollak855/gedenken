@@ -1,6 +1,7 @@
 # backend/api/models.py
 # ERWEITERT: Zusätzliche Felder für die Personalisierung von Titeln im Header und auf der Auswahlseite.
 # KORRIGIERT: Alle RGBA-Farbfelder wurden auf reine Hex-Code-Felder umgestellt.
+# FINALE KORREKTUR: max_length für Farbfelder auf 30 erhöht, um Migrationsfehler zu beheben.
 
 import uuid
 from django.db import models
@@ -295,7 +296,7 @@ class SiteSettings(models.Model):
     
     # --- Gedenken-Säule ---
     gedenken_card_sidetext = models.CharField("Seitentext (Gedenken-Säule)", max_length=50, blank=True, default="Gedenken")
-    gedenken_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=7, blank=True, default="#FFFFFF")
+    gedenken_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=30, blank=True, default="#FFFFFF")
     gedenken_card_sidetext_size = models.CharField("Schriftgröße Seitentext", max_length=10, blank=True, default="3.2rem")
     gedenken_card_background_color = models.CharField("Hintergrundfarbe (Gedenken-Säule)", max_length=7, blank=True, default="#8c8073")
     gedenken_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Gedenken-Säule)")
@@ -305,11 +306,11 @@ class SiteSettings(models.Model):
     gedenken_card_details_text = models.TextField("Detaillierte Beschreibung (Gedenken)", blank=True, default="<ul><li><strong>Gedenkseiten verwalten:</strong> Erstellen und pflegen Sie eine persönliche Seite.</li><li><strong>Angehörige einladen:</strong> Vergeben Sie Berechtigungen.</li><li><strong>Meine Beiträge:</strong> Sehen Sie all Ihre Kondolenzen und Gedenkkerzen.</li></ul>")
     gedenken_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
     gedenken_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
-    gedenken_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=7, blank=True, default="#3a3a3a")
+    gedenken_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="#3a3a3a")
 
     # --- Vorsorge-Säule ---
     vorsorge_card_sidetext = models.CharField("Seitentext (Vorsorge-Säule)", max_length=50, blank=True, default="Vorsorge")
-    vorsorge_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=7, blank=True, default="#FFFFFF")
+    vorsorge_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=30, blank=True, default="#FFFFFF")
     vorsorge_card_sidetext_size = models.CharField("Schriftgröße Seitentext", max_length=10, blank=True, default="3.2rem")
     vorsorge_card_background_color = models.CharField("Hintergrundfarbe (Vorsorge-Säule)", max_length=7, blank=True, default="#6d6d6d")
     vorsorge_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Vorsorge-Säule)")
@@ -319,7 +320,7 @@ class SiteSettings(models.Model):
     vorsorge_card_details_text = models.TextField("Detaillierte Beschreibung (Vorsorge)", blank=True, default="<ul><li><strong>Meine Vorsorge:</strong> Regeln Sie alles Wichtige von Verträgen bis zum digitalen Nachlass.</li><li><strong>Eigene Gedenkseite:</strong> Gestalten Sie zu Lebzeiten Ihre persönliche Gedenkseite.</li><li><strong>Wichtige Medien:</strong> Verwalten Sie sicher alle Dokumente und Bilder.</li></ul>")
     vorsorge_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
     vorsorge_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
-    vorsorge_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=7, blank=True, default="#3a3a3a")
+    vorsorge_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="#3a3a3a")
 
     # Gedenkseiten-Listing
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir gedenken")

@@ -1,11 +1,12 @@
 // frontend/src/components/layout/Header.jsx
 // ERWEITERT: Der Header ist nun vollständig über den Admin-Bereich anpassbar.
 // KORRIGIERT: Der "Mein Bereich"-Link führt zur neuen Auswahlseite.
+// KORRIGIERT: Unbenutzte 'useApi' hook entfernt, um den Build-Fehler zu beheben.
 
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../../context/AuthContext';
-import useApi from '../../hooks/useApi'; // hook for authenticated API calls
+// import useApi from '../../hooks/useApi'; // Nicht benötigt, da 'fetch' verwendet wird
 import './Header.css';
 
 const Header = () => {
@@ -13,7 +14,7 @@ const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [settings, setSettings] = useState({});
     const navigate = useNavigate();
-    const api = useApi(); // non-authenticated api hook
+    // const api = useApi(); // Entfernt, da nicht verwendet
 
     useEffect(() => {
         // Fetch settings on component mount
@@ -113,3 +114,4 @@ const Header = () => {
 };
 
 export default Header;
+

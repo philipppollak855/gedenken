@@ -1,5 +1,5 @@
 // frontend/src/context/AuthContext.jsx
-// KORRIGIERT: Leitet nach dem Login wieder auf das Dashboard.
+// KORRIGIERT: Leitet nach dem Login auf die neue Portal-Auswahlseite.
 
 import React, { createContext, useState, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
@@ -38,8 +38,8 @@ export const AuthProvider = ({ children }) => {
                 setAuthTokens(data);
                 setUser(jwtDecode(data.access));
                 localStorage.setItem('authTokens', JSON.stringify(data));
-                // Leitet nach dem Login zum Dashboard
-                navigate('/mein-bereich/dashboard'); 
+                // KORRIGIERT: Leitet jetzt zur neuen Auswahlseite.
+                navigate('/mein-bereich/auswahl'); 
             } else {
                 alert('Login fehlgeschlagen! Überprüfen Sie E-Mail und Passwort.');
             }

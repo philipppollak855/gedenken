@@ -1,87 +1,71 @@
 /* frontend/src/modules/user/MeinBereich.css */
-/* HINWEIS: Basierend auf Ihrem Originalcode. Angepasst an die neue Layout-Struktur von MeinBereich.jsx.
-   Alte Sidebar- und Dashboard-Styles wurden entfernt und neue Styles für den Container
-   und den Portal-Wechsler-Header hinzugefügt. */
+/* KORRIGIERT: Der weiße Hintergrund und Schatten wurden entfernt,
+   um den "schwebenden" Effekt für die Auswahlseite zu ermöglichen. */
 
 .mein-bereich-page {
-    min-height: calc(100vh - 80px); /* Höhe des Headers anpassen */
+    padding-top: 80px; /* Platz für den fixen Header */
+    min-height: 100vh;
     background-color: var(--bg-color);
     background-image: var(--bg-image);
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
-    padding: 2rem;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
     box-sizing: border-box;
+    /* NEU: Flexbox-Layout, damit der Inhalt die volle Höhe einnehmen kann */
+    display: flex;
+    flex-direction: column;
 }
 
+/* KORRIGIERT: Container ist jetzt ein transparenter Rahmen ohne eigenen Stil */
 .mein-bereich-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0; /* Padding wird von den Kind-Komponenten gehandhabt */
     width: 100%;
-    max-width: 1200px;
-    background-color: var(--container-bg);
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-    min-height: calc(100vh - 80px - 4rem);
-    overflow: hidden; /* Stellt sicher, dass die border-radius auf Kinder angewendet wird */
+    box-sizing: border-box;
+    flex-grow: 1; /* Stellt sicher, dass der Container den verfügbaren Platz füllt */
+    display: flex;
+    flex-direction: column;
 }
 
-/* Neuer Header zum Wechseln zwischen den Portalen */
+/* --- Stile für den Portal-Wechsler (Header in den Dashboards) --- */
+
 .portal-switcher-header {
-    background-color: #f8f9fa; /* Eine neutrale Farbe, die zu den meisten Designs passt */
-    border-bottom: 1px solid #e9ecef;
-    padding: 0 2rem;
+    padding: 1rem 2rem;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .portal-switcher-nav {
     display: flex;
+    justify-content: center;
+    align-items: center;
     gap: 1rem;
 }
 
-.portal-switcher-nav a {
-    padding: 1rem 0.5rem;
-    text-decoration: none;
-    color: #6c757d; /* Inaktive Farbe */
+.portal-switcher-nav .nav-label {
     font-weight: 500;
-    border-bottom: 3px solid transparent;
-    transition: color 0.2s ease, border-color 0.2s ease;
+    color: #6b7280;
+}
+
+.portal-switcher-nav a {
+    text-decoration: none;
+    color: var(--sidebar-text, #3a3a3a);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    border: 1px solid transparent;
 }
 
 .portal-switcher-nav a:hover {
-    color: #343a40;
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .portal-switcher-nav a.active {
-    color: var(--sidebar-active-bg, #8c8073); /* Aktive Farbe aus den Settings */
-    border-bottom-color: var(--sidebar-active-bg, #8c8073);
-}
-
-.loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 50vh;
-    font-size: 1.2rem;
-}
-
-/* Der allgemeine Inhaltsbereich, der vom Outlet gefüllt wird */
-.mein-bereich-content {
-    flex-grow: 1;
-    padding: 2rem 3rem;
-    overflow-y: auto;
-}
-
-
-@media (max-width: 768px) {
-    .mein-bereich-page {
-        padding: 1rem;
-    }
-    .portal-switcher-header {
-        padding: 0 1rem;
-    }
-    .mein-bereich-content {
-        padding: 1.5rem;
-    }
+    background-color: var(--sidebar-active-bg, #8c8073);
+    color: var(--sidebar-active-text, #FFFFFF);
+    border-color: var(--sidebar-active-bg, #8c8073);
 }
 

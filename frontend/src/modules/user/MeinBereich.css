@@ -1,28 +1,25 @@
 /* frontend/src/modules/user/MeinBereich.css */
-/* KORRIGIERT: Der weiße Hintergrund und Schatten wurden entfernt,
-   um den "schwebenden" Effekt für die Auswahlseite zu ermöglichen. */
+/* KORRIGIERT: Die Seitenhöhe ist jetzt exakt 100vh, um Scrollen zu verhindern. */
 
 .mein-bereich-page {
     padding-top: 80px; /* Platz für den fixen Header */
-    min-height: 100vh;
+    height: 100vh; /* KORREKTUR: Feste Höhe statt min-height */
     background-color: var(--bg-color);
     background-image: var(--bg-image);
     background-size: cover;
     background-position: center;
     box-sizing: border-box;
-    /* NEU: Flexbox-Layout, damit der Inhalt die volle Höhe einnehmen kann */
     display: flex;
     flex-direction: column;
 }
 
-/* KORRIGIERT: Container ist jetzt ein transparenter Rahmen ohne eigenen Stil */
 .mein-bereich-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0; /* Padding wird von den Kind-Komponenten gehandhabt */
+    padding: 0; 
     width: 100%;
     box-sizing: border-box;
-    flex-grow: 1; /* Stellt sicher, dass der Container den verfügbaren Platz füllt */
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
 }

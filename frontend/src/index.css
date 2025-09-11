@@ -16,9 +16,11 @@ body {
   color: #333;
 }
 
-.content-wrapper {
+/* KORREKTUR: Padding wird nun über eine spezifische Klasse gesteuert, nicht global */
+.page-with-padding {
     padding-top: 80px; 
 }
+
 
 /* Neuer, spezifischer Stil für Standard-Inhaltsseiten */
 .page-container {

@@ -1,6 +1,6 @@
 # backend/api/serializers.py
-# HINWEIS: Ihr Originalcode wurde als Basis verwendet. Umlaute wurden korrigiert und der
-# SiteSettingsSerializer wurde um die neuen Felder für die Portal-Auswahlseite erweitert.
+# HINWEIS: Basiert auf Ihrem Originalcode. Der SiteSettingsSerializer ist bereits
+# korrekt konfiguriert, um alle neuen Personalisierungs-Felder zu unterstützen.
 
 from rest_framework import serializers
 from django.utils import timezone

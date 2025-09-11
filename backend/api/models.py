@@ -1,6 +1,6 @@
 # backend/api/models.py
-# HINWEIS: Dies ist Ihr vollständiger Originalcode, korrigiert und erweitert um die
-# neuen Felder in der SiteSettings-Klasse für die Portal-Auswahlseite.
+# HINWEIS: Basiert auf Ihrem Originalcode. Erweitert um alle Personalisierungs-Felder
+# für die Portal-Auswahlseite in der SiteSettings-Klasse.
 
 import uuid
 from django.db import models
@@ -277,23 +277,39 @@ class SiteSettings(models.Model):
         verbose_name = "Globale Design-Einstellungen"
         verbose_name_plural = "Globale Design-Einstellungen"
 
-    # --- NEU: Portal Auswahlseite ---
+    # --- Portal Auswahlseite (Allgemein) ---
     portal_choice_title = models.CharField("Titel (Auswahlseite)", max_length=100, blank=True, default="Mein Bereich")
     portal_choice_subtitle = models.TextField("Untertitel (Auswahlseite)", blank=True, default="Bitte wählen Sie den Bereich aus, den Sie verwalten möchten.")
     portal_choice_background_color = models.CharField("Hintergrundfarbe (Auswahlseite)", max_length=7, blank=True, default="#f4f1ee")
     portal_choice_background_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Auswahlseite)")
     
-    # --- NEU: Gedenken-Karte ---
-    gedenken_card_title = models.CharField("Titel (Gedenken-Karte)", max_length=100, blank=True, default="Gedenken")
-    gedenken_card_subtitle = models.TextField("Untertitel (Gedenken-Karte)", blank=True, default="Verwalten Sie Gedenkseiten und teilen Sie Erinnerungen.")
-    gedenken_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Bild (Gedenken-Karte)")
+    # --- Gedenken-Säule ---
+    gedenken_card_sidetext = models.CharField("Seitentext (Gedenken-Säule)", max_length=50, blank=True, default="Gedenken")
+    gedenken_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=20, blank=True, default="rgba(255, 255, 255, 0.4)")
+    gedenken_card_sidetext_size = models.CharField("Schriftgröße Seitentext", max_length=10, blank=True, default="3.2rem")
+    gedenken_card_background_color = models.CharField("Hintergrundfarbe (Gedenken-Säule)", max_length=7, blank=True, default="#8c8073")
+    gedenken_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Gedenken-Säule)")
+    gedenken_card_title = models.CharField("Titel (Gedenken-Beschreibung)", max_length=100, blank=True, default="Gedenken")
+    gedenken_card_title_color = models.CharField("Farbe Titel", max_length=7, blank=True, default="#FFFFFF")
+    gedenken_card_title_size = models.CharField("Schriftgröße Titel", max_length=10, blank=True, default="2.5rem")
+    gedenken_card_details_text = models.TextField("Detaillierte Beschreibung (Gedenken)", blank=True, default="<ul><li><strong>Gedenkseiten verwalten:</strong> Erstellen und pflegen Sie eine persönliche Seite.</li><li><strong>Angehörige einladen:</strong> Vergeben Sie Berechtigungen.</li><li><strong>Meine Beiträge:</strong> Sehen Sie all Ihre Kondolenzen und Gedenkkerzen.</li></ul>")
+    gedenken_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
+    gedenken_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
+    gedenken_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=20, blank=True, default="rgba(0, 0, 0, 0.5)")
 
-    # --- NEU: Vorsorge-Karte ---
-    vorsorge_card_title = models.CharField("Titel (Vorsorge-Karte)", max_length=100, blank=True, default="Vorsorge")
-    vorsorge_card_subtitle = models.TextField("Untertitel (Vorsorge-Karte)", blank=True, default="Treffen Sie Vorkehrungen und sichern Sie Ihr digitales Erbe.")
-    vorsorge_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Bild (Vorsorge-Karte)")
-
-    # --- BESTEHEND ---
+    # --- Vorsorge-Säule ---
+    vorsorge_card_sidetext = models.CharField("Seitentext (Vorsorge-Säule)", max_length=50, blank=True, default="Vorsorge")
+    vorsorge_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=20, blank=True, default="rgba(255, 255, 255, 0.4)")
+    vorsorge_card_sidetext_size = models.CharField("Schriftgröße Seitentext", max_length=10, blank=True, default="3.2rem")
+    vorsorge_card_background_color = models.CharField("Hintergrundfarbe (Vorsorge-Säule)", max_length=7, blank=True, default="#6d6d6d")
+    vorsorge_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Vorsorge-Säule)")
+    vorsorge_card_title = models.CharField("Titel (Vorsorge-Beschreibung)", max_length=100, blank=True, default="Vorsorge")
+    vorsorge_card_title_color = models.CharField("Farbe Titel", max_length=7, blank=True, default="#FFFFFF")
+    vorsorge_card_title_size = models.CharField("Schriftgröße Titel", max_length=10, blank=True, default="2.5rem")
+    vorsorge_card_details_text = models.TextField("Detaillierte Beschreibung (Vorsorge)", blank=True, default="<ul><li><strong>Meine Vorsorge:</strong> Regeln Sie alles Wichtige von Verträgen bis zum digitalen Nachlass.</li><li><strong>Eigene Gedenkseite:</strong> Gestalten Sie zu Lebzeiten Ihre persönliche Gedenkseite.</li><li><strong>Wichtige Medien:</strong> Verwalten Sie sicher alle Dokumente und Bilder.</li></ul>")
+    vorsorge_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
+    vorsorge_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
+    vorsorge_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=20, blank=True, default="rgba(0, 0, 0, 0.5)")
 
     # Gedenkseiten-Listing
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir gedenken")

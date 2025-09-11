@@ -1,5 +1,6 @@
 /* frontend/src/modules/user/PortalChoicePage.css */
-/* REDESIGNED: Komplett überarbeitetes CSS für ein modernes Zwei-Säulen-Layout. */
+/* FINAL: CSS ist jetzt vollständig dynamisch und nutzt CSS-Variablen
+   für die Personalisierung aus dem Admin-Bereich. */
 
 .portal-choice-container {
     display: flex;
@@ -37,11 +38,11 @@
 .portal-choice-grid {
     display: flex;
     justify-content: center;
-    align-items: stretch; /* Säulen haben die gleiche Höhe */
+    align-items: stretch;
     gap: 2rem;
     width: 100%;
     max-width: 1100px;
-    height: 55vh; /* Feste Höhe für die Säulen */
+    height: 55vh;
     min-height: 450px;
     animation: fadeInUp 0.8s ease-out 0.2s;
     animation-fill-mode: backwards;
@@ -51,11 +52,12 @@
     position: relative;
     flex: 1;
     border-radius: 12px;
-    overflow: hidden; /* Wichtig für den Slide-In Effekt */
+    overflow: hidden;
     text-decoration: none;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
+    background-color: var(--column-bg-color); /* Dynamische Hintergrundfarbe */
 }
 
 .portal-column:hover {
@@ -70,6 +72,7 @@
     background-position: center;
     z-index: 1;
     transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background-image: var(--column-bg-image); /* Dynamisches Hintergrundbild */
 }
 
 .portal-column:hover .portal-column-background {
@@ -90,20 +93,20 @@
     top: 45%;
     transform: translateY(-50%) rotate(-90deg);
     transform-origin: center;
-    color: rgba(255, 255, 255, 0.4); /* Sichtbarkeit erhöht */
-    font-size: 3.2rem; /* Schriftgröße angepasst */
-    font-weight: 900; /* Stärkerer Schriftschnitt */
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 6px; /* Buchstabenabstand optimiert */
+    letter-spacing: 6px;
     white-space: nowrap;
     z-index: 3;
     pointer-events: none;
     opacity: 1;
     transition: opacity 0.4s ease, transform 0.4s ease;
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Schatten für bessere Lesbarkeit */
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    /* Dynamische Stile für Seitentext */
+    color: var(--sidetext-color);
+    font-size: var(--sidetext-size);
 }
 
-/* Der Seitentext blendet aus, wenn der Inhalt einslidet */
 .portal-column:hover .portal-column-sidetext {
     opacity: 0;
     transform: translateY(-50%) rotate(-90deg) scale(0.95);
@@ -116,9 +119,9 @@
     width: 100%;
     z-index: 4;
     padding: 2rem;
-    color: #ffffff;
     box-sizing: border-box;
     transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    background-color: var(--content-bg); /* Dynamischer Hintergrund für Beschreibung */
 }
 
 .portal-column--gedenken .portal-column-content {
@@ -135,12 +138,19 @@
 
 .portal-column-content h2 {
     font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
-    margin: 0 0 1rem; /* Mehr Abstand zur Liste */
+    margin: 0 0 1rem;
     line-height: 1.2;
+    /* Dynamische Stile für Titel */
+    color: var(--title-color);
+    font-size: var(--title-size);
 }
 
-/* NEU: Styling für die Detail-Liste */
+.portal-column-content div {
+    /* Dynamische Stile für Beschreibungstext */
+    color: var(--details-color);
+    font-size: var(--details-size);
+}
+
 .portal-column-content ul {
     list-style: none;
     padding: 0;
@@ -149,7 +159,6 @@
 }
 
 .portal-column-content li {
-    font-size: 0.95rem;
     margin-bottom: 0.6rem;
     opacity: 0.9;
     position: relative;
@@ -166,7 +175,6 @@
     top: -2px;
     color: rgba(255, 255, 255, 0.8);
 }
-/* Ende neue Styles */
 
 /* Animationen */
 @keyframes fadeInDown {
@@ -199,7 +207,6 @@
     .portal-column-content {
         position: relative;
         transform: none !important;
-        background: rgba(0,0,0,0.3); /* Leichter Hintergrund für Lesbarkeit auf Mobilgeräten */
         border-radius: 0 0 12px 12px;
     }
 }

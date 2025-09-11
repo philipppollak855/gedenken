@@ -1,6 +1,6 @@
 # backend/api/admin.py
-# HINWEIS: Ihr Originalcode wurde als Basis verwendet. Umlaute wurden korrigiert und ein neues
-# Fieldset "Portal Auswahlseite" wurde im SiteSettingsAdmin hinzugefügt.
+# ERWEITERT: Der SiteSettingsAdmin wurde um detaillierte, gruppierte Fieldsets für
+# die vollständige Personalisierung der Portal-Auswahlseite erweitert.
 
 import uuid
 import json
@@ -50,7 +50,6 @@ class MediaAssetAdmin(ModelAdmin):
     def image_usage(self, obj):
         usages = []
         
-        # --- 1. Verwendungen in Gedenkseiten prüfen ---
         memorial_page_field_map = {
             'main_photo': "Portrait", 'hero_background_image': "Hintergrund Hero",
             'farewell_background_image': "Hintergrund Abschied", 'obituary_card_image': "Partezettel",
@@ -63,14 +62,13 @@ class MediaAssetAdmin(ModelAdmin):
                 page_links = [f'<a href="{reverse("admin:api_memorialpage_change", args=[p.pk])}">{str(p)}</a>' for p in pages]
                 usages.append(f"{label}: {', '.join(page_links)}")
 
-        # --- 2. Verwendungen in den globalen Seiteneinstellungen prüfen ---
         site_settings_field_map = {
             'listing_background_image': "Hintergrund Gedenkseiten-Listing", 'search_background_image': "Hintergrund Suche",
             'expend_background_image': "Hintergrund Expand-Bereich", 'login_background_image': "Hintergrund Login",
             'register_background_image': "Hintergrund Registrierung", 'register_info_panel_image': "Info-Panel Registrierung",
             'password_reset_background_image': "Hintergrund Passwort-Reset", 'mein_bereich_background_image': "Hintergrund Mein Bereich",
-            'portal_choice_background_image': "Hintergrund Portal-Auswahl", 'gedenken_card_image': "Bild Gedenken-Karte",
-            'vorsorge_card_image': "Bild Vorsorge-Karte",
+            'portal_choice_background_image': "Hintergrund Portal-Auswahl", 'gedenken_card_image': "Hintergrundbild Gedenken-Säule",
+            'vorsorge_card_image': "Hintergrundbild Vorsorge-Säule",
         }
         try:
             settings_instance = SiteSettings.objects.get(pk=1)
@@ -81,13 +79,11 @@ class MediaAssetAdmin(ModelAdmin):
         except SiteSettings.DoesNotExist:
             pass
 
-        # --- 3. Verwendungen in der Galerie prüfen ---
         gallery_pages = GalleryItem.objects.filter(image=obj).select_related('page')
         if gallery_pages.exists():
             page_links = list(set([f'<a href="{reverse("admin:api_memorialpage_change", args=[g.page.pk])}">{str(g.page)}</a>' for g in gallery_pages]))
             usages.append(f"Galerie: {', '.join(page_links)}")
 
-        # --- 4. Verwendungen in den Kerzenbildern (Stammdaten) prüfen ---
         if CandleImage.objects.filter(image=obj).exists():
              usages.append("Kerzenbild (Stammdaten)")
 
@@ -182,19 +178,43 @@ class SiteSettingsAdmin(ModelAdmin):
         'register_info_panel_image',
         'password_reset_background_image',
         'mein_bereich_background_image',
-        # NEU
         'portal_choice_background_image', 
         'gedenken_card_image', 
         'vorsorge_card_image',
     )
     fieldsets = (
-        # NEU
         ('Portal Auswahlseite', {
             'fields': (
-                'portal_choice_title', 'portal_choice_subtitle', 
-                'portal_choice_background_color', 'portal_choice_background_image',
-                'gedenken_card_title', 'gedenken_card_subtitle', 'gedenken_card_image',
-                'vorsorge_card_title', 'vorsorge_card_subtitle', 'vorsorge_card_image'
+                'portal_choice_title', 
+                'portal_choice_subtitle', 
+                'portal_choice_background_color', 
+                'portal_choice_background_image',
+            )
+        }),
+        ('Design Gedenken-Säule', {
+            'classes': ('collapse',),
+            'fields': (
+                'gedenken_card_sidetext',
+                ('gedenken_card_sidetext_color', 'gedenken_card_sidetext_size'),
+                ('gedenken_card_background_color', 'gedenken_card_image'),
+                'gedenken_card_title',
+                ('gedenken_card_title_color', 'gedenken_card_title_size'),
+                'gedenken_card_details_text',
+                ('gedenken_card_details_text_color', 'gedenken_card_details_text_size'),
+                'gedenken_card_content_background',
+            )
+        }),
+        ('Design Vorsorge-Säule', {
+            'classes': ('collapse',),
+            'fields': (
+                'vorsorge_card_sidetext',
+                ('vorsorge_card_sidetext_color', 'vorsorge_card_sidetext_size'),
+                ('vorsorge_card_background_color', 'vorsorge_card_image'),
+                'vorsorge_card_title',
+                ('vorsorge_card_title_color', 'vorsorge_card_title_size'),
+                'vorsorge_card_details_text',
+                ('vorsorge_card_details_text_color', 'vorsorge_card_details_text_size'),
+                'vorsorge_card_content_background',
             )
         }),
         ('Gedenkseiten-Listing (Startseite)', {

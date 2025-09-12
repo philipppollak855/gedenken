@@ -1,6 +1,6 @@
 // frontend/src/modules/user/PortalChoicePage.jsx
-// KORRIGIERT: Eine neue innere Container-div wurde hinzugefügt, um das Padding zu verwalten,
-// sodass das Hintergrundbild die volle Breite einnehmen kann.
+// KORRIGIERT: Die Hintergrundbilder für die Säulen werden nun direkt über einen
+// inline-Style gesetzt, um die Anzeige zuverlässig zu gewährleisten.
 
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
@@ -11,7 +11,15 @@ const PortalChoicePage = () => {
 
     // --- Dynamische Stile basierend auf den Admin-Einstellungen ---
 
-    // Allgemeines Seiten-Styling, inklusive des spezifischen Hintergrunds
+    // KORREKTUR: Eigene Style-Objekte nur für die Hintergrundbilder
+    const gedenkenBackgroundStyle = {
+        backgroundImage: settings.gedenken_card_image ? `url(${settings.gedenken_card_image.url})` : 'none',
+    };
+    const vorsorgeBackgroundStyle = {
+        backgroundImage: settings.vorsorge_card_image ? `url(${settings.vorsorge_card_image.url})` : 'none',
+    };
+
+    // Allgemeines Seiten-Styling
     const pageStyle = {
         backgroundColor: settings.portal_choice_background_color || '#f4f1ee',
         backgroundImage: settings.portal_choice_background_image ? `url(${settings.portal_choice_background_image.url})` : 'none',
@@ -19,10 +27,9 @@ const PortalChoicePage = () => {
         '--subtitle-color': settings.portal_choice_subtitle_color || '#6b7280',
     };
 
-    // Styling für die Gedenken-Säule
+    // Styling für die Gedenken-Säule (ohne Bild-Variable)
     const gedenkenColumnStyle = {
         '--card-bg-color': settings.gedenken_card_background_color || '#8c8073',
-        '--card-bg-image': settings.gedenken_card_image ? `url(${settings.gedenken_card_image.url})` : 'none',
         '--sidetext-color': settings.gedenken_card_sidetext_color || '#FFFFFF',
         '--sidetext-size': settings.gedenken_card_sidetext_size || '3.2rem',
         '--content-bg': settings.gedenken_card_content_background || '#3a3a3a',
@@ -32,10 +39,9 @@ const PortalChoicePage = () => {
         '--details-text-size': settings.gedenken_card_details_text_size || '0.95rem',
     };
 
-    // Styling für die Vorsorge-Säule
+    // Styling für die Vorsorge-Säule (ohne Bild-Variable)
     const vorsorgeColumnStyle = {
         '--card-bg-color': settings.vorsorge_card_background_color || '#6d6d6d',
-        '--card-bg-image': settings.vorsorge_card_image ? `url(${settings.vorsorge_card_image.url})` : 'none',
         '--sidetext-color': settings.vorsorge_card_sidetext_color || '#FFFFFF',
         '--sidetext-size': settings.vorsorge_card_sidetext_size || '3.2rem',
         '--content-bg': settings.vorsorge_card_content_background || '#3a3a3a',
@@ -45,7 +51,6 @@ const PortalChoicePage = () => {
         '--details-text-size': settings.vorsorge_card_details_text_size || '0.95rem',
     };
     
-    // Standard-HTML für die Beschreibung, falls im Admin nichts eingetragen ist
     const defaultGedenkenDetails = "<ul><li><strong>Gedenkseiten verwalten:</strong> Erstellen und pflegen Sie eine persönliche Seite.</li><li><strong>Angehörige einladen:</strong> Vergeben Sie Berechtigungen.</li><li><strong>Meine Beiträge:</strong> Sehen Sie all Ihre Kondolenzen und Gedenkkerzen.</li></ul>";
     const defaultVorsorgeDetails = "<ul><li><strong>Meine Vorsorge:</strong> Regeln Sie alles Wichtige von Verträgen bis zum digitalen Nachlass.</li><li><strong>Eigene Gedenkseite:</strong> Gestalten Sie zu Lebzeiten Ihre persönliche Gedenkseite.</li><li><strong>Wichtige Medien:</strong> Verwalten Sie sicher alle Dokumente und Bilder.</li></ul>";
 
@@ -62,9 +67,9 @@ const PortalChoicePage = () => {
                 </div>
 
                 <div className="portal-choice-grid">
-                    {/* Gedenken-Säule */}
                     <Link to="/mein-bereich/gedenken" className="portal-column portal-column--gedenken" style={gedenkenColumnStyle}>
-                        <div className="portal-column-background"></div>
+                        {/* KORREKTUR: Style direkt hier angewendet */}
+                        <div className="portal-column-background" style={gedenkenBackgroundStyle}></div>
                         <div className="portal-column-overlay"></div>
                         <div className="portal-column-sidetext">
                             <span>{settings.gedenken_card_sidetext || 'Gedenken'}</span>
@@ -78,9 +83,9 @@ const PortalChoicePage = () => {
                         </div>
                     </Link>
 
-                    {/* Vorsorge-Säule */}
                     <Link to="/mein-bereich/vorsorge" className="portal-column portal-column--vorsorge" style={vorsorgeColumnStyle}>
-                        <div className="portal-column-background"></div>
+                        {/* KORREKTUR: Style direkt hier angewendet */}
+                        <div className="portal-column-background" style={vorsorgeBackgroundStyle}></div>
                         <div className="portal-column-overlay"></div>
                         <div className="portal-column-sidetext">
                             <span>{settings.vorsorge_card_sidetext || 'Vorsorge'}</span>

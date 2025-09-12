@@ -1,5 +1,5 @@
 /* frontend/src/modules/user/PortalChoicePage.css */
-/* KORRIGIERT: Padding wurde vom äußeren Container auf einen neuen inneren Container verschoben. */
+/* KORRIGIERT: Die nicht mehr benötigte 'background-image'-Variable wurde entfernt. */
 
 .portal-choice-container {
     display: flex;
@@ -14,7 +14,6 @@
     background-position: center;
 }
 
-/* NEU: Innerer Container für das Padding */
 .portal-choice-inner {
     display: flex;
     flex-direction: column;
@@ -25,7 +24,6 @@
     padding: 2rem;
     box-sizing: border-box;
 }
-
 
 .portal-choice-header {
     text-align: center;
@@ -87,7 +85,7 @@
     background-position: center;
     z-index: 1;
     transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-    background-image: var(--card-bg-image); 
+    /* KORREKTUR: Variable entfernt, da der Stil jetzt direkt im JSX gesetzt wird. */
 }
 
 .portal-column:hover .portal-column-background {

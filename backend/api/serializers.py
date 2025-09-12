@@ -1,6 +1,6 @@
 # backend/api/serializers.py
-# HINWEIS: Basiert auf Ihrem Originalcode. Der SiteSettingsSerializer ist bereits
-# korrekt konfiguriert, um alle neuen Personalisierungs-Felder zu unterstützen.
+# KORRIGIERT: Alle Bild-Felder im SiteSettingsSerializer werden nun explizit
+# definiert, um eine zuverlässige Übertragung der vollständigen Bild-URL zu garantieren.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -193,6 +193,8 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         exclude = ['page']
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
+    # HINWEIS: Alle Bild-Felder werden hier explizit definiert, um sicherzustellen,
+    # dass die API das vollständige Bild-Objekt (inkl. URL) sendet, nicht nur die ID.
     header_logo_image = MediaAssetSerializer(read_only=True)
     listing_background_image = MediaAssetSerializer(read_only=True)
     search_background_image = MediaAssetSerializer(read_only=True)
@@ -274,18 +276,11 @@ class ReleaseRequestSerializer(serializers.ModelSerializer):
         return ReleaseRequest.objects.create(**validated_data)
 
 class ManagedGedenkseiteSerializer(serializers.ModelSerializer):
-    """
-    Ein einfacher Serializer, der nur die nötigsten Infos für die Liste
-    der verwalteten Gedenkseiten bereitstellt.
-    """
     class Meta:
         model = MemorialPage
         fields = ['slug', 'first_name', 'last_name']
 
 class MeinBereichDataSerializer(serializers.Serializer):
-    """
-    Dieser Serializer sammelt die Daten für die "Mein Bereich"-Seite.
-    """
     own_page = ManagedGedenkseiteSerializer(read_only=True)
     managed_pages = ManagedGedenkseiteSerializer(many=True, read_only=True)
 

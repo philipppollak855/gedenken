@@ -1,15 +1,16 @@
 // frontend/src/modules/user/MeinBereich.jsx
-// KORRIGIERT: Der fehlende 'Link'-Import wurde hinzugefügt, um den Netlify-Build-Fehler zu beheben.
+// KORRIGIERT: Das Layout wendet das allgemeine Hintergrundbild nur noch auf den
+// Dashboard-Seiten an und nicht mehr auf der Auswahlseite, um den Bild-Konflikt zu lösen.
 
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useLocation, Link } from 'react-router-dom'; // 'Link' hinzugefügt
+import { NavLink, Outlet, useLocation, Link } from 'react-router-dom';
 import useApi from '../../hooks/useApi';
 import './MeinBereich.css';
 
 const MeinBereich = () => {
     const [settings, setSettings] = useState({});
     const [isLoading, setIsLoading] = useState(true);
-    const location = useLocation(); // Hook, um den aktuellen Pfad zu bekommen
+    const location = useLocation();
     const api = useApi();
 
     useEffect(() => {
@@ -27,11 +28,11 @@ const MeinBereich = () => {
         };
         fetchSettings();
     }, [api]);
-    
+
     // Prüfen, ob wir uns auf der Auswahlseite befinden
     const isChoicePage = location.pathname === '/mein-bereich/auswahl';
 
-    // Allgemeiner Seitenhintergrund, der immer gilt
+    // KORREKTUR: Das allgemeine Hintergrundbild wird nur angewendet, wenn es NICHT die Auswahlseite ist.
     const pageStyle = {
         '--bg-color': settings.mein_bereich_background_color || '#f4f1ee',
         '--bg-image': !isChoicePage && settings.mein_bereich_background_image ? `url(${settings.mein_bereich_background_image.url})` : 'none',
@@ -42,7 +43,6 @@ const MeinBereich = () => {
         '--sidebar-active-text': settings.mein_bereich_sidebar_active_text_color || '#FFFFFF',
     };
     
-    // Bestimmen, welcher Navigations-Header angezeigt werden soll
     const isDashboard = location.pathname.startsWith('/mein-bereich/gedenken') || location.pathname.startsWith('/mein-bereich/vorsorge');
 
     if (isLoading) {
@@ -50,8 +50,7 @@ const MeinBereich = () => {
     }
 
     return (
-        <div className="mein-bereich-page" style={pageStyle}>
-            {/* Der Portal-Wechsler wird nur auf den Dashboard-Seiten angezeigt */}
+        <div className={`mein-bereich-page ${isChoicePage ? 'is-choice-page' : ''}`} style={pageStyle}>
             {isDashboard && (
                 <div className="portal-switcher-header">
                     <nav className="portal-switcher-nav">
@@ -64,7 +63,7 @@ const MeinBereich = () => {
                 </div>
             )}
 
-            {/* Der Container wird nur gerendert, wenn es NICHT die Auswahlseite ist */}
+            {/* Der Container mit maximaler Breite wird nur noch fÃ¼r die Dashboards verwendet */}
             {isChoicePage ? (
                 <Outlet context={{ settings }} />
             ) : (

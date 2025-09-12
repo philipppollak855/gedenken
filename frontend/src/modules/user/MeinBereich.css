@@ -1,28 +1,33 @@
 /* frontend/src/modules/user/MeinBereich.css */
-/* KORRIGIERT: Das Styling wurde angepasst, um sowohl Vollbild-Layouts als auch
-   Seiten mit zentriertem Container zu unterstützen. */
+/* KORRIGIERT: Die Positionierung wurde angepasst, um sowohl Vollbild-Layouts
+   (wie die Auswahlseite) als auch Seiten mit zentriertem Container zu unterstÃ¼tzen. */
 
 .mein-bereich-page {
     position: absolute;
-    top: 80px; /* Startet exakt unter dem 80px hohen Header */
+    top: 80px; 
     left: 0;
     right: 0;
-    bottom: 0; /* Endet am unteren Rand des Bildschirms */
+    bottom: 0;
     
     display: flex;
     flex-direction: column;
     
     background-color: var(--bg-color);
-    background-image: var(--bg-image); /* Gilt nur noch für Dashboards */
+    background-image: var(--bg-image); /* Gilt nur noch fÃ¼r Dashboards, gesteuert durch JSX */
     background-size: cover;
     background-position: center;
-    overflow: auto; /* Erlaubt Scrollen auf Dashboard-Seiten */
+    overflow: auto; /* Erlaubt Scrollen auf langen Dashboard-Seiten */
+}
+
+/* Wenn die Auswahlseite aktiv ist, erzwingen wir, dass sie den vollen Platz einnimmt. */
+.mein-bereich-page.is-choice-page {
+    overflow: hidden;
 }
 
 /* Dieser Container wird nur noch auf Dashboard-Seiten verwendet */
 .mein-bereich-container {
     max-width: 1400px;
-    margin: 0 auto 2rem auto; /* Oben kein Margin, da der Switcher da ist */
+    margin: 0 auto 2rem auto;
     padding: 0; 
     width: 100%;
     box-sizing: border-box;
@@ -32,15 +37,14 @@
     min-height: 0;
 }
 
-/* --- Stile für den Portal-Wechsler (Header in den Dashboards) --- */
-
+/* Stile fÃ¼r den Portal-Wechsler */
 .portal-switcher-header {
     padding: 1rem 2rem;
-    background-color: rgba(255, 255, 255, 0.7); /* Hellerer Hintergrund */
+    background-color: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(5px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     text-align: center;
-    flex-shrink: 0; /* Verhindert, dass der Header schrumpft */
+    flex-shrink: 0;
     width: 100%;
     box-sizing: border-box;
 }

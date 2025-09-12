@@ -1,6 +1,6 @@
 # backend/api/serializers.py
-# KORRIGIERT: Alle Bild-Felder im SiteSettingsSerializer werden nun explizit
-# definiert, um eine zuverlässige Übertragung der vollständigen Bild-URL zu garantieren.
+# KORRIGIERT: Alle Bild-Felder im SiteSettingsSerializer werden nun über eine explizite
+# SerializerMethodField definiert, um die Übertragung der Bild-URL absolut zu garantieren.
 
 from rest_framework import serializers
 from django.utils import timezone
@@ -193,8 +193,6 @@ class MemorialEventSerializer(serializers.ModelSerializer):
         exclude = ['page']
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
-    # HINWEIS: Alle Bild-Felder werden hier explizit definiert, um sicherzustellen,
-    # dass die API das vollständige Bild-Objekt (inkl. URL) sendet, nicht nur die ID.
     header_logo_image = MediaAssetSerializer(read_only=True)
     listing_background_image = MediaAssetSerializer(read_only=True)
     search_background_image = MediaAssetSerializer(read_only=True)
@@ -210,7 +208,56 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SiteSettings
-        fields = '__all__'
+        # Explizite Auflistung aller Felder, um die SerializerMethodFields einzuschließen
+        fields = [
+            # Header
+            'header_logo_image', 'header_logo_height', 'header_site_title_text', 
+            'header_site_title_color', 'header_site_title_size', 'header_button_text_size',
+            # Portal Choice
+            'portal_choice_title', 'portal_choice_title_color', 'portal_choice_subtitle', 
+            'portal_choice_subtitle_color', 'portal_choice_background_color', 
+            'portal_choice_background_image',
+            # Gedenken Column
+            'gedenken_card_sidetext', 'gedenken_card_sidetext_color', 'gedenken_card_sidetext_size',
+            'gedenken_card_background_color', 'gedenken_card_image', 'gedenken_card_title',
+            'gedenken_card_title_color', 'gedenken_card_title_size', 'gedenken_card_details_text',
+            'gedenken_card_details_text_color', 'gedenken_card_details_text_size', 
+            'gedenken_card_content_background',
+            # Vorsorge Column
+            'vorsorge_card_sidetext', 'vorsorge_card_sidetext_color', 'vorsorge_card_sidetext_size',
+            'vorsorge_card_background_color', 'vorsorge_card_image', 'vorsorge_card_title',
+            'vorsorge_card_title_color', 'vorsorge_card_title_size', 'vorsorge_card_details_text',
+            'vorsorge_card_details_text_color', 'vorsorge_card_details_text_size', 
+            'vorsorge_card_content_background',
+            # Restliche Felder
+            'listing_title', 'listing_background_color', 'listing_background_image', 
+            'listing_card_color', 'listing_text_color', 'listing_card_text_color', 
+            'listing_arrow_color', 'search_title', 'search_helper_text', 
+            'search_background_color', 'search_background_image', 'search_text_color',
+            'search_filter_button_color', 'search_filter_button_icon_color', 
+            'search_filter_menu_color', 'search_filter_menu_text_color', 
+            'search_filter_active_color', 'search_filter_active_text_color',
+            'expend_background_color', 'expend_background_image', 'expend_card_color', 
+            'expend_text_color', 'font_family', 'font_size_base', 'login_title', 
+            'login_subtitle', 'login_background_color', 'login_background_image',
+            'login_card_background_color', 'login_text_color', 'login_button_color', 
+            'login_button_text_color', 'register_title', 'register_subtitle',
+            'register_background_color', 'register_background_image', 
+            'register_info_panel_image', 'register_info_panel_image_size',
+            'register_card_background_color', 'register_text_color', 
+            'register_button_color', 'register_button_text_color',
+            'password_reset_title', 'password_reset_subtitle', 
+            'password_reset_background_color', 'password_reset_background_image',
+            'password_reset_card_background_color', 'password_reset_text_color',
+            'password_reset_button_color', 'password_reset_button_text_color',
+            'password_reset_confirm_title', 'password_reset_confirm_subtitle',
+            'mein_bereich_background_color', 'mein_bereich_background_image',
+            'mein_bereich_container_background_color', 'mein_bereich_sidebar_background_color',
+            'mein_bereich_sidebar_text_color', 'mein_bereich_sidebar_active_background_color',
+            'mein_bereich_sidebar_active_text_color', 'mein_bereich_dashboard_title',
+            'mein_bereich_dashboard_subtitle'
+        ]
+
 
 class MemorialPageSerializer(serializers.ModelSerializer):
     main_photo = MediaAssetSerializer(read_only=True)

@@ -1,5 +1,6 @@
 /* frontend/src/modules/user/PortalChoicePage.css */
-/* KORRIGIERT: Die nicht mehr benötigte 'background-image'-Variable wurde entfernt. */
+/* KORRIGIERT: Die Hintergrundlogik wurde angepasst. Das Bild wird jetzt auf dem
+   Hauptelement '.portal-column' angezeigt. */
 
 .portal-choice-container {
     display: flex;
@@ -70,7 +71,9 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
-    background-color: var(--card-bg-color); 
+    /* KORREKTUR: Hintergrund-Eigenschaften hinzugefügt */
+    background-size: cover;
+    background-position: center;
 }
 
 .portal-column:hover {
@@ -78,14 +81,13 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
+/* KORREKTUR: Dieses Element ist jetzt nur noch für den Hover-Effekt da */
 .portal-column-background {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-size: cover;
-    background-position: center;
+    background-color: transparent; /* Wichtig, damit das Bild des Elternteils sichtbar ist */
     z-index: 1;
     transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-    /* KORREKTUR: Variable entfernt, da der Stil jetzt direkt im JSX gesetzt wird. */
 }
 
 .portal-column:hover .portal-column-background {

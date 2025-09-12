@@ -1,6 +1,6 @@
 // frontend/src/modules/user/PortalChoicePage.jsx
-// KORRIGIERT: Die Struktur wurde geändert, um das Styling vom Link-Tag zu entkoppeln.
-// Der Hintergrund wird nun robust über eine einzige 'background'-Eigenschaft gesetzt.
+// KORRIGIERT: Die HTML-Struktur wurde vereinfacht und die Hintergrund-Logik
+// überarbeitet, um die Anzeige der Bilder robust zu gewährleisten.
 
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
@@ -19,9 +19,8 @@ const PortalChoicePage = () => {
 
     // Robuste Hintergrund-Logik für die Gedenken-Säule
     const gedenkenColumnStyle = {
-        background: (settings.gedenken_card_image && settings.gedenken_card_image.url)
-            ? `url(${settings.gedenken_card_image.url}) center center / cover no-repeat, ${settings.gedenken_card_background_color || '#8c8073'}`
-            : settings.gedenken_card_background_color || '#8c8073',
+        '--card-image': (settings.gedenken_card_image && settings.gedenken_card_image.url) ? `url(${settings.gedenken_card_image.url})` : 'none',
+        '--card-bg-color': settings.gedenken_card_background_color || '#8c8073',
         '--sidetext-color': settings.gedenken_card_sidetext_color || '#FFFFFF',
         '--sidetext-size': settings.gedenken_card_sidetext_size || '3.2rem',
         '--content-bg': settings.gedenken_card_content_background || '#3a3a3a',
@@ -33,9 +32,8 @@ const PortalChoicePage = () => {
 
     // Robuste Hintergrund-Logik für die Vorsorge-Säule
     const vorsorgeColumnStyle = {
-        background: (settings.vorsorge_card_image && settings.vorsorge_card_image.url)
-            ? `url(${settings.vorsorge_card_image.url}) center center / cover no-repeat, ${settings.vorsorge_card_background_color || '#6d6d6d'}`
-            : settings.vorsorge_card_background_color || '#6d6d6d',
+        '--card-image': (settings.vorsorge_card_image && settings.vorsorge_card_image.url) ? `url(${settings.vorsorge_card_image.url})` : 'none',
+        '--card-bg-color': settings.vorsorge_card_background_color || '#6d6d6d',
         '--sidetext-color': settings.vorsorge_card_sidetext_color || '#FFFFFF',
         '--sidetext-size': settings.vorsorge_card_sidetext_size || '3.2rem',
         '--content-bg': settings.vorsorge_card_content_background || '#3a3a3a',
@@ -61,37 +59,29 @@ const PortalChoicePage = () => {
                 </div>
 
                 <div className="portal-choice-grid">
-                    <Link to="/mein-bereich/gedenken" className="portal-column-link">
-                        <div className="portal-column portal-column--gedenken" style={gedenkenColumnStyle}>
-                            <div className="portal-column-background"></div> 
-                            <div className="portal-column-overlay"></div>
-                            <div className="portal-column-sidetext">
-                                <span>{settings.gedenken_card_sidetext || 'Gedenken'}</span>
-                            </div>
-                            <div className="portal-column-content">
-                                <h2>{settings.gedenken_card_title || 'Gedenken'}</h2>
-                                <div 
-                                    className="portal-column-details"
-                                    dangerouslySetInnerHTML={{ __html: settings.gedenken_card_details_text || defaultGedenkenDetails }}
-                                />
-                            </div>
+                    <Link to="/mein-bereich/gedenken" className="portal-column portal-column--gedenken" style={gedenkenColumnStyle}>
+                        <div className="portal-column-sidetext">
+                            <span>{settings.gedenken_card_sidetext || 'Gedenken'}</span>
+                        </div>
+                        <div className="portal-column-content">
+                            <h2>{settings.gedenken_card_title || 'Gedenken'}</h2>
+                            <div 
+                                className="portal-column-details"
+                                dangerouslySetInnerHTML={{ __html: settings.gedenken_card_details_text || defaultGedenkenDetails }}
+                            />
                         </div>
                     </Link>
 
-                    <Link to="/mein-bereich/vorsorge" className="portal-column-link">
-                        <div className="portal-column portal-column--vorsorge" style={vorsorgeColumnStyle}>
-                            <div className="portal-column-background"></div>
-                            <div className="portal-column-overlay"></div>
-                            <div className="portal-column-sidetext">
-                                <span>{settings.vorsorge_card_sidetext || 'Vorsorge'}</span>
-                            </div>
-                            <div className="portal-column-content">
-                                <h2>{settings.vorsorge_card_title || 'Vorsorge'}</h2>
-                                <div
-                                    className="portal-column-details"
-                                    dangerouslySetInnerHTML={{ __html: settings.vorsorge_card_details_text || defaultVorsorgeDetails }}
-                                />
-                            </div>
+                    <Link to="/mein-bereich/vorsorge" className="portal-column portal-column--vorsorge" style={vorsorgeColumnStyle}>
+                        <div className="portal-column-sidetext">
+                            <span>{settings.vorsorge_card_sidetext || 'Vorsorge'}</span>
+                        </div>
+                        <div className="portal-column-content">
+                            <h2>{settings.vorsorge_card_title || 'Vorsorge'}</h2>
+                            <div
+                                className="portal-column-details"
+                                dangerouslySetInnerHTML={{ __html: settings.vorsorge_card_details_text || defaultVorsorgeDetails }}
+                            />
                         </div>
                     </Link>
                 </div>

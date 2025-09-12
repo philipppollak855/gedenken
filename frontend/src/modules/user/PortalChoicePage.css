@@ -1,5 +1,6 @@
 /* frontend/src/modules/user/PortalChoicePage.css */
-/* KORRIGIERT: Die Struktur wurde angepasst, um das Styling vom Link-Tag zu entkoppeln. */
+/* KORRIGIERT: Die Struktur wurde vereinfacht und nutzt nun Pseudo-Elemente
+   für die visuellen Effekte, was stabiler ist. */
 
 .portal-choice-container {
     display: flex;
@@ -61,49 +62,42 @@
     animation-fill-mode: backwards;
 }
 
-/* NEU: Der Link ist jetzt nur noch ein Wrapper */
-.portal-column-link {
-    flex: 1;
-    text-decoration: none;
-    display: flex;
-    border-radius: 12px; /* Radius auf dem Link, um den Hover-Effekt zu unterstÃ¼tzen */
-    overflow: hidden; /* Stellt sicher, dass der Hover-Effekt innerhalb der Grenzen bleibt */
-    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.portal-column-link:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
 .portal-column {
     position: relative;
-    width: 100%;
-    height: 100%;
+    flex: 1;
+    border-radius: 12px;
     overflow: hidden; 
+    text-decoration: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
+    background-color: var(--card-bg-color);
+    background-image: var(--card-image);
     background-size: cover;
     background-position: center;
-}
-
-.portal-column-background {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: transparent;
-    z-index: 1;
     transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.portal-column-link:hover .portal-column-background {
-    transform: scale(1.05);
+.portal-column:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-.portal-column-overlay {
+/* KORREKTUR: Overlay wird jetzt als Pseudo-Element realisiert */
+.portal-column::before {
+    content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
-    z-index: 2;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+    z-index: 1;
     transition: background 0.4s ease;
+}
+
+/* Alle Inhalte der Säule müssen über dem Overlay liegen */
+.portal-column-sidetext,
+.portal-column-content {
+    position: relative;
+    z-index: 2;
 }
 
 .portal-column-sidetext {
@@ -116,7 +110,6 @@
     text-transform: uppercase;
     letter-spacing: 6px;
     white-space: nowrap;
-    z-index: 3;
     pointer-events: none;
     opacity: 1;
     transition: opacity 0.4s ease, transform 0.4s ease;
@@ -125,7 +118,7 @@
     font-size: var(--sidetext-size);
 }
 
-.portal-column-link:hover .portal-column-sidetext {
+.portal-column:hover .portal-column-sidetext {
     opacity: 0;
     transform: translateY(-50%) rotate(-90deg) scale(0.95);
 }
@@ -135,7 +128,6 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    z-index: 4;
     padding: 2rem;
     box-sizing: border-box;
     transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
@@ -150,7 +142,7 @@
     transform: translateX(101%);
 }
 
-.portal-column-link:hover .portal-column-content {
+.portal-column:hover .portal-column-content {
     transform: translateX(0);
 }
 
@@ -213,7 +205,7 @@
         gap: 1.5rem;
         max-width: 450px;
     }
-    .portal-column-link {
+    .portal-column {
         min-height: 300px;
         display: flex;
         flex-direction: column;

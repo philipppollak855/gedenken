@@ -1,6 +1,6 @@
 // frontend/src/modules/user/PortalChoicePage.jsx
-// KORRIGIERT: Die Hintergrundbilder für die Säulen werden nun direkt auf dem
-// Hauptelement der Säule gesetzt, um die Anzeige zuverlässig zu gewährleisten.
+// KORRIGIERT: Die Hintergrundbilder und -farben für die Säulen werden nun über eine
+// einzige, robuste 'background'-Eigenschaft gesetzt, um die Anzeige zu garantieren.
 
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
@@ -17,10 +17,11 @@ const PortalChoicePage = () => {
         '--subtitle-color': settings.portal_choice_subtitle_color || '#6b7280',
     };
 
-    // Styling für die Gedenken-Säule (jetzt mit Bild direkt hier)
+    // --- FINALE KORREKTUR: Robuste Hintergrund-Logik ---
     const gedenkenColumnStyle = {
-        backgroundColor: settings.gedenken_card_background_color || '#8c8073',
-        backgroundImage: settings.gedenken_card_image ? `url(${settings.gedenken_card_image.url})` : 'none',
+        background: settings.gedenken_card_image
+            ? `url(${settings.gedenken_card_image.url}) center center / cover no-repeat, ${settings.gedenken_card_background_color || '#8c8073'}`
+            : settings.gedenken_card_background_color || '#8c8073',
         '--sidetext-color': settings.gedenken_card_sidetext_color || '#FFFFFF',
         '--sidetext-size': settings.gedenken_card_sidetext_size || '3.2rem',
         '--content-bg': settings.gedenken_card_content_background || '#3a3a3a',
@@ -30,10 +31,10 @@ const PortalChoicePage = () => {
         '--details-text-size': settings.gedenken_card_details_text_size || '0.95rem',
     };
 
-    // Styling für die Vorsorge-Säule (jetzt mit Bild direkt hier)
     const vorsorgeColumnStyle = {
-        backgroundColor: settings.vorsorge_card_background_color || '#6d6d6d',
-        backgroundImage: settings.vorsorge_card_image ? `url(${settings.vorsorge_card_image.url})` : 'none',
+        background: settings.vorsorge_card_image
+            ? `url(${settings.vorsorge_card_image.url}) center center / cover no-repeat, ${settings.vorsorge_card_background_color || '#6d6d6d'}`
+            : settings.vorsorge_card_background_color || '#6d6d6d',
         '--sidetext-color': settings.vorsorge_card_sidetext_color || '#FFFFFF',
         '--sidetext-size': settings.vorsorge_card_sidetext_size || '3.2rem',
         '--content-bg': settings.vorsorge_card_content_background || '#3a3a3a',
@@ -59,9 +60,7 @@ const PortalChoicePage = () => {
                 </div>
 
                 <div className="portal-choice-grid">
-                    {/* Style jetzt direkt auf dem Link-Element */}
                     <Link to="/mein-bereich/gedenken" className="portal-column portal-column--gedenken" style={gedenkenColumnStyle}>
-                        {/* Dieses Div hat keinen inline-style mehr und dient nur dem Hover-Effekt */}
                         <div className="portal-column-background"></div> 
                         <div className="portal-column-overlay"></div>
                         <div className="portal-column-sidetext">
@@ -76,9 +75,7 @@ const PortalChoicePage = () => {
                         </div>
                     </Link>
 
-                    {/* Style jetzt direkt auf dem Link-Element */}
                     <Link to="/mein-bereich/vorsorge" className="portal-column portal-column--vorsorge" style={vorsorgeColumnStyle}>
-                         {/* Dieses Div hat keinen inline-style mehr und dient nur dem Hover-Effekt */}
                         <div className="portal-column-background"></div>
                         <div className="portal-column-overlay"></div>
                         <div className="portal-column-sidetext">

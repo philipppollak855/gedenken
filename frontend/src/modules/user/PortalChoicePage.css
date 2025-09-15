@@ -134,12 +134,10 @@
     background-color: var(--content-bg);
 }
 
-.portal-column--gedenken .portal-column-content {
-    transform: translateX(-101%);
-}
-
-.portal-column--vorsorge .portal-column-content {
-    transform: translateX(101%);
+.portal-column--gedenken .portal-column-content,
+.portal-column--vorsorge .portal-column-content,
+.portal-column--unterlagen .portal-column-content {
+    transform: translateY(101%);
 }
 
 /* Dritte Spalte (Unterlagen): fährt von unten ein */

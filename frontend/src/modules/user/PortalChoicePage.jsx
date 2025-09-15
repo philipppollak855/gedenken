@@ -7,7 +7,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import './PortalChoicePage.css';
 
 const PortalChoicePage = () => {
-    const { settings } = useOutletContext();
+    const { settings, data } = useOutletContext();
 
     // Allgemeines Seiten-Styling, inklusive des spezifischen Hintergrunds
     const pageStyle = {
@@ -60,6 +60,8 @@ const PortalChoicePage = () => {
     const defaultVorsorgeDetails = "<ul><li><strong>Meine Vorsorge:</strong> Regeln Sie alles Wichtige von Verträgen bis zum digitalen Nachlass.</li><li><strong>Eigene Gedenkseite:</strong> Gestalten Sie zu Lebzeiten Ihre persönliche Gedenkseite.</li><li><strong>Wichtige Medien:</strong> Verwalten Sie sicher alle Dokumente und Bilder.</li></ul>";
     const defaultUnterlagenDetails = "<ul><li><strong>Dokumente verwalten:</strong> Laden Sie wichtige Unterlagen sicher hoch.</li><li><strong>Verträge finden:</strong> Behalten Sie den Überblick über alle Nachweise.</li><li><strong>Sicher und privat:</strong> Schutz Ihrer sensiblen Daten.</li></ul>";
 
+    const showUnterlagen = !!(data && ((data.managed_pages && data.managed_pages.length > 0) || data.has_vorsorge_links));
+
     return (
         <div className="portal-choice-container" style={pageStyle}>
             <div className="portal-choice-inner">
@@ -99,6 +101,7 @@ const PortalChoicePage = () => {
                         </div>
                     </Link>
 
+                    {showUnterlagen && (
                     <Link to="/mein-bereich/unterlagen" className="portal-column portal-column--unterlagen" style={unterlagenColumnStyle}>
                         <div className="portal-column-sidetext">
                             <span>{settings.unterlagen_card_sidetext || 'Unterlagen'}</span>
@@ -111,6 +114,7 @@ const PortalChoicePage = () => {
                             />
                         </div>
                     </Link>
+                    )}
                 </div>
             </div>
         </div>

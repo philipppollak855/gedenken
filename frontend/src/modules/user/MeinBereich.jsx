@@ -10,6 +10,7 @@ import './MeinBereich.css';
 const MeinBereich = () => {
     const [settings, setSettings] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    const [meinBereichData, setMeinBereichData] = useState(null);
     const location = useLocation();
     const api = useApi();
 
@@ -19,6 +20,10 @@ const MeinBereich = () => {
                 const settingsRes = await api('/settings/');
                 if (settingsRes.ok) {
                     setSettings(await settingsRes.json());
+                }
+                const dataRes = await api('/mein-bereich-data/');
+                if (dataRes.ok) {
+                    setMeinBereichData(await dataRes.json());
                 }
             } catch (error) {
                 console.error("Fehler beim Laden der Einstellungen für 'Mein Bereich':", error);
@@ -71,10 +76,10 @@ const MeinBereich = () => {
 
             {/* Der Container mit maximaler Breite wird nur noch fÃ¼r die Dashboards verwendet */}
             {isChoicePage ? (
-                <Outlet context={{ settings }} />
+                <Outlet context={{ settings, data: meinBereichData }} />
             ) : (
                 <div className="mein-bereich-container">
-                    <Outlet context={{ settings }} />
+                    <Outlet context={{ settings, data: meinBereichData }} />
                 </div>
             )}
         </div>

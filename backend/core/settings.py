@@ -39,16 +39,25 @@ else:
     
     BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
-    DATABASES = {
-        'default': {
-            'ENGINE': os.getenv('DATABASE_ENGINE'),
-            'NAME': os.getenv('DATABASE_DB'),
-            'USER': os.getenv('DATABASE_USER'),
-            'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-            'HOST': os.getenv('DATABASE_HOST'),
-            'PORT': os.getenv('DATABASE_PORT'),
+    if os.getenv('DATABASE_ENGINE'):
+        DATABASES = {
+            'default': {
+                'ENGINE': os.getenv('DATABASE_ENGINE'),
+                'NAME': os.getenv('DATABASE_DB'),
+                'USER': os.getenv('DATABASE_USER'),
+                'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+                'HOST': os.getenv('DATABASE_HOST'),
+                'PORT': os.getenv('DATABASE_PORT'),
+            }
         }
-    }
+    else:
+        # Fallback für lokale Entwicklung: SQLite, keine weiteren Variablen nötig
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            }
+        }
     CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
     
     # Pfad für von Benutzern hochgeladene Dateien in der lokalen Entwicklung

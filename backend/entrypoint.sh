@@ -4,9 +4,9 @@
 set -e
 
 # Erstellt das media-Verzeichnis, falls es nicht existiert.
-# Das ist wichtig, da Render den Mount-Pfad, aber nicht den Unterordner erstellt.
+# Wichtig: In Produktion ist das Volume unter /var/media gemountet, MEDIA_ROOT ist /var/media/media
 echo "Creating media directory if it doesn't exist..."
-mkdir -p /app/media
+mkdir -p /var/media/media
 
 # Führt die Datenbank-Migrationen aus
 echo "Applying database migrations..."
@@ -30,6 +30,7 @@ EOF
 
 # Startet den Gunicorn Webserver, damit die Anwendung online ist
 echo "Starting Gunicorn server..."
-# ÄNDERUNG: Der Port wird jetzt auf 8000 gesetzt, um Konsistenz zu wahren
-gunicorn core.wsgi:application --bind 0.0.0.0:8000
+# Bindet an den von Render bereitgestellten PORT (Fallback 8000 für lokale Nutzung)
+PORT=${PORT:-8000}
+gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
 

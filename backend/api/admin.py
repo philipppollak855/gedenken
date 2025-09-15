@@ -75,6 +75,7 @@ class MediaAssetAdmin(ModelAdmin):
             'portal_choice_background_image': "Hintergrund Portal-Auswahl", 
             'gedenken_card_image': "Hintergrundbild Gedenken-Säule",
             'vorsorge_card_image': "Hintergrundbild Vorsorge-Säule",
+            'unterlagen_card_image': "Hintergrundbild Unterlagen-Säule",
         }
         try:
             settings_instance = SiteSettings.objects.get(pk=1)
@@ -188,6 +189,7 @@ class SiteSettingsAdmin(ModelAdmin):
         'portal_choice_background_image', 
         'gedenken_card_image', 
         'vorsorge_card_image',
+        'unterlagen_card_image',
     )
     fieldsets = (
         ('Header / Navigation', {
@@ -232,6 +234,19 @@ class SiteSettingsAdmin(ModelAdmin):
                 'vorsorge_card_details_text',
                 ('vorsorge_card_details_text_color', 'vorsorge_card_details_text_size'),
                 'vorsorge_card_content_background',
+            )
+        }),
+        ('Design Unterlagen-Säule', {
+            'classes': ('collapse',),
+            'fields': (
+                'unterlagen_card_sidetext',
+                ('unterlagen_card_sidetext_color', 'unterlagen_card_sidetext_size'),
+                ('unterlagen_card_background_color', 'unterlagen_card_image'),
+                'unterlagen_card_title',
+                ('unterlagen_card_title_color', 'unterlagen_card_title_size'),
+                'unterlagen_card_details_text',
+                ('unterlagen_card_details_text_color', 'unterlagen_card_details_text_size'),
+                'unterlagen_card_content_background',
             )
         }),
         ('Gedenkseiten-Listing (Startseite)', {

@@ -24,6 +24,8 @@ import MeinBereich from './modules/user/MeinBereich'; // Fungiert jetzt als Haup
 import PortalChoicePage from './modules/user/PortalChoicePage'; // NEUE Auswahlseite
 import GedenkenDashboard from './modules/user/GedenkenDashboard'; // NEUES Layout für Gedenken
 import VorsorgeDashboard from './modules/user/VorsorgeDashboard'; // NEUES Layout für Vorsorge
+import UnterlagenDashboard from './modules/user/UnterlagenDashboard'; // NEUES Layout für Unterlagen
+import UnterlagenUebersicht from './modules/user/UnterlagenUebersicht';
 
 // Unterseiten, die jetzt in den Dashboards gerendert werden
 import MeineVorsorge from './modules/user/MeineVorsorge';
@@ -81,6 +83,12 @@ function App() {
                   <Route path="medien" element={<MeineMedien />} />
                   <Route path="konto" element={<KontoVerwalten />} />
                   <Route path="meine-daten" element={<MeineDaten />} />
+              </Route>
+
+              {/* Unterlagen Portal */}
+              <Route path="unterlagen" element={<UnterlagenDashboard />}>
+                  <Route index element={<Navigate to="uebersicht" replace />} />
+                  <Route path="uebersicht" element={<UnterlagenUebersicht />} />
               </Route>
           </Route>
         </Routes>

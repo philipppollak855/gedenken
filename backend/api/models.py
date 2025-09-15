@@ -322,6 +322,20 @@ class SiteSettings(models.Model):
     vorsorge_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
     vorsorge_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="#3a3a3a")
 
+    # --- Unterlagen-Säule ---
+    unterlagen_card_sidetext = models.CharField("Seitentext (Unterlagen-Säule)", max_length=50, blank=True, default="Unterlagen")
+    unterlagen_card_sidetext_color = models.CharField("Farbe Seitentext", max_length=30, blank=True, default="#FFFFFF")
+    unterlagen_card_sidetext_size = models.CharField("Schriftgröße Seitentext", max_length=10, blank=True, default="3.2rem")
+    unterlagen_card_background_color = models.CharField("Hintergrundfarbe (Unterlagen-Säule)", max_length=7, blank=True, default="#4b5563")
+    unterlagen_card_image = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Hintergrundbild (Unterlagen-Säule)")
+    unterlagen_card_title = models.CharField("Titel (Unterlagen-Beschreibung)", max_length=100, blank=True, default="Unterlagen")
+    unterlagen_card_title_color = models.CharField("Farbe Titel", max_length=7, blank=True, default="#FFFFFF")
+    unterlagen_card_title_size = models.CharField("Schriftgröße Titel", max_length=10, blank=True, default="2.5rem")
+    unterlagen_card_details_text = models.TextField("Detaillierte Beschreibung (Unterlagen)", blank=True, default="<ul><li><strong>Dokumente verwalten:</strong> Laden Sie wichtige Unterlagen sicher hoch.</li><li><strong>Schneller Zugriff:</strong> Finden Sie Verträge und Nachweise sofort.</li><li><strong>Sicherheit:</strong> Ihre Daten bleiben geschützt und privat.</li></ul>")
+    unterlagen_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
+    unterlagen_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
+    unterlagen_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="#3a3a3a")
+
     # Gedenkseiten-Listing
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir gedenken")
     listing_background_color = models.CharField("Hintergrundfarbe Startseite", max_length=7, blank=True, help_text="Hex-Code, z.B. #f4f1ee")

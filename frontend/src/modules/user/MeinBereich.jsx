@@ -43,7 +43,11 @@ const MeinBereich = () => {
         '--sidebar-active-text': settings.mein_bereich_sidebar_active_text_color || '#FFFFFF',
     };
     
-    const isDashboard = location.pathname.startsWith('/mein-bereich/gedenken') || location.pathname.startsWith('/mein-bereich/vorsorge');
+    const isDashboard = (
+        location.pathname.startsWith('/mein-bereich/gedenken') ||
+        location.pathname.startsWith('/mein-bereich/vorsorge') ||
+        location.pathname.startsWith('/mein-bereich/unterlagen')
+    );
 
     if (isLoading) {
         return <div style={{paddingTop: '80px'}}>Lade Mein Bereich...</div>;
@@ -57,6 +61,8 @@ const MeinBereich = () => {
                         <NavLink to="/mein-bereich/gedenken">Gedenken</NavLink>
                         <span>|</span>
                         <NavLink to="/mein-bereich/vorsorge">Vorsorge</NavLink>
+                        <span>|</span>
+                        <NavLink to="/mein-bereich/unterlagen">Unterlagen</NavLink>
                         <span>|</span>
                         <Link to="/mein-bereich/auswahl">Zurück zur Auswahl</Link>
                     </nav>

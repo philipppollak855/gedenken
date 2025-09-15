@@ -142,6 +142,11 @@
     transform: translateX(101%);
 }
 
+/* Dritte Spalte (Unterlagen): fährt von unten ein */
+.portal-column--unterlagen .portal-column-content {
+    transform: translateY(101%);
+}
+
 .portal-column:hover .portal-column-content {
     transform: translateX(0);
 }

@@ -205,6 +205,7 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     portal_choice_background_image = MediaAssetSerializer(read_only=True)
     gedenken_card_image = MediaAssetSerializer(read_only=True)
     vorsorge_card_image = MediaAssetSerializer(read_only=True)
+    unterlagen_card_image = MediaAssetSerializer(read_only=True)
 
     class Meta:
         model = SiteSettings
@@ -229,6 +230,12 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'vorsorge_card_title_color', 'vorsorge_card_title_size', 'vorsorge_card_details_text',
             'vorsorge_card_details_text_color', 'vorsorge_card_details_text_size', 
             'vorsorge_card_content_background',
+            # Unterlagen Column
+            'unterlagen_card_sidetext', 'unterlagen_card_sidetext_color', 'unterlagen_card_sidetext_size',
+            'unterlagen_card_background_color', 'unterlagen_card_image', 'unterlagen_card_title',
+            'unterlagen_card_title_color', 'unterlagen_card_title_size', 'unterlagen_card_details_text',
+            'unterlagen_card_details_text_color', 'unterlagen_card_details_text_size',
+            'unterlagen_card_content_background',
             # Restliche Felder
             'listing_title', 'listing_background_color', 'listing_background_image', 
             'listing_card_color', 'listing_text_color', 'listing_card_text_color', 

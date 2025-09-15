@@ -43,8 +43,22 @@ const PortalChoicePage = () => {
         '--details-text-size': settings.vorsorge_card_details_text_size || '0.95rem',
     };
     
+    // Robuste Hintergrund-Logik für die Unterlagen-Säule
+    const unterlagenColumnStyle = {
+        '--card-image': (settings.unterlagen_card_image && settings.unterlagen_card_image.url) ? `url(${settings.unterlagen_card_image.url})` : 'none',
+        '--card-bg-color': settings.unterlagen_card_background_color || '#4b5563',
+        '--sidetext-color': settings.unterlagen_card_sidetext_color || '#FFFFFF',
+        '--sidetext-size': settings.unterlagen_card_sidetext_size || '3.2rem',
+        '--content-bg': settings.unterlagen_card_content_background || '#3a3a3a',
+        '--title-card-color': settings.unterlagen_card_title_color || '#FFFFFF',
+        '--title-card-size': settings.unterlagen_card_title_size || '2.5rem',
+        '--details-text-color': settings.unterlagen_card_details_text_color || '#FFFFFF',
+        '--details-text-size': settings.unterlagen_card_details_text_size || '0.95rem',
+    };
+    
     const defaultGedenkenDetails = "<ul><li><strong>Gedenkseiten verwalten:</strong> Erstellen und pflegen Sie eine persönliche Seite.</li><li><strong>Angehörige einladen:</strong> Vergeben Sie Berechtigungen.</li><li><strong>Meine Beiträge:</strong> Sehen Sie all Ihre Kondolenzen und Gedenkkerzen.</li></ul>";
     const defaultVorsorgeDetails = "<ul><li><strong>Meine Vorsorge:</strong> Regeln Sie alles Wichtige von Verträgen bis zum digitalen Nachlass.</li><li><strong>Eigene Gedenkseite:</strong> Gestalten Sie zu Lebzeiten Ihre persönliche Gedenkseite.</li><li><strong>Wichtige Medien:</strong> Verwalten Sie sicher alle Dokumente und Bilder.</li></ul>";
+    const defaultUnterlagenDetails = "<ul><li><strong>Dokumente verwalten:</strong> Laden Sie wichtige Unterlagen sicher hoch.</li><li><strong>Verträge finden:</strong> Behalten Sie den Überblick über alle Nachweise.</li><li><strong>Sicher und privat:</strong> Schutz Ihrer sensiblen Daten.</li></ul>";
 
     return (
         <div className="portal-choice-container" style={pageStyle}>
@@ -81,6 +95,19 @@ const PortalChoicePage = () => {
                             <div
                                 className="portal-column-details"
                                 dangerouslySetInnerHTML={{ __html: settings.vorsorge_card_details_text || defaultVorsorgeDetails }}
+                            />
+                        </div>
+                    </Link>
+
+                    <Link to="/mein-bereich/unterlagen" className="portal-column portal-column--unterlagen" style={unterlagenColumnStyle}>
+                        <div className="portal-column-sidetext">
+                            <span>{settings.unterlagen_card_sidetext || 'Unterlagen'}</span>
+                        </div>
+                        <div className="portal-column-content">
+                            <h2>{settings.unterlagen_card_title || 'Unterlagen'}</h2>
+                            <div
+                                className="portal-column-details"
+                                dangerouslySetInnerHTML={{ __html: settings.unterlagen_card_details_text || defaultUnterlagenDetails }}
                             />
                         </div>
                     </Link>

@@ -294,6 +294,12 @@ class SiteSettingsAdmin(ModelAdmin):
                 'mein_bereich_dashboard_title', 'mein_bereich_dashboard_subtitle'
             )
         }),
+        ('Unterlagen-Dashboard', {
+            'classes': ('collapse',),
+            'fields': (
+                'unterlagen_dashboard_title', 'unterlagen_dashboard_subtitle',
+            )
+        }),
     )
     
     def get_urls(self):

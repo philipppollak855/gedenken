@@ -447,10 +447,16 @@ class MeinBereichDataView(APIView):
         
         managed_links = FamilyLink.objects.filter(relative_user=user, can_edit_memorial_page=True)
         managed_pages = [link.deceased_user.memorial_page for link in managed_links if hasattr(link.deceased_user, 'memorial_page')]
+
+        has_vorsorge_links = FamilyLink.objects.filter(
+            relative_user=user,
+            Q(can_view_precaution_data=True) | Q(can_edit_precaution_data=True)
+        ).exists()
         
         serializer = MeinBereichDataSerializer({
             'own_page': own_page,
-            'managed_pages': managed_pages
+            'managed_pages': managed_pages,
+            'has_vorsorge_links': has_vorsorge_links,
         }, context={'request': request})
         
         return Response(serializer.data)

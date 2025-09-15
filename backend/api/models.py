@@ -27,6 +27,26 @@ class MediaFolder(models.Model):
             return f"{self.parent} > {self.name}"
         return self.name
 
+    @staticmethod
+    def get_or_create_person_folder(user: 'User'):
+        """Return a MediaFolder for the given person. Uses memorial page folder if exists; otherwise creates folder under 'Vorsorge'."""
+        # If person has a memorial page, reuse its folder structure
+        try:
+            memorial_page = user.memorial_page
+            if hasattr(memorial_page, 'media_folder') and memorial_page.media_folder:
+                return memorial_page.media_folder
+            # Ensure the memorial page save hook creates/assigns folder
+            memorial_page.save()
+            return getattr(memorial_page, 'media_folder', None)
+        except Exception:
+            pass
+
+        # Fall back to Vorsorge/<First Last>
+        root_folder, _ = MediaFolder.objects.get_or_create(name="Vorsorge", parent=None)
+        person_name = f"{user.first_name} {user.last_name}".strip() or (user.email or str(user.id))
+        folder, _ = MediaFolder.objects.get_or_create(name=person_name, parent=root_folder)
+        return folder
+
 class MediaAsset(models.Model):
     class AssetType(models.TextChoices):
         IMAGE = 'image', 'Bild'
@@ -414,6 +434,10 @@ class SiteSettings(models.Model):
     mein_bereich_sidebar_active_text_color = models.CharField("Sidebar Aktiv Text", max_length=7, blank=True, default="#FFFFFF")
     mein_bereich_dashboard_title = models.CharField("Dashboard Titel", max_length=100, blank=True, default="Willkommen in Ihrem Bereich")
     mein_bereich_dashboard_subtitle = models.TextField("Dashboard Untertitel", blank=True, default="Hier haben Sie den Überblick und Zugriff auf alle Ihre persönlichen Daten, Vorsorge-Dokumente und Gedenkseiten.")
+
+    # Unterlagen-Dashboard (Design)
+    unterlagen_dashboard_title = models.CharField("Titel Unterlagen-Dashboard", max_length=100, blank=True, default="Unterlagen")
+    unterlagen_dashboard_subtitle = models.TextField("Untertitel Unterlagen-Dashboard", blank=True, default="Verwalten Sie Freigaben, Dokumente und Trauerdrucke an einem Ort.")
 
 
     def __str__(self):

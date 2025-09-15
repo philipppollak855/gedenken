@@ -262,7 +262,9 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'mein_bereich_container_background_color', 'mein_bereich_sidebar_background_color',
             'mein_bereich_sidebar_text_color', 'mein_bereich_sidebar_active_background_color',
             'mein_bereich_sidebar_active_text_color', 'mein_bereich_dashboard_title',
-            'mein_bereich_dashboard_subtitle'
+            'mein_bereich_dashboard_subtitle',
+            # Unterlagen-Dashboard (Design)
+            'unterlagen_dashboard_title', 'unterlagen_dashboard_subtitle',
         ]
 
 
@@ -337,4 +339,5 @@ class ManagedGedenkseiteSerializer(serializers.ModelSerializer):
 class MeinBereichDataSerializer(serializers.Serializer):
     own_page = ManagedGedenkseiteSerializer(read_only=True)
     managed_pages = ManagedGedenkseiteSerializer(many=True, read_only=True)
+    has_vorsorge_links = serializers.BooleanField(read_only=True)
 

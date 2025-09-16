@@ -132,6 +132,7 @@
     box-sizing: border-box;
     transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     background-color: var(--content-bg);
+    opacity: var(--slide-transparency, 0.9);
 }
 
 .portal-column--gedenken .portal-column-content {

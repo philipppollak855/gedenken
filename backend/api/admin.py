@@ -220,6 +220,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 'gedenken_card_details_text',
                 ('gedenken_card_details_text_color', 'gedenken_card_details_text_size'),
                 'gedenken_card_content_background',
+                'gedenken_card_slide_transparency',
             )
         }),
         ('Design Vorsorge-Säule', {
@@ -233,6 +234,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 'vorsorge_card_details_text',
                 ('vorsorge_card_details_text_color', 'vorsorge_card_details_text_size'),
                 'vorsorge_card_content_background',
+                'vorsorge_card_slide_transparency',
             )
         }),
         ('Design Unterlagen-Säule', {
@@ -246,6 +248,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 'unterlagen_card_details_text',
                 ('unterlagen_card_details_text_color', 'unterlagen_card_details_text_size'),
                 'unterlagen_card_content_background',
+                'unterlagen_card_slide_transparency',
             )
         }),
         ('Gedenkseiten-Listing (Startseite)', {

@@ -307,6 +307,7 @@ class SiteSettings(models.Model):
     gedenken_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
     gedenken_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
     gedenken_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="#3a3a3a")
+    gedenken_card_slide_transparency = models.CharField("Slide-in Transparenz", max_length=10, blank=True, default="0.9", help_text="Wert zwischen 0.0 (transparent) und 1.0 (undurchsichtig)")
 
     # --- Vorsorge-Säule ---
     vorsorge_card_sidetext = models.CharField("Seitentext (Vorsorge-Säule)", max_length=50, blank=True, default="Vorsorge")
@@ -321,6 +322,7 @@ class SiteSettings(models.Model):
     vorsorge_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
     vorsorge_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
     vorsorge_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="#3a3a3a")
+    vorsorge_card_slide_transparency = models.CharField("Slide-in Transparenz", max_length=10, blank=True, default="0.9", help_text="Wert zwischen 0.0 (transparent) und 1.0 (undurchsichtig)")
 
     # --- Unterlagen-Säule ---
     unterlagen_card_sidetext = models.CharField("Seitentext (Unterlagen-Säule)", max_length=50, blank=True, default="Unterlagen")
@@ -335,6 +337,7 @@ class SiteSettings(models.Model):
     unterlagen_card_details_text_color = models.CharField("Farbe Beschreibungstext", max_length=7, blank=True, default="#FFFFFF")
     unterlagen_card_details_text_size = models.CharField("Schriftgröße Beschreibungstext", max_length=10, blank=True, default="0.95rem")
     unterlagen_card_content_background = models.CharField("Hintergrundfarbe Beschreibung", max_length=30, blank=True, default="#3a3a3a")
+    unterlagen_card_slide_transparency = models.CharField("Slide-in Transparenz", max_length=10, blank=True, default="0.9", help_text="Wert zwischen 0.0 (transparent) und 1.0 (undurchsichtig)")
 
     # Gedenkseiten-Listing
     listing_title = models.CharField("Titel über den Gedenkkarten", max_length=100, blank=True, default="Wir gedenken")

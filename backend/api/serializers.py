@@ -223,19 +223,19 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'gedenken_card_background_color', 'gedenken_card_image', 'gedenken_card_title',
             'gedenken_card_title_color', 'gedenken_card_title_size', 'gedenken_card_details_text',
             'gedenken_card_details_text_color', 'gedenken_card_details_text_size', 
-            'gedenken_card_content_background',
+            'gedenken_card_content_background', 'gedenken_card_slide_transparency',
             # Vorsorge Column
             'vorsorge_card_sidetext', 'vorsorge_card_sidetext_color', 'vorsorge_card_sidetext_size',
             'vorsorge_card_background_color', 'vorsorge_card_image', 'vorsorge_card_title',
             'vorsorge_card_title_color', 'vorsorge_card_title_size', 'vorsorge_card_details_text',
             'vorsorge_card_details_text_color', 'vorsorge_card_details_text_size', 
-            'vorsorge_card_content_background',
+            'vorsorge_card_content_background', 'vorsorge_card_slide_transparency',
             # Unterlagen Column
             'unterlagen_card_sidetext', 'unterlagen_card_sidetext_color', 'unterlagen_card_sidetext_size',
             'unterlagen_card_background_color', 'unterlagen_card_image', 'unterlagen_card_title',
             'unterlagen_card_title_color', 'unterlagen_card_title_size', 'unterlagen_card_details_text',
             'unterlagen_card_details_text_color', 'unterlagen_card_details_text_size', 
-            'unterlagen_card_content_background',
+            'unterlagen_card_content_background', 'unterlagen_card_slide_transparency',
             # Restliche Felder
             'listing_title', 'listing_background_color', 'listing_background_image', 
             'listing_card_color', 'listing_text_color', 'listing_card_text_color', 

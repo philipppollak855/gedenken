@@ -45,6 +45,7 @@ import Trauerdruck from './modules/user/Trauerdruck';
 
 // Trauerdruck Module
 import TrauerdruckEntwurfErstellen from './modules/user/TrauerdruckEntwurfErstellen';
+import TrauerdruckBestatter from './modules/user/TrauerdruckBestatter';
 
 // General Modules
 import HomePage from './modules/HomePage';
@@ -101,11 +102,10 @@ function App() {
               </Route>
 
               {/* Trauerdruck Portal - Bestatter-Funktionen */}
-              <Route path="trauerdruck" element={<Trauerdruck />}>
+              <Route path="trauerdruck" element={<TrauerdruckBestatter />}>
                   <Route index element={<Navigate to="dashboard" replace />} />
-                  <Route path="dashboard" element={<Trauerdruck />} />
+                  <Route path="dashboard" element={<TrauerdruckBestatter />} />
                   <Route path="neuen-entwurf" element={<TrauerdruckEntwurfErstellen />} />
-                  <Route path="freigabestatus" element={<Freigaben />} />
               </Route>
           </Route>
         </Routes>

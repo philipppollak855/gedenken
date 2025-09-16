@@ -1,13 +1,13 @@
 // frontend/src/modules/user/Trauerdruck.jsx
-// Bestatter-Dashboard für Trauerdruck-Verwaltung
+// Trauerdruck-Verwaltung für Unterlagen-Säule
 
 import React from 'react';
-import TrauerdruckBestatterDashboard from './TrauerdruckBestatterDashboard';
+import TrauerdruckFreigabenListe from './TrauerdruckFreigabenListe';
 
 const Trauerdruck = () => {
     return (
         <div className="page-content">
-            <TrauerdruckBestatterDashboard />
+            <TrauerdruckFreigabenListe />
         </div>
     );
 };

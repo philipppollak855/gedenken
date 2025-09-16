@@ -1,316 +1,462 @@
 /* TrauerdruckEntwurfErstellen.css */
-
 .entwurf-erstellen-container {
-    padding: 2rem;
     max-width: 800px;
     margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .entwurf-header {
-    margin-bottom: 2rem;
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
 }
 
 .entwurf-header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
-    color: #3a3a3a;
-    margin-bottom: 0.5rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 2rem;
 }
 
 .entwurf-header p {
-    color: #6b7280;
+    color: #7f8c8d;
     font-size: 1.1rem;
 }
 
-.entwurf-form {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+/* Progress Steps */
+.progress-steps {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 20px 0;
 }
 
-.form-section {
-    padding: 2rem;
-    border-bottom: 1px solid #e5e7eb;
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 20px;
+    position: relative;
 }
 
-.form-section:last-child {
-    border-bottom: none;
+.step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 100%;
+    width: 40px;
+    height: 2px;
+    background: #e0e0e0;
+    z-index: 1;
 }
 
-.form-section h2 {
+.step.completed:not(:last-child)::after {
+    background: #27ae60;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    z-index: 2;
+    position: relative;
+}
+
+.step.active .step-number {
+    background: #3498db;
+    color: white;
+}
+
+.step.completed .step-number {
+    background: #27ae60;
+    color: white;
+}
+
+.step.completed .step-number::before {
+    content: '✓';
+}
+
+.step-label {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+}
+
+.step.active .step-label {
+    color: #3498db;
+    font-weight: 600;
+}
+
+.step.completed .step-label {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+/* Form Steps */
+.form-step {
+    min-height: 400px;
+    padding: 20px 0;
+}
+
+.form-step h2 {
+    color: #2c3e50;
+    margin-bottom: 25px;
     font-size: 1.5rem;
-    color: #3a3a3a;
-    margin: 0 0 1.5rem 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #8c8073;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 10px;
 }
 
+/* Form Elements */
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    gap: 20px;
 }
 
 .form-group label {
     display: block;
+    margin-bottom: 8px;
     font-weight: 600;
-    color: #3a3a3a;
-    margin-bottom: 0.5rem;
+    color: #2c3e50;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+.form-input,
+.form-select,
+.form-textarea {
     width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #8c8073;
-    box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.1);
-}
-
-.form-group input[type="file"] {
-    padding: 0.5rem;
-    background: #f9fafb;
-    border: 2px dashed #d1d5db;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
 }
 
-.form-group input[type="file"]:hover {
-    border-color: #8c8073;
-    background: #f3f4f6;
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-.form-group input[type="file"]:focus {
-    border-color: #8c8073;
-    box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.1);
-}
-
-.form-group select[multiple] {
-    min-height: 120px;
+.form-textarea {
     resize: vertical;
+    min-height: 100px;
 }
 
-.form-group small {
-    display: block;
-    color: #6b7280;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
+/* Searchable Select */
+.searchable-select {
+    position: relative;
+}
+
+.searchable-select input {
+    margin-bottom: 8px;
+}
+
+/* File Upload */
+.file-upload-section {
+    margin-top: 20px;
+}
+
+.file-upload-area {
+    position: relative;
+    border: 2px dashed #bdc3c7;
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: #fafafa;
+}
+
+.file-upload-area:hover {
+    border-color: #3498db;
+    background: #f8f9fa;
+}
+
+.file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-upload-content {
+    pointer-events: none;
+}
+
+.upload-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.file-upload-content p {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.file-upload-content small {
+    color: #7f8c8d;
+}
+
+.file-selected {
+    margin-top: 10px;
+    padding: 10px;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 6px;
+    font-weight: 500;
 }
 
 /* Upload Progress */
 .upload-progress {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: #f9fafb;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
+    margin-top: 15px;
 }
 
 .progress-bar {
     width: 100%;
     height: 8px;
-    background: #e5e7eb;
+    background: #e0e0e0;
     border-radius: 4px;
     overflow: hidden;
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #8c8073, #7a6f63);
-    border-radius: 4px;
+    background: #3498db;
     transition: width 0.3s ease;
 }
 
-.upload-progress span {
-    font-size: 0.875rem;
-    color: #6b7280;
-    font-weight: 500;
-}
-
-/* Form Actions */
-.form-actions {
-    padding: 2rem;
-    background: #f9fafb;
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-}
-
-/* Messages */
-.success-message,
-.error-message {
-    padding: 1.5rem;
+/* User Selection */
+.user-selection {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
-    margin-bottom: 2rem;
+    padding: 10px;
 }
 
-.success-message {
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #a7f3d0;
+.user-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-.success-message h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
+.user-option:hover {
+    background: #f8f9fa;
 }
 
-.success-message p {
-    margin: 0;
-    font-size: 1rem;
+.user-option input[type="checkbox"] {
+    margin-right: 12px;
+    transform: scale(1.2);
 }
 
-.error-message {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
+.user-info {
+    display: flex;
+    flex-direction: column;
 }
 
-.error-message h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
+.user-info strong {
+    color: #2c3e50;
+    margin-bottom: 2px;
 }
 
-.error-message p {
-    margin: 0;
-    font-size: 1rem;
+.user-info span {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+/* Summary Section */
+.summary-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.summary-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.summary-item {
+    margin-bottom: 8px;
+    color: #34495e;
+}
+
+.summary-item strong {
+    color: #2c3e50;
+}
+
+/* Form Navigation */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
 }
 
 /* Buttons */
-.btn-primary {
-    background: #8c8073;
-    color: white;
+.btn-primary,
+.btn-secondary {
+    padding: 12px 24px;
     border: none;
-    padding: 0.75rem 2rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
+    border-radius: 8px;
     font-size: 1rem;
-    transition: background 0.3s ease;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #7a6f63;
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
 }
 
 .btn-primary:disabled {
-    background: #d1d5db;
+    background: #bdc3c7;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .btn-secondary {
-    background: white;
-    color: #6b7280;
-    border: 1px solid #d1d5db;
-    padding: 0.75rem 2rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    background: #95a5a6;
+    color: white;
 }
 
 .btn-secondary:hover {
-    background: #f9fafb;
-    border-color: #8c8073;
-    color: #8c8073;
+    background: #7f8c8d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(149, 165, 166, 0.3);
 }
 
-/* File Input Styling */
-.form-group input[type="file"]::-webkit-file-upload-button {
-    background: #8c8073;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    margin-right: 1rem;
-    transition: background 0.3s ease;
+/* Success Message */
+.success-message {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-.form-group input[type="file"]::-webkit-file-upload-button:hover {
-    background: #7a6f63;
+.success-message h3 {
+    margin-bottom: 10px;
+    font-size: 1.3rem;
 }
 
-/* Priority Indicators */
-.form-group select[name="priority"] option[value="urgent"] {
-    color: #dc2626;
-    font-weight: 600;
+.success-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
 }
 
-.form-group select[name="priority"] option[value="high"] {
-    color: #ea580c;
-    font-weight: 500;
+/* Error Message */
+.error-message {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-.form-group select[name="priority"] option[value="normal"] {
-    color: #059669;
-}
-
-.form-group select[name="priority"] option[value="low"] {
-    color: #6b7280;
+.error-message h3 {
+    margin-bottom: 10px;
+    font-size: 1.3rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
     .entwurf-erstellen-container {
-        padding: 1rem;
-    }
-    
-    .form-section {
-        padding: 1.5rem;
+        margin: 10px;
+        padding: 15px;
     }
     
     .form-row {
         grid-template-columns: 1fr;
-        gap: 1rem;
     }
     
-    .form-actions {
+    .progress-steps {
         flex-direction: column;
-        padding: 1.5rem;
+        gap: 20px;
     }
     
-    .btn-primary,
-    .btn-secondary {
-        width: 100%;
-        text-align: center;
+    .step:not(:last-child)::after {
+        display: none;
     }
     
-    .entwurf-header h1 {
-        font-size: 2rem;
+    .form-navigation {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .success-actions {
+        flex-direction: column;
     }
 }
 
-@media (max-width: 480px) {
-    .entwurf-erstellen-container {
-        padding: 0.5rem;
+/* Loading State */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+/* Animation for step transitions */
+.form-step {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-    
-    .form-section {
-        padding: 1rem;
-    }
-    
-    .form-section h2 {
-        font-size: 1.25rem;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

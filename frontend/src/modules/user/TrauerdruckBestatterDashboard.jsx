@@ -99,15 +99,15 @@ const TrauerdruckBestatterDashboard = () => {
                     <div className="action-icon">➕</div>
                     <div className="action-content">
                         <h3>Neuen Entwurf erstellen</h3>
-                        <p>Erstellen Sie einen neuen Trauerdruck-Entwurf</p>
+                        <p>Erstellen Sie einen neuen Trauerdruck-Entwurf und senden Sie ihn zur Freigabe</p>
                     </div>
                 </Link>
                 
-                <Link to="/mein-bereich/trauerdruck/freigabestatus" className="action-card">
+                <Link to="/mein-bereich/unterlagen/trauerdruck" className="action-card">
                     <div className="action-icon">📊</div>
                     <div className="action-content">
-                        <h3>Freigabestatus verwalten</h3>
-                        <p>Übersicht aller Entwürfe und deren Status</p>
+                        <h3>Freigaben verwalten</h3>
+                        <p>Übersicht aller Entwürfe und deren Freigabestatus</p>
                     </div>
                 </Link>
                 
@@ -115,7 +115,7 @@ const TrauerdruckBestatterDashboard = () => {
                     <div className="action-icon">📋</div>
                     <div className="action-content">
                         <h3>Templates verwalten</h3>
-                        <p>Vorlagen für häufige Entwürfe</p>
+                        <p>Vorlagen für häufige Entwürfe (optional)</p>
                     </div>
                 </Link>
             </div>
@@ -180,7 +180,7 @@ const TrauerdruckBestatterDashboard = () => {
             <div className="recent-section">
                 <div className="section-header">
                     <h2>Neueste Entwürfe</h2>
-                    <Link to="/mein-bereich/trauerdruck/freigabestatus" className="view-all-link">
+                    <Link to="/mein-bereich/unterlagen/trauerdruck" className="view-all-link">
                         Alle anzeigen →
                     </Link>
                 </div>

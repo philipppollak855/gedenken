@@ -530,6 +530,12 @@ class TrauerdruckEntwurfViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         entwurf = serializer.save(created_by=self.request.user)
+        
+        # Automatisch auf "pending_approval" setzen, wenn assigned_to gesetzt ist
+        if entwurf.assigned_to.exists():
+            entwurf.status = 'pending_approval'
+            entwurf.save()
+        
         # Benachrichtigungen senden
         try:
             TrauerdruckNotificationService.notify_new_draft(entwurf)

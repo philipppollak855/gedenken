@@ -19,16 +19,24 @@ const useApi = () => {
             headers['Authorization'] = `Bearer ${authTokens.access}`;
         }
 
-        const response = await fetch(`${API_URL}/api${url}`, {
-            ...options,
-            headers,
-        });
-
-        if (response.status === 401 && authTokens) {
-            logoutUser();
-        }
+        // Fallback für API_URL
+        const baseUrl = API_URL || 'http://localhost:8000';
         
-        return response;
+        try {
+            const response = await fetch(`${baseUrl}/api${url}`, {
+                ...options,
+                headers,
+            });
+
+            if (response.status === 401 && authTokens) {
+                logoutUser();
+            }
+            
+            return response;
+        } catch (error) {
+            console.error('API request failed:', error);
+            throw error;
+        }
     }, [authTokens, logoutUser, API_URL]);
 
     const apiGet = useCallback(async (url, options = {}) => {

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import './TrauerdruckEntwurfErstellen.css';
 
 const TrauerdruckEntwurfErstellen = () => {
-    const { get, post } = useApi();
+    const { apiGet, apiPost } = useApi();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
@@ -27,26 +27,30 @@ const TrauerdruckEntwurfErstellen = () => {
     const [users, setUsers] = useState([]);
     const [uploadProgress, setUploadProgress] = useState(0);
 
-    useEffect(() => {
-        loadOptions();
-    }, []);
-
-    const loadOptions = async () => {
+    const loadOptions = useCallback(async () => {
         try {
             const [typesResponse, pagesResponse, usersResponse] = await Promise.all([
-                get('/api/trauerdruck-types/'),
-                get('/api/memorial-pages/'),
-                get('/api/users/')
+                apiGet('/trauerdruck-types/'),
+                apiGet('/memorial-pages/'),
+                apiGet('/users/')
             ]);
             
-            setTrauerdruckTypes(typesResponse.data);
-            setMemorialPages(pagesResponse.data);
-            setUsers(usersResponse.data);
+            const typesData = await typesResponse.json();
+            const pagesData = await pagesResponse.json();
+            const usersData = await usersResponse.json();
+            
+            setTrauerdruckTypes(typesData.results || typesData);
+            setMemorialPages(pagesData.results || pagesData);
+            setUsers(usersData.results || usersData);
         } catch (err) {
             setError('Fehler beim Laden der Optionen');
             console.error('Error loading options:', err);
         }
-    };
+    }, [apiGet]);
+
+    useEffect(() => {
+        loadOptions();
+    }, [loadOptions]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -81,7 +85,7 @@ const TrauerdruckEntwurfErstellen = () => {
         formData.append('file', file);
         formData.append('type', type);
         
-        const response = await post('/api/media-assets/', formData, {
+        const response = await apiPost('/media-assets/', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -129,7 +133,7 @@ const TrauerdruckEntwurfErstellen = () => {
                 status: 'pending_approval'
             };
 
-            await post('/api/trauerdruck-entwuerfe/', entwurfData);
+            await apiPost('/trauerdruck-entwuerfe/', entwurfData);
             
             setSuccess(true);
             setFormData({

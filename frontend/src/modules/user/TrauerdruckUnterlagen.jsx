@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import TrauerdruckFreigabeModal from './TrauerdruckFreigabeModal';
 import './TrauerdruckUnterlagen.css';
@@ -20,17 +20,23 @@ const TrauerdruckUnterlagen = () => {
 
     useEffect(() => {
         loadFreigaben();
-    }, []);
+    }, [loadFreigaben]);
 
-    const loadFreigaben = async () => {
+    const loadFreigaben = useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
             const response = await apiGet('/trauerdruck-entwuerfe/');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
-            setFreigaben(data.results || data);
+            const entwuerfeData = data.results || data || [];
+            setFreigaben(entwuerfeData);
             
             // Statistiken berechnen
-            const entwuerfeData = data.results || data;
             const newStats = {
                 total: entwuerfeData.length,
                 pending: entwuerfeData.filter(f => f.status === 'pending_approval').length,
@@ -44,7 +50,7 @@ const TrauerdruckUnterlagen = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiGet]);
 
     const getStatusBadge = (status) => {
         const statusConfig = {
@@ -73,13 +79,19 @@ const TrauerdruckUnterlagen = () => {
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        if (!dateString) return 'Nicht verfügbar';
+        try {
+            return new Date(dateString).toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Ungültiges Datum';
+        }
     };
 
     const filteredFreigaben = freigaben.filter(entwurf => {

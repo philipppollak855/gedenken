@@ -17,6 +17,34 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
     const [decision, setDecision] = useState('pending');
     const [decisionComment, setDecisionComment] = useState('');
 
+    const loadKommentare = useCallback(async () => {
+        try {
+            const response = await apiGet(`/trauerdruck-entwuerfe/${entwurf.id}/kommentare/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setKommentare(data.results || data || []);
+        } catch (err) {
+            console.error('Error loading kommentare:', err);
+            setKommentare([]);
+        }
+    }, [apiGet, entwurf.id]);
+
+    const loadFreigaben = useCallback(async () => {
+        try {
+            const response = await apiGet(`/trauerdruck-entwuerfe/${entwurf.id}/freigaben/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setFreigaben(data.results || data || []);
+        } catch (err) {
+            console.error('Error loading freigaben:', err);
+            setFreigaben([]);
+        }
+    }, [apiGet, entwurf.id]);
+
     useEffect(() => {
         if (entwurf) {
             loadKommentare();
@@ -24,40 +52,27 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
         }
     }, [entwurf, loadKommentare, loadFreigaben]);
 
-    const loadKommentare = useCallback(async () => {
-        try {
-            const response = await apiGet(`/trauerdruck-entwuerfe/${entwurf.id}/kommentare/`);
-            const data = await response.json();
-            setKommentare(data.results || data);
-        } catch (err) {
-            console.error('Error loading kommentare:', err);
-        }
-    }, [apiGet, entwurf.id]);
-
-    const loadFreigaben = useCallback(async () => {
-        try {
-            const response = await apiGet(`/trauerdruck-entwuerfe/${entwurf.id}/freigaben/`);
-            const data = await response.json();
-            setFreigaben(data.results || data);
-        } catch (err) {
-            console.error('Error loading freigaben:', err);
-        }
-    }, [apiGet, entwurf.id]);
-
     const handleAddComment = async () => {
-        if (!newComment.trim()) return;
+        if (!newComment.trim() || !entwurf?.id) return;
         
         try {
             setLoading(true);
-            await apiPost(`/trauerdruck-kommentare/`, {
+            setError(null);
+            const response = await apiPost(`/trauerdruck-kommentare/`, {
                 entwurf: entwurf.id,
-                content: newComment,
+                content: newComment.trim(),
                 is_internal: false
             });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             setNewComment('');
             loadKommentare();
         } catch (err) {
             setError('Fehler beim Hinzufügen des Kommentars');
+            console.error('Error adding comment:', err);
         } finally {
             setLoading(false);
         }

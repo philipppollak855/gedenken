@@ -1004,7 +1004,7 @@ def custom_get_urls(self):
     
     # Neue URLs hinzufügen
     custom_urls = [
-        path('trauerdruck-dashboard/', admin.site.admin_view(trauerdruck_dashboard_view), name='trauerdruck_dashboard'),
+        path('trauerdruck-dashboard/', self.admin_view(trauerdruck_dashboard_view), name='trauerdruck_dashboard'),
     ]
     
     return custom_urls + original_urls

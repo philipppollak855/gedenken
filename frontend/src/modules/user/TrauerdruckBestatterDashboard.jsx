@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Link } from 'react-router-dom';
 import './TrauerdruckBestatterDashboard.css';
 
 const TrauerdruckBestatterDashboard = () => {
-    const { get } = useApi();
+    const { apiGet } = useApi();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         total: 0,
@@ -17,32 +17,35 @@ const TrauerdruckBestatterDashboard = () => {
     const [recentEntwuerfe, setRecentEntwuerfe] = useState([]);
     const [urgentEntwuerfe, setUrgentEntwuerfe] = useState([]);
 
-    useEffect(() => {
-        loadDashboardData();
-    }, []);
-
-    const loadDashboardData = async () => {
+    const loadDashboardData = useCallback(async () => {
         try {
             setLoading(true);
             
             // Load stats
-            const statsResponse = await get('/api/trauerdruck-entwuerfe/stats/');
-            setStats(statsResponse.data);
+            const statsResponse = await apiGet('/trauerdruck-entwuerfe/stats/');
+            const statsData = await statsResponse.json();
+            setStats(statsData);
             
             // Load recent entwuerfe
-            const recentResponse = await get('/api/trauerdruck-entwuerfe/?limit=5&ordering=-created_at');
-            setRecentEntwuerfe(recentResponse.data);
+            const recentResponse = await apiGet('/trauerdruck-entwuerfe/?limit=5&ordering=-created_at');
+            const recentData = await recentResponse.json();
+            setRecentEntwuerfe(recentData.results || recentData);
             
             // Load urgent entwuerfe
-            const urgentResponse = await get('/api/trauerdruck-entwuerfe/?priority=urgent&status=pending_approval');
-            setUrgentEntwuerfe(urgentResponse.data);
+            const urgentResponse = await apiGet('/trauerdruck-entwuerfe/?priority=urgent&status=pending_approval');
+            const urgentData = await urgentResponse.json();
+            setUrgentEntwuerfe(urgentData.results || urgentData);
             
         } catch (err) {
             console.error('Error loading dashboard data:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiGet]);
+
+    useEffect(() => {
+        loadDashboardData();
+    }, [loadDashboardData]);
 
     const getStatusBadge = (status) => {
         const statusConfig = {

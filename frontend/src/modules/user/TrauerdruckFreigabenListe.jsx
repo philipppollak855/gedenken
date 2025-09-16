@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import TrauerdruckFreigabeModal from './TrauerdruckFreigabeModal';
 import './TrauerdruckFreigabenListe.css';
 
 const TrauerdruckFreigabenListe = () => {
-    const { get } = useApi();
+    const { apiGet } = useApi();
     const [freigaben, setFreigaben] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -12,22 +12,23 @@ const TrauerdruckFreigabenListe = () => {
     const [showModal, setShowModal] = useState(false);
     const [filter, setFilter] = useState('all'); // all, pending, approved, revision_requested
 
-    useEffect(() => {
-        loadFreigaben();
-    }, []);
-
-    const loadFreigaben = async () => {
+    const loadFreigaben = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await get('/api/trauerdruck-entwuerfe/');
-            setFreigaben(response.data);
+            const response = await apiGet('/trauerdruck-entwuerfe/');
+            const data = await response.json();
+            setFreigaben(data.results || data);
         } catch (err) {
             setError('Fehler beim Laden der Freigaben');
             console.error('Error loading freigaben:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiGet]);
+
+    useEffect(() => {
+        loadFreigaben();
+    }, [loadFreigaben]);
 
     const getStatusBadge = (status) => {
         const statusConfig = {

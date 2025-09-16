@@ -317,6 +317,50 @@
             color: #999;
         }
 
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #404040;
+            border: 1px solid #555;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            margin-top: 5px;
+        }
+
+        .search-result-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #555;
+            transition: background 0.2s ease;
+        }
+
+        .search-result-item:hover {
+            background: #4a4a4a;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-name {
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .search-result-details {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
         .form-actions {
             display: flex;
             gap: 20px;
@@ -495,13 +539,15 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="memorial_page">Gedenkseite *</label>
-                            <select id="memorial_page" name="memorial_page" required>
+                            <label for="memorial_page_search">Gedenkseite *</label>
+                            <input type="text" id="memorial_page_search" placeholder="Vor- oder Nachname eingeben..." autocomplete="off">
+                            <select id="memorial_page" name="memorial_page" required style="display: none;">
                                 <option value="">Bitte wählen...</option>
                                 {% for page in memorial_pages %}
-                                <option value="{{ page.id }}">{{ page.first_name }} {{ page.last_name }}</option>
+                                <option value="{{ page.id }}" data-name="{{ page.first_name }} {{ page.last_name }}">{{ page.first_name }} {{ page.last_name }}</option>
                                 {% endfor %}
                             </select>
+                            <div id="memorial_page_results" class="search-results" style="display: none;"></div>
                         </div>
                         
                         <div class="form-group">
@@ -641,12 +687,27 @@
 
         function validateCurrentStep() {
             if (currentStep === 1) {
-                const title = document.getElementById('title').value;
+                const title = document.getElementById('title').value.trim();
                 const type = document.getElementById('trauerdruck_type').value;
                 const page = document.getElementById('memorial_page').value;
                 
-                if (!title || !type || !page) {
-                    alert('Bitte füllen Sie alle Pflichtfelder aus.');
+                console.log('Validierung:', { title, type, page });
+                
+                if (!title) {
+                    alert('Bitte geben Sie einen Titel für den Entwurf ein.');
+                    document.getElementById('title').focus();
+                    return false;
+                }
+                
+                if (!type) {
+                    alert('Bitte wählen Sie eine Trauerdruck-Art aus.');
+                    document.getElementById('trauerdruck_type').focus();
+                    return false;
+                }
+                
+                if (!page) {
+                    alert('Bitte wählen Sie eine Gedenkseite aus.');
+                    document.getElementById('memorial_page_search').focus();
                     return false;
                 }
             }
@@ -699,16 +760,20 @@
 
         // User Selection
         function loadUsers() {
-            // Simulierte Benutzerdaten - in der echten Anwendung von der API laden
-            const users = [
-                { id: 1, name: 'Maria Schmidt', role: 'Tochter', avatar: 'MS' },
-                { id: 2, name: 'Peter Schmidt', role: 'Sohn', avatar: 'PS' },
-                { id: 3, name: 'Anna Schmidt', role: 'Schwiegertochter', avatar: 'AS' },
-                { id: 4, name: 'Thomas Schmidt', role: 'Bruder', avatar: 'TS' }
-            ];
-
             const container = document.getElementById('assignedUsers');
             container.innerHTML = '';
+
+            // Echte Benutzerdaten aus Django-Template verwenden
+            const users = [
+                {% for user in users %}
+                { 
+                    id: {{ user.id }}, 
+                    name: '{{ user.first_name }} {{ user.last_name }}', 
+                    email: '{{ user.email }}',
+                    avatar: '{{ user.first_name|first }}{{ user.last_name|first }}' 
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
 
             users.forEach(user => {
                 const userCard = document.createElement('div');
@@ -717,7 +782,7 @@
                     <input type="checkbox" id="user_${user.id}" value="${user.id}">
                     <div class="user-avatar">${user.avatar}</div>
                     <div class="user-name">${user.name}</div>
-                    <div class="user-role">${user.role}</div>
+                    <div class="user-role">${user.email}</div>
                 `;
                 
                 userCard.addEventListener('click', function() {
@@ -810,12 +875,66 @@
             }
         }
 
+        // Suchfunktion für Gedenkseiten
+        function initializeMemorialPageSearch() {
+            const searchInput = document.getElementById('memorial_page_search');
+            const resultsDiv = document.getElementById('memorial_page_results');
+            const selectElement = document.getElementById('memorial_page');
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                
+                if (query.length < 2) {
+                    resultsDiv.style.display = 'none';
+                    return;
+                }
+                
+                // Alle Optionen aus dem Select-Element holen
+                const options = Array.from(selectElement.options).slice(1); // Erste Option (placeholder) überspringen
+                const matches = options.filter(option => {
+                    const name = option.dataset.name.toLowerCase();
+                    return name.includes(query);
+                });
+                
+                if (matches.length > 0) {
+                    resultsDiv.innerHTML = '';
+                    matches.forEach(option => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
+                        resultItem.innerHTML = `
+                            <div class="search-result-name">${option.dataset.name}</div>
+                            <div class="search-result-details">Gedenkseite</div>
+                        `;
+                        
+                        resultItem.addEventListener('click', function() {
+                            searchInput.value = option.dataset.name;
+                            selectElement.value = option.value;
+                            resultsDiv.style.display = 'none';
+                        });
+                        
+                        resultsDiv.appendChild(resultItem);
+                    });
+                    resultsDiv.style.display = 'block';
+                } else {
+                    resultsDiv.style.display = 'none';
+                }
+            });
+            
+            // Ergebnisse verstecken wenn außerhalb geklickt wird
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+                    resultsDiv.style.display = 'none';
+                }
+            });
+        }
+
         // Daten werden jetzt direkt vom Django-Template bereitgestellt
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadUsers();
             updateNavigation();
+            initializeMemorialPageSearch();
             
             // Event Listeners für Navigation hinzufügen
             document.getElementById('nextStep').addEventListener('click', nextStep);

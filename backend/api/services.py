@@ -152,12 +152,13 @@ class TrauerdruckNotificationService:
                 subject=subject,
                 message=plain_message,
                 html_message=html_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@gedenken.at'),
                 recipient_list=[user.email],
-                fail_silently=False,
+                fail_silently=True,  # Fehler nicht anzeigen, um 500-Fehler zu vermeiden
             )
         except Exception as e:
             print(f"Fehler beim Senden der E-Mail: {e}")
+            # E-Mail-Fehler sollen den Workflow nicht stoppen
 
 
 class TrauerdruckWorkflowService:

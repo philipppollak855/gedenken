@@ -61,7 +61,7 @@ const PortalChoicePage = () => {
     
     const defaultGedenkenDetails = "<ul><li><strong>Gedenkseiten verwalten:</strong> Erstellen und pflegen Sie eine persönliche Seite.</li><li><strong>Angehörige einladen:</strong> Vergeben Sie Berechtigungen.</li><li><strong>Meine Beiträge:</strong> Sehen Sie all Ihre Kondolenzen und Gedenkkerzen.</li></ul>";
     const defaultVorsorgeDetails = "<ul><li><strong>Meine Vorsorge:</strong> Regeln Sie alles Wichtige von Verträgen bis zum digitalen Nachlass.</li><li><strong>Eigene Gedenkseite:</strong> Gestalten Sie zu Lebzeiten Ihre persönliche Gedenkseite.</li><li><strong>Wichtige Medien:</strong> Verwalten Sie sicher alle Dokumente und Bilder.</li></ul>";
-    const defaultUnterlagenDetails = "<ul><li><strong>Freigaben:</strong> Verwalten Sie alle wichtigen Dokumente und Berechtigungen.</li><li><strong>Dokumente:</strong> Organisieren Sie Ihre wichtigen Unterlagen sicher.</li><li><strong>Trauerdruck:</strong> Gestalten Sie persönliche Erinnerungsstücke.</li></ul>";
+    const defaultUnterlagenDetails = "<ul><li><strong>Freigaben:</strong> Verwalten Sie alle wichtigen Dokumente und Berechtigungen.</li><li><strong>Dokumente:</strong> Organisieren Sie Ihre wichtigen Unterlagen sicher.</li><li><strong>Trauerdruck:</strong> Freigaben für Trauerdruck-Entwürfe verwalten.</li></ul>";
 
     return (
         <div className="portal-choice-container" style={pageStyle}>

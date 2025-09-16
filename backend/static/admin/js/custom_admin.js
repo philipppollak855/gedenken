@@ -209,6 +209,14 @@ function initializeSideDock() {
                 { id: 'condolences', label: 'Kondolenzen', icon: 'fa-comment-dots', url: '/admin/api/condolence/' },
                 { id: 'candles', label: 'Gedenkkerzen', icon: 'fa-lightbulb', url: '/admin/api/memorialcandle/' },
             ]},
+            { id: 'trauerdruck', label: 'Trauerdruck', icon: 'fa-print', children: [
+                { id: 'entwuerfe', label: 'Entwürfe', icon: 'fa-file-image', url: '/admin/api/trauerdruckentwurf/' },
+                { id: 'freigaben', label: 'Freigaben', icon: 'fa-check-circle', url: '/admin/api/trauerdruckfreigabe/' },
+                { id: 'kommentare', label: 'Kommentare', icon: 'fa-comments', url: '/admin/api/trauerdruckkommentar/' },
+                { id: 'benachrichtigungen', label: 'Benachrichtigungen', icon: 'fa-bell', url: '/admin/api/trauerdruckbenachrichtigung/' },
+                { id: 'templates', label: 'Templates', icon: 'fa-copy', url: '/admin/api/trauerdrucktemplate/' },
+                { id: 'typen', label: 'Typen', icon: 'fa-tags', url: '/admin/api/trauerdrucktype/' },
+            ]},
             { id: 'vorsorge', label: 'Vorsorge', icon: 'fa-file-invoice', children: [
                  { id: 'lastwishes', label: 'Letzte Wünsche', icon: 'fa-hand-holding-heart', url: '/admin/api/lastwishes/' },
                  { id: 'documents', label: 'Dokumente', icon: 'fa-file-alt', url: '/admin/api/document/' },

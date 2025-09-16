@@ -531,7 +531,11 @@ class TrauerdruckEntwurfViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         entwurf = serializer.save(created_by=self.request.user)
         # Benachrichtigungen senden
-        TrauerdruckNotificationService.notify_new_draft(entwurf)
+        try:
+            TrauerdruckNotificationService.notify_new_draft(entwurf)
+        except Exception as e:
+            print(f"Fehler beim Senden der Benachrichtigungen: {e}")
+            # Benachrichtigungsfehler sollen den Entwurf nicht stoppen
     
     @action(detail=True, methods=['get'])
     def kommentare(self, request, pk=None):
@@ -585,7 +589,11 @@ class TrauerdruckKommentarViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         kommentar = serializer.save(author=self.request.user)
         # Benachrichtigungen senden
-        TrauerdruckNotificationService.notify_comment_added(kommentar.entwurf, self.request.user)
+        try:
+            TrauerdruckNotificationService.notify_comment_added(kommentar.entwurf, self.request.user)
+        except Exception as e:
+            print(f"Fehler beim Senden der Kommentar-Benachrichtigungen: {e}")
+            # Benachrichtigungsfehler sollen den Kommentar nicht stoppen
 
 
 class TrauerdruckFreigabeViewSet(viewsets.ModelViewSet):
@@ -605,15 +613,20 @@ class TrauerdruckFreigabeViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
     
     def perform_create(self, serializer):
-        freigabe = serializer.save(reviewer=self.request.user)
-        # Workflow verarbeiten
-        TrauerdruckWorkflowService.process_approval(
-            entwurf=freigabe.entwurf,
-            decision=freigabe.decision,
-            reviewer=self.request.user,
-            comment=freigabe.comment,
-            revision_notes=freigabe.revision_notes
-        )
+        try:
+            freigabe = serializer.save(reviewer=self.request.user)
+            # Workflow verarbeiten
+            TrauerdruckWorkflowService.process_approval(
+                entwurf=freigabe.entwurf,
+                decision=freigabe.decision,
+                reviewer=self.request.user,
+                comment=freigabe.comment,
+                revision_notes=freigabe.revision_notes
+            )
+        except Exception as e:
+            # Log den Fehler, aber lasse die Freigabe trotzdem speichern
+            print(f"Fehler im Workflow-Service: {e}")
+            # Die Freigabe wurde bereits gespeichert, das ist das Wichtigste
 
 
 class TrauerdruckBenachrichtigungViewSet(viewsets.ModelViewSet):

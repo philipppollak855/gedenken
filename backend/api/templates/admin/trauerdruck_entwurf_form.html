@@ -577,8 +577,8 @@
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
                     <div>
-                        <button type="button" class="btn btn-outline" id="prevStep" onclick="previousStep()" style="display: none;">Zurück</button>
-                        <button type="button" class="btn btn-primary" id="nextStep" onclick="nextStep()">Weiter</button>
+                        <button type="button" class="btn btn-outline" id="prevStep" style="display: none;">Zurück</button>
+                        <button type="button" class="btn btn-primary" id="nextStep">Weiter</button>
                         <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none;">Entwurf erstellen</button>
                     </div>
                 </div>
@@ -816,6 +816,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadUsers();
             updateNavigation();
+            
+            // Event Listeners für Navigation hinzufügen
+            document.getElementById('nextStep').addEventListener('click', nextStep);
+            document.getElementById('prevStep').addEventListener('click', previousStep);
         });
     </script>
 </body>

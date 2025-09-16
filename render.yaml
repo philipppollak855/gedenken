@@ -1,6 +1,7 @@
 # render.yaml
 # KORRIGIERT: Der Pfad zum Settings-Modul wurde korrigiert.
 # NEU: explizite Pfade für MEDIA_ROOT hinzugefügt
+# FIX: Build-Command mit collectstatic und makemigrations korrigiert
 
 databases:
   - name: vorsorge-db
@@ -13,7 +14,7 @@ services:
     env: python
     plan: free
     rootDir: backend
-    buildCommand: "pip install -r requirements.txt && python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic --noinput --clear"
+    buildCommand: "pip install -r requirements.txt && python manage.py makemigrations --noinput && python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear"
     startCommand: "gunicorn --chdir . core.wsgi"
     
     disks:

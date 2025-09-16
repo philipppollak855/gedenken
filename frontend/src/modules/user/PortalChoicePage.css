@@ -135,11 +135,11 @@
 }
 
 .portal-column--gedenken .portal-column-content {
-    transform: translateX(-101%);
+    transform: translateY(101%);
 }
 
 .portal-column--vorsorge .portal-column-content {
-    transform: translateX(101%);
+    transform: translateY(101%);
 }
 
 .portal-column--unterlagen .portal-column-content {
@@ -147,7 +147,7 @@
 }
 
 .portal-column:hover .portal-column-content {
-    transform: translateX(0);
+    transform: translateY(0);
 }
 
 .portal-column-content h2 {

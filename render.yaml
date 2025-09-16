@@ -2,6 +2,7 @@
 # KORRIGIERT: Der Pfad zum Settings-Modul wurde korrigiert.
 # NEU: explizite Pfade für MEDIA_ROOT hinzugefügt
 # FIX: Build-Command mit collectstatic und makemigrations korrigiert
+# FIX2: Build-Command komplett überarbeitet für statische Dateien
 
 databases:
   - name: vorsorge-db

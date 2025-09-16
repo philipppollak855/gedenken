@@ -1004,93 +1004,125 @@ def trauerdruck_entwurf_form_view(request):
     """
     Moderne Eingabemaske für neue Trauerdruck-Entwürfe mit vollständigem Workflow
     """
-    if request.method == 'POST':
-        try:
-            # Form-Daten verarbeiten
-            title = request.POST.get('title')
-            description = request.POST.get('description', '')
-            trauerdruck_type_id = request.POST.get('trauerdruck_type')
-            memorial_page_id = request.POST.get('memorial_page')
-            priority = request.POST.get('priority', 'normal')
-            deadline = request.POST.get('deadline')
-            revision_notes = request.POST.get('revision_notes', '')
-            assigned_to = request.POST.get('assigned_to', '')
-            
-            # TrauerdruckEntwurf erstellen
-            from .models import TrauerdruckEntwurf, TrauerdruckType, MemorialPage, User
-            
-            entwurf = TrauerdruckEntwurf.objects.create(
-                title=title,
-                description=description,
-                trauerdruck_type_id=trauerdruck_type_id,
-                memorial_page_id=memorial_page_id,
-                priority=priority,
-                created_by=request.user,
-                status='draft',
-                deadline=deadline if deadline else None
-            )
-            
-            # Angehörige zuweisen
-            if assigned_to:
-                assigned_ids = [int(id.strip()) for id in assigned_to.split(',') if id.strip()]
-                assigned_users = User.objects.filter(id__in=assigned_ids)
-                entwurf.assigned_to.set(assigned_users)
-            
-            # Design-Dateien verarbeiten
-            design_files = request.FILES.getlist('design_files')
-            for file in design_files:
-                # Hier würde die Datei-Verarbeitung stattfinden
-                # Für jetzt nur loggen
-                print(f"Design-Datei erhalten: {file.name}")
-            
-            # Benachrichtigungen senden
+    try:
+        if request.method == 'POST':
             try:
-                from .services import TrauerdruckNotificationService
-                TrauerdruckNotificationService.notify_new_draft(entwurf, request.user)
+                # Form-Daten verarbeiten
+                title = request.POST.get('title')
+                description = request.POST.get('description', '')
+                trauerdruck_type_id = request.POST.get('trauerdruck_type')
+                memorial_page_id = request.POST.get('memorial_page')
+                priority = request.POST.get('priority', 'normal')
+                deadline = request.POST.get('deadline')
+                revision_notes = request.POST.get('revision_notes', '')
+                assigned_to = request.POST.get('assigned_to', '')
+                
+                # TrauerdruckEntwurf erstellen
+                from .models import TrauerdruckEntwurf, TrauerdruckType, MemorialPage, User
+                
+                entwurf = TrauerdruckEntwurf.objects.create(
+                    title=title,
+                    description=description,
+                    trauerdruck_type_id=trauerdruck_type_id,
+                    memorial_page_id=memorial_page_id,
+                    priority=priority,
+                    created_by=request.user,
+                    status='draft',
+                    deadline=deadline if deadline else None
+                )
+                
+                # Angehörige zuweisen
+                if assigned_to:
+                    assigned_ids = [int(id.strip()) for id in assigned_to.split(',') if id.strip()]
+                    assigned_users = User.objects.filter(id__in=assigned_ids)
+                    entwurf.assigned_to.set(assigned_users)
+                
+                # Design-Dateien verarbeiten
+                design_files = request.FILES.getlist('design_files')
+                for file in design_files:
+                    # Hier würde die Datei-Verarbeitung stattfinden
+                    # Für jetzt nur loggen
+                    print(f"Design-Datei erhalten: {file.name}")
+                
+                # Benachrichtigungen senden
+                try:
+                    from .services import TrauerdruckNotificationService
+                    TrauerdruckNotificationService.notify_new_draft(entwurf, request.user)
+                except Exception as e:
+                    print(f"Fehler beim Senden der Benachrichtigungen: {e}")
+                
+                # Erfolgs-Response
+                return HttpResponse(f'''
+                    <script>
+                        alert('Entwurf "{title}" erfolgreich erstellt!\\n\\nAngehörige wurden benachrichtigt und können nun den Entwurf bearbeiten.');
+                        if (window.parent && window.parent !== window) {{
+                            window.parent.postMessage({{ action: 'closeModal' }}, '*');
+                        }} else {{
+                            window.close();
+                        }}
+                    </script>
+                ''')
+                
             except Exception as e:
-                print(f"Fehler beim Senden der Benachrichtigungen: {e}")
-            
-            # Erfolgs-Response
-            return HttpResponse(f'''
-                <script>
-                    alert('Entwurf "{title}" erfolgreich erstellt!\\n\\nAngehörige wurden benachrichtigt und können nun den Entwurf bearbeiten.');
-                    if (window.parent && window.parent !== window) {{
-                        window.parent.postMessage({{ action: 'closeModal' }}, '*');
-                    }} else {{
-                        window.close();
-                    }}
-                </script>
-            ''')
-            
+                return HttpResponse(f'''
+                    <script>
+                        alert('Fehler beim Erstellen: {str(e)}');
+                    </script>
+                ''')
+        
+        # Daten für die Form bereitstellen
+        from .models import MemorialPage, TrauerdruckType
+        from django.contrib.auth.models import User
+        from django.template.loader import render_to_string
+        import json
+        
+        # Sichere Datenabfrage mit Fallbacks
+        try:
+            users = User.objects.filter(is_active=True)[:20]
+            users_data = []
+            for user in users:
+                users_data.append({
+                    'id': user.id,
+                    'name': f"{user.first_name or ''} {user.last_name or ''}".strip() or user.username,
+                    'email': user.email or '',
+                    'avatar': f"{user.first_name[0] if user.first_name else ''}{user.last_name[0] if user.last_name else ''}".upper() or user.username[0].upper()
+                })
         except Exception as e:
-            return HttpResponse(f'''
-                <script>
-                    alert('Fehler beim Erstellen: {str(e)}');
-                </script>
-            ''')
-    
-    # Daten für die Form bereitstellen
-    from .models import MemorialPage, TrauerdruckType
-    from django.contrib.auth.models import User
-    import json
-    
-    users = User.objects.filter(is_active=True)[:20]
-    users_data = []
-    for user in users:
-        users_data.append({
-            'id': user.id,
-            'name': f"{user.first_name} {user.last_name}".strip() or user.username,
-            'email': user.email,
-            'avatar': f"{user.first_name[0] if user.first_name else ''}{user.last_name[0] if user.last_name else ''}".upper() or user.username[0].upper()
-        })
-    
-    context = {
-        'memorial_pages': MemorialPage.objects.all()[:50],  # Limit für Performance
-        'trauerdruck_types': TrauerdruckType.objects.filter(is_active=True),
-        'users_json': json.dumps(users_data),  # JSON für JavaScript
-    }
-    
-    return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html', context))
+            users_data = []
+            print(f"Fehler beim Laden der Benutzer: {e}")
+        
+        try:
+            memorial_pages = MemorialPage.objects.all()[:50]
+        except Exception as e:
+            memorial_pages = []
+            print(f"Fehler beim Laden der Gedenkseiten: {e}")
+        
+        try:
+            trauerdruck_types = TrauerdruckType.objects.filter(is_active=True)
+        except Exception as e:
+            trauerdruck_types = []
+            print(f"Fehler beim Laden der Trauerdruck-Typen: {e}")
+        
+        context = {
+            'memorial_pages': memorial_pages,
+            'trauerdruck_types': trauerdruck_types,
+            'users_json': json.dumps(users_data),
+        }
+        
+        return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html', context))
+        
+    except Exception as e:
+        # Fallback für Fehler
+        return HttpResponse(f'''
+            <html>
+                <head><title>Fehler</title></head>
+                <body>
+                    <h1>Fehler beim Laden der Form</h1>
+                    <p>Fehler: {str(e)}</p>
+                    <button onclick="window.close()">Schließen</button>
+                </body>
+            </html>
+        ''')
 
 def custom_get_urls(self):
     # Originale URLs bekommen

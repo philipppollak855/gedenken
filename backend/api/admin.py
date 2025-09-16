@@ -1004,6 +1004,47 @@ def trauerdruck_entwurf_form_view(request):
     """
     Moderne Eingabemaske für neue Trauerdruck-Entwürfe
     """
+    if request.method == 'POST':
+        try:
+            # Form-Daten verarbeiten
+            title = request.POST.get('title')
+            description = request.POST.get('description', '')
+            trauerdruck_type_id = request.POST.get('trauerdruck_type')
+            memorial_page_id = request.POST.get('memorial_page')
+            priority = request.POST.get('priority', 'normal')
+            
+            # TrauerdruckEntwurf erstellen
+            from .models import TrauerdruckEntwurf, TrauerdruckType, MemorialPage
+            
+            entwurf = TrauerdruckEntwurf.objects.create(
+                title=title,
+                description=description,
+                trauerdruck_type_id=trauerdruck_type_id,
+                memorial_page_id=memorial_page_id,
+                priority=priority,
+                created_by=request.user,
+                status='draft'
+            )
+            
+            # Erfolgs-Response
+            return HttpResponse(f'''
+                <script>
+                    alert('Entwurf "{title}" erfolgreich erstellt!');
+                    if (window.parent && window.parent !== window) {{
+                        window.parent.postMessage({{ action: 'closeModal' }}, '*');
+                    }} else {{
+                        window.close();
+                    }}
+                </script>
+            ''')
+            
+        except Exception as e:
+            return HttpResponse(f'''
+                <script>
+                    alert('Fehler beim Erstellen: {str(e)}');
+                </script>
+            ''')
+    
     return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html'))
 
 def custom_get_urls(self):

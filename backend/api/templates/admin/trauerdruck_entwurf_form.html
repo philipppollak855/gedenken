@@ -432,7 +432,7 @@
             progressBar.style.display = 'block';
             
             try {
-                const response = await fetch('/api/trauerdruck-entwuerfe/', {
+                const response = await fetch('/admin/trauerdruck-entwurf-form/', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -441,13 +441,11 @@
                 });
                 
                 if (response.ok) {
-                    showMessage('Entwurf erfolgreich erstellt!', 'success');
-                    setTimeout(() => {
-                        closeModal();
-                    }, 2000);
+                    const responseText = await response.text();
+                    // Die Response enthält bereits ein Script mit Alert und Modal-Schließung
+                    document.body.innerHTML = responseText;
                 } else {
-                    const error = await response.json();
-                    showMessage('Fehler beim Erstellen: ' + (error.detail || 'Unbekannter Fehler'), 'error');
+                    showMessage('Fehler beim Erstellen: HTTP ' + response.status, 'error');
                 }
             } catch (error) {
                 showMessage('Netzwerkfehler: ' + error.message, 'error');
@@ -497,7 +495,7 @@
         // Load Memorial Pages
         async function loadMemorialPages() {
             try {
-                const response = await fetch('/api/memorial-pages/');
+                const response = await fetch('/admin/api/memorialpage/');
                 const data = await response.json();
                 const select = document.getElementById('memorial_page');
                 
@@ -515,7 +513,7 @@
         // Load Trauerdruck Types
         async function loadTrauerdruckTypes() {
             try {
-                const response = await fetch('/api/trauerdruck-types/');
+                const response = await fetch('/admin/api/trauerdrucktype/');
                 const data = await response.json();
                 const select = document.getElementById('trauerdruck_type');
                 

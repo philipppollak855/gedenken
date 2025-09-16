@@ -29,12 +29,13 @@ class TrauerdruckNotificationService:
     def notify_new_draft(entwurf):
         """Benachrichtigt Angehörige über neuen Entwurf"""
         # Alle Familienmitglieder der Gedenkseite benachrichtigen
-        family_members = entwurf.memorial_page.family_members.all()
+        from .models import FamilyLink
+        family_links = FamilyLink.objects.filter(deceased_user=entwurf.memorial_page.user)
         
-        for family_member in family_members:
-            if family_member.user and family_member.user.email:
+        for family_link in family_links:
+            if family_link.relative_user and family_link.relative_user.email:
                 TrauerdruckNotificationService.create_notification(
-                    user=family_member.user,
+                    user=family_link.relative_user,
                     entwurf=entwurf,
                     notification_type='new_draft',
                     title=f'Neuer Trauerdruck-Entwurf für {entwurf.memorial_page.deceased_name}',
@@ -43,7 +44,7 @@ class TrauerdruckNotificationService:
                 
                 # E-Mail senden
                 TrauerdruckNotificationService.send_email_notification(
-                    user=family_member.user,
+                    user=family_link.relative_user,
                     entwurf=entwurf,
                     notification_type='new_draft'
                 )
@@ -51,12 +52,13 @@ class TrauerdruckNotificationService:
     @staticmethod
     def notify_approval_requested(entwurf):
         """Benachrichtigt Angehörige über Freigabeanfrage"""
-        family_members = entwurf.memorial_page.family_members.all()
+        from .models import FamilyLink
+        family_links = FamilyLink.objects.filter(deceased_user=entwurf.memorial_page.user)
         
-        for family_member in family_members:
-            if family_member.user and family_member.user.email:
+        for family_link in family_links:
+            if family_link.relative_user and family_link.relative_user.email:
                 TrauerdruckNotificationService.create_notification(
-                    user=family_member.user,
+                    user=family_link.relative_user,
                     entwurf=entwurf,
                     notification_type='approval_requested',
                     title=f'Freigabe angefordert für {entwurf.title}',
@@ -103,10 +105,11 @@ class TrauerdruckNotificationService:
         users_to_notify.update(entwurf.assigned_to.all())
         
         # Familienmitglieder
-        family_members = entwurf.memorial_page.family_members.all()
-        for family_member in family_members:
-            if family_member.user:
-                users_to_notify.add(family_member.user)
+        from .models import FamilyLink
+        family_links = FamilyLink.objects.filter(deceased_user=entwurf.memorial_page.user)
+        for family_link in family_links:
+            if family_link.relative_user:
+                users_to_notify.add(family_link.relative_user)
         
         # Kommentar-Autor nicht benachrichtigen
         users_to_notify.discard(comment_author)

@@ -34,4 +34,5 @@ const useApi = () => {
     return api;
 };
 
+export { useApi };
 export default useApi;

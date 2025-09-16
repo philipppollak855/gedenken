@@ -714,31 +714,27 @@ class TrauerdruckEntwurf(models.Model):
         ('rejected', 'Abgelehnt'),
         ('completed', 'Abgeschlossen'),
     ]
-    
+
     # Grunddaten
     title = models.CharField("Titel", max_length=200)
     description = models.TextField("Beschreibung", blank=True)
     trauerdruck_type = models.ForeignKey(TrauerdruckType, on_delete=models.CASCADE, verbose_name="Trauerdruck-Typ")
     memorial_page = models.ForeignKey(MemorialPage, on_delete=models.CASCADE, related_name='trauerdruck_entwuerfe', verbose_name="Gedenkseite")
-    
+
     # Status und Workflow
     status = models.CharField("Status", max_length=20, choices=STATUS_CHOICES, default='draft')
     version = models.PositiveIntegerField("Version", default=1)
     is_latest_version = models.BooleanField("Neueste Version", default=True)
-    
-    # Dateien
-    design_file = models.ForeignKey(MediaAsset, on_delete=models.CASCADE, related_name='trauerdruck_designs', verbose_name="Design-Datei")
-    preview_file = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='trauerdruck_previews', verbose_name="Vorschau-Datei")
-    
+
     # Personen
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_trauerdruck_entwuerfe', verbose_name="Erstellt von")
     assigned_to = models.ManyToManyField(User, related_name='assigned_trauerdruck_entwuerfe', blank=True, verbose_name="Zugewiesen an")
-    
+
     # Zeitstempel
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
     updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
     deadline = models.DateTimeField("Deadline", null=True, blank=True)
-    
+
     # Zusätzliche Felder
     priority = models.CharField("Priorität", max_length=10, choices=[
         ('low', 'Niedrig'),
@@ -746,14 +742,44 @@ class TrauerdruckEntwurf(models.Model):
         ('high', 'Hoch'),
         ('urgent', 'Dringend'),
     ], default='normal')
-    
+
     class Meta:
         verbose_name = "Trauerdruck-Entwurf"
         verbose_name_plural = "Trauerdruck-Entwürfe"
         ordering = ['-created_at']
-    
+
     def __str__(self):
         return f"{self.title} - {self.memorial_page.deceased_name} (v{self.version})"
+
+
+class TrauerdruckDesign(models.Model):
+    """Einzelne Design-Variante für einen Trauerdruck-Entwurf"""
+    entwurf = models.ForeignKey(TrauerdruckEntwurf, on_delete=models.CASCADE, related_name='designs', verbose_name="Entwurf")
+    title = models.CharField("Design-Titel", max_length=200, help_text="z.B. 'Variante A', 'Klassisch', 'Modern'")
+    description = models.TextField("Beschreibung", blank=True, help_text="Beschreibung dieser Design-Variante")
+    
+    # Dateien
+    design_file = models.ForeignKey(MediaAsset, on_delete=models.CASCADE, related_name='trauerdruck_design_files', verbose_name="Design-Datei")
+    preview_file = models.ForeignKey(MediaAsset, on_delete=models.SET_NULL, null=True, blank=True, related_name='trauerdruck_preview_files', verbose_name="Vorschau-Datei")
+    
+    # Status
+    is_active = models.BooleanField("Aktiv", default=True, help_text="Ist diese Design-Variante zur Abstimmung verfügbar?")
+    is_approved = models.BooleanField("Freigegeben", default=False, help_text="Wurde diese Variante von der Familie freigegeben?")
+    
+    # Reihenfolge
+    order = models.PositiveIntegerField("Reihenfolge", default=0, help_text="Reihenfolge der Anzeige")
+    
+    # Zeitstempel
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Trauerdruck-Design"
+        verbose_name_plural = "Trauerdruck-Designs"
+        ordering = ['entwurf', 'order', 'created_at']
+    
+    def __str__(self):
+        return f"{self.entwurf.title} - {self.title}"
 
 
 class TrauerdruckKommentar(models.Model):
@@ -792,11 +818,33 @@ class TrauerdruckFreigabe(models.Model):
     class Meta:
         verbose_name = "Trauerdruck-Freigabe"
         verbose_name_plural = "Trauerdruck-Freigaben"
-        unique_together = ['entwurf', 'reviewer']
         ordering = ['-created_at']
     
     def __str__(self):
         return f"{self.reviewer.first_name} - {self.get_decision_display()} für {self.entwurf.title}"
+
+
+class TrauerdruckDesignFreigabe(models.Model):
+    """Freigabe-Entscheidungen für einzelne Design-Varianten"""
+    DECISION_CHOICES = [
+        ('pending', 'Ausstehend'),
+        ('approved', 'Freigegeben'),
+        ('rejected', 'Abgelehnt'),
+    ]
+    
+    design = models.ForeignKey(TrauerdruckDesign, on_delete=models.CASCADE, related_name='freigaben', verbose_name="Design")
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Prüfer")
+    decision = models.CharField("Entscheidung", max_length=20, choices=DECISION_CHOICES, default='pending')
+    comment = models.TextField("Kommentar", blank=True)
+    created_at = models.DateTimeField("Entschieden am", auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Trauerdruck-Design-Freigabe"
+        verbose_name_plural = "Trauerdruck-Design-Freigaben"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.reviewer.first_name} - {self.get_decision_display()} für {self.design.title}"
 
 
 class TrauerdruckBenachrichtigung(models.Model):

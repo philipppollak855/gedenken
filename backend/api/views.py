@@ -32,16 +32,16 @@ from .serializers import (
     MemorialPageListSerializer, SiteSettingsSerializer, CondolenceTemplateSerializer,
     CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer,
     MemorialEventSerializer, MeinBereichDataSerializer,
-    TrauerdruckTypeSerializer, TrauerdruckEntwurfSerializer, TrauerdruckKommentarSerializer,
-    TrauerdruckFreigabeSerializer, TrauerdruckBenachrichtigungSerializer, TrauerdruckTemplateSerializer
+    TrauerdruckTypeSerializer, TrauerdruckEntwurfSerializer, TrauerdruckDesignSerializer, TrauerdruckKommentarSerializer,
+    TrauerdruckFreigabeSerializer, TrauerdruckDesignFreigabeSerializer, TrauerdruckBenachrichtigungSerializer, TrauerdruckTemplateSerializer
 )
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
     Document, LastWishes, MemorialPage, Condolence, MemorialCandle,
     TimelineEvent, GalleryItem, ReleaseRequest, SiteSettings, CondolenceTemplate,
     CandleImage, CandleMessageTemplate, EventLocation, MemorialEvent, EventAttendance,
-    FamilyLink, TrauerdruckType, TrauerdruckEntwurf, TrauerdruckKommentar,
-    TrauerdruckFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate
+    FamilyLink, TrauerdruckType, TrauerdruckEntwurf, TrauerdruckDesign, TrauerdruckKommentar,
+    TrauerdruckFreigabe, TrauerdruckDesignFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate
 )
 from .services import TrauerdruckNotificationService, TrauerdruckWorkflowService
 
@@ -690,3 +690,94 @@ class TrauerdruckTemplateViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+
+class TrauerdruckDesignViewSet(viewsets.ModelViewSet):
+    """ViewSet für Trauerdruck-Designs"""
+    queryset = TrauerdruckDesign.objects.all()
+    serializer_class = TrauerdruckDesignSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = TrauerdruckDesign.objects.select_related(
+            'entwurf', 'design_file', 'preview_file'
+        ).prefetch_related('freigaben')
+        
+        # Filter by entwurf if provided
+        entwurf_id = self.request.query_params.get('entwurf')
+        if entwurf_id:
+            queryset = queryset.filter(entwurf=entwurf_id)
+        
+        return queryset.order_by('entwurf', 'order', 'created_at')
+    
+    @action(detail=True, methods=['get'])
+    def freigaben(self, request, pk=None):
+        """Alle Freigaben für ein Design abrufen"""
+        design = self.get_object()
+        freigaben = design.freigaben.all().order_by('-created_at')
+        serializer = TrauerdruckDesignFreigabeSerializer(freigaben, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """Design freigeben"""
+        design = self.get_object()
+        design.is_approved = True
+        design.save()
+        
+        # Benachrichtigungen senden
+        try:
+            TrauerdruckNotificationService.notify_decision(design.entwurf, 'approved', request.user)
+        except Exception as e:
+            print(f"Fehler beim Senden der Benachrichtigungen: {e}")
+        
+        return Response({'status': 'approved'})
+    
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        """Design ablehnen"""
+        design = self.get_object()
+        design.is_approved = False
+        design.save()
+        
+        # Benachrichtigungen senden
+        try:
+            TrauerdruckNotificationService.notify_decision(design.entwurf, 'rejected', request.user)
+        except Exception as e:
+            print(f"Fehler beim Senden der Benachrichtigungen: {e}")
+        
+        return Response({'status': 'rejected'})
+
+
+class TrauerdruckDesignFreigabeViewSet(viewsets.ModelViewSet):
+    """ViewSet für Trauerdruck-Design-Freigaben"""
+    queryset = TrauerdruckDesignFreigabe.objects.all()
+    serializer_class = TrauerdruckDesignFreigabeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = TrauerdruckDesignFreigabe.objects.select_related('design', 'reviewer')
+        
+        # Filter by design if provided
+        design_id = self.request.query_params.get('design')
+        if design_id:
+            queryset = queryset.filter(design=design_id)
+        
+        return queryset.order_by('-created_at')
+    
+    def perform_create(self, serializer):
+        freigabe = serializer.save(reviewer=self.request.user)
+        
+        # Design-Status aktualisieren basierend auf der Entscheidung
+        design = freigabe.design
+        if freigabe.decision == 'approved':
+            design.is_approved = True
+        elif freigabe.decision == 'rejected':
+            design.is_approved = False
+        design.save()
+        
+        # Benachrichtigungen senden
+        try:
+            TrauerdruckNotificationService.notify_decision(design.entwurf, freigabe.decision, self.request.user)
+        except Exception as e:
+            print(f"Fehler beim Senden der Benachrichtigungen: {e}")

@@ -13,8 +13,8 @@ from .views import (
     CondolenceTemplateViewSet, CandleImageViewSet, CandleMessageTemplateViewSet,
     SeedDatabaseView, EventAttendanceViewSet, MemorialEventViewSet, GlobalSearchView,
     MeinBereichDataView, CreateMemorialPageView, # NEU
-    TrauerdruckTypeViewSet, TrauerdruckEntwurfViewSet, TrauerdruckKommentarViewSet,
-    TrauerdruckFreigabeViewSet, TrauerdruckBenachrichtigungViewSet, TrauerdruckTemplateViewSet
+    TrauerdruckTypeViewSet, TrauerdruckEntwurfViewSet, TrauerdruckDesignViewSet, TrauerdruckKommentarViewSet,
+    TrauerdruckFreigabeViewSet, TrauerdruckDesignFreigabeViewSet, TrauerdruckBenachrichtigungViewSet, TrauerdruckTemplateViewSet
 )
 
 router = routers.DefaultRouter()
@@ -36,8 +36,10 @@ router.register(r'candle-message-templates', CandleMessageTemplateViewSet, basen
 # Trauerdruck Router
 router.register(r'trauerdruck-types', TrauerdruckTypeViewSet, basename='trauerdrucktype')
 router.register(r'trauerdruck-entwuerfe', TrauerdruckEntwurfViewSet, basename='trauerdruckentwurf')
+router.register(r'trauerdruck-designs', TrauerdruckDesignViewSet, basename='trauerdruckdesign')
 router.register(r'trauerdruck-kommentare', TrauerdruckKommentarViewSet, basename='trauerdruckkommentar')
 router.register(r'trauerdruck-freigaben', TrauerdruckFreigabeViewSet, basename='trauerdruckfreigabe')
+router.register(r'trauerdruck-design-freigaben', TrauerdruckDesignFreigabeViewSet, basename='trauerdruckdesignfreigabe')
 router.register(r'trauerdruck-benachrichtigungen', TrauerdruckBenachrichtigungViewSet, basename='trauerdruckbenachrichtigung')
 router.register(r'trauerdruck-templates', TrauerdruckTemplateViewSet, basename='trauerdrucktemplate')
 

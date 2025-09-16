@@ -211,23 +211,14 @@ class TrauerdruckWorkflowService:
         from .models import TrauerdruckFreigabe
         
         try:
-            # Freigabe-Entscheidung speichern
-            freigabe, created = TrauerdruckFreigabe.objects.get_or_create(
+            # Freigabe-Entscheidung speichern (immer neue Freigabe erstellen)
+            freigabe = TrauerdruckFreigabe.objects.create(
                 entwurf=entwurf,
                 reviewer=reviewer,
-                defaults={
-                    'decision': decision,
-                    'comment': comment,
-                    'revision_notes': revision_notes
-                }
+                decision=decision,
+                comment=comment,
+                revision_notes=revision_notes
             )
-            
-            if not created:
-                # Bestehende Freigabe aktualisieren
-                freigabe.decision = decision
-                freigabe.comment = comment
-                freigabe.revision_notes = revision_notes
-                freigabe.save()
             
             # Entwurf-Status aktualisieren
             if decision == 'approved':

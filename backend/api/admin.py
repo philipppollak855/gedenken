@@ -23,8 +23,8 @@ from .models import (
     TimelineEvent, GalleryItem, MemorialCandle, ReleaseRequest, FamilyLink,
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
     CandleMessageTemplate, MediaAsset, MediaFolder, EventLocation, EventAttendance,
-    TrauerdruckType, TrauerdruckEntwurf, TrauerdruckKommentar, 
-    TrauerdruckFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate
+    TrauerdruckType, TrauerdruckEntwurf, TrauerdruckDesign, TrauerdruckKommentar, 
+    TrauerdruckFreigabe, TrauerdruckDesignFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate
 )
 
 @admin.register(MediaFolder)
@@ -604,7 +604,7 @@ class TrauerdruckEntwurfAdmin(ModelAdmin):
     list_display = ('title', 'memorial_page', 'trauerdruck_type', 'status', 'version', 'priority', 'created_by', 'created_at', 'deadline')
     list_filter = ('status', 'trauerdruck_type', 'priority', 'created_at', 'deadline')
     search_fields = ('title', 'description', 'memorial_page__deceased_name', 'created_by__first_name', 'created_by__last_name')
-    raw_id_fields = ('memorial_page', 'design_file', 'preview_file', 'created_by')
+    raw_id_fields = ('memorial_page', 'created_by')
     filter_horizontal = ('assigned_to',)
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
@@ -616,11 +616,29 @@ class TrauerdruckEntwurfAdmin(ModelAdmin):
         ('Status & Workflow', {
             'fields': ('status', 'version', 'is_latest_version', 'priority', 'deadline')
         }),
+        ('Personen', {
+            'fields': ('created_by', 'assigned_to')
+        }),
+    )
+
+
+@admin.register(TrauerdruckDesign)
+class TrauerdruckDesignAdmin(ModelAdmin):
+    list_display = ('title', 'entwurf', 'order', 'is_active', 'is_approved', 'created_at')
+    list_filter = ('is_active', 'is_approved', 'created_at')
+    search_fields = ('title', 'description', 'entwurf__title')
+    raw_id_fields = ('entwurf', 'design_file', 'preview_file')
+    ordering = ('entwurf', 'order', 'created_at')
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('entwurf', 'title', 'description', 'order')
+        }),
         ('Dateien', {
             'fields': ('design_file', 'preview_file')
         }),
-        ('Personen', {
-            'fields': ('created_by', 'assigned_to')
+        ('Status', {
+            'fields': ('is_active', 'is_approved')
         }),
     )
 
@@ -640,6 +658,15 @@ class TrauerdruckFreigabeAdmin(ModelAdmin):
     list_filter = ('decision', 'created_at')
     search_fields = ('comment', 'revision_notes', 'reviewer__first_name', 'reviewer__last_name', 'entwurf__title')
     raw_id_fields = ('entwurf', 'reviewer')
+    ordering = ('-created_at',)
+
+
+@admin.register(TrauerdruckDesignFreigabe)
+class TrauerdruckDesignFreigabeAdmin(ModelAdmin):
+    list_display = ('design', 'reviewer', 'decision', 'created_at')
+    list_filter = ('decision', 'created_at')
+    search_fields = ('comment', 'reviewer__first_name', 'reviewer__last_name', 'design__title')
+    raw_id_fields = ('design', 'reviewer')
     ordering = ('-created_at',)
 
 

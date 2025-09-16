@@ -14,7 +14,7 @@ services:
     env: python
     plan: free
     rootDir: backend
-    buildCommand: "pip install -r requirements.txt && python manage.py makemigrations --noinput && python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear"
+    buildCommand: "pip install -r requirements.txt && python manage.py makemigrations --noinput && python manage.py migrate --noinput && python collect_static.py"
     startCommand: "gunicorn --chdir . core.wsgi"
     
     disks:

@@ -1097,12 +1097,16 @@ def trauerdruck_entwurf_form_view(request):
         try:
             from .models import FamilyLink
             
-            # Alle aktiven Benutzer laden (für Fallback)
-            all_users = User.objects.filter(is_active=True).order_by('first_name', 'last_name')[:50]
+            # Alle aktiven Benutzer laden (für Fallback) mit optimierten Abfragen
+            all_users = User.objects.filter(is_active=True).select_related().order_by('first_name', 'last_name')[:50]
             
-            # FamilyLink-Statistiken sammeln
+            # FamilyLink-Statistiken sammeln mit optimierter Abfrage
             family_links_count = FamilyLink.objects.count()
             print(f"FamilyLink-Statistiken: {family_links_count} Verknüpfungen vorhanden")
+            
+            # Pre-fetch FamilyLink-Daten für bessere Performance
+            family_links_deceased = set(FamilyLink.objects.values_list('deceased_user_id', flat=True))
+            family_links_relative = set(FamilyLink.objects.values_list('relative_user_id', flat=True))
             
             users_data = []
             for user in all_users:
@@ -1124,9 +1128,9 @@ def trauerdruck_entwurf_form_view(request):
                 else:
                     avatar = (user.username or 'U')[0].upper()
                 
-                # Prüfen ob User als Angehöriger verknüpft ist
-                is_family_member = FamilyLink.objects.filter(relative_user=user).exists()
-                is_deceased = FamilyLink.objects.filter(deceased_user=user).exists()
+                # Prüfen ob User als Angehöriger verknüpft ist (optimiert)
+                is_family_member = user.id in family_links_relative
+                is_deceased = user.id in family_links_deceased
                 
                 users_data.append({
                     'id': user.id,
@@ -1146,16 +1150,17 @@ def trauerdruck_entwurf_form_view(request):
             traceback.print_exc()
         
         try:
-            memorial_pages = MemorialPage.objects.all()[:50]
+            memorial_pages = MemorialPage.objects.select_related('user').filter(status='active')[:50]
             memorial_pages_data = []
             for page in memorial_pages:
-                memorial_pages_data.append({
-                    'id': page.id,
-                    'user_id': page.user.id if page.user else None,
-                    'first_name': page.first_name or '',
-                    'last_name': page.last_name or '',
-                    'full_name': f"{page.first_name or ''} {page.last_name or ''}".strip()
-                })
+                if page.user:  # Nur Gedenkseiten mit gültigen Benutzern
+                    memorial_pages_data.append({
+                        'id': page.id,
+                        'user_id': page.user.id,
+                        'first_name': page.first_name or '',
+                        'last_name': page.last_name or '',
+                        'full_name': f"{page.first_name or ''} {page.last_name or ''}".strip() or f"Gedenkseite {page.id}"
+                    })
         except Exception as e:
             memorial_pages = []
             memorial_pages_data = []
@@ -1204,7 +1209,6 @@ def quick_family_link_add_view(request):
     """
     if request.method == 'POST':
         try:
-            import json
             from .models import FamilyLink
             from django.contrib.auth.models import User
             
@@ -1220,11 +1224,18 @@ def quick_family_link_add_view(request):
             can_edit_precaution_data = data.get('can_edit_precaution_data', False)
             
             # Benutzer validieren
+            if not deceased_user_id or not relative_user_id:
+                return JsonResponse({'error': 'Verstorbener und Angehöriger müssen ausgewählt werden'}, status=400)
+                
             try:
-                deceased_user = User.objects.get(id=deceased_user_id)
-                relative_user = User.objects.get(id=relative_user_id)
+                deceased_user = User.objects.get(id=deceased_user_id, is_active=True)
+                relative_user = User.objects.get(id=relative_user_id, is_active=True)
             except User.DoesNotExist:
-                return JsonResponse({'error': 'Benutzer nicht gefunden'}, status=400)
+                return JsonResponse({'error': 'Benutzer nicht gefunden oder inaktiv'}, status=400)
+            
+            # Prüfen ob es sich um verschiedene Benutzer handelt
+            if deceased_user_id == relative_user_id:
+                return JsonResponse({'error': 'Verstorbener und Angehöriger müssen verschiedene Personen sein'}, status=400)
             
             # Prüfen ob Verknüpfung bereits existiert
             if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
@@ -1243,8 +1254,10 @@ def quick_family_link_add_view(request):
             
             return JsonResponse({
                 'success': True,
-                'message': f'Angehörigen-Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}',
-                'family_link_id': str(family_link.link_id)
+                'message': f'Angehörigen-Verknüpfung erfolgreich erstellt: {relative_user.get_full_name() or relative_user.email} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name() or deceased_user.email}',
+                'family_link_id': str(family_link.link_id),
+                'deceased_name': deceased_user.get_full_name() or deceased_user.email,
+                'relative_name': relative_user.get_full_name() or relative_user.email
             })
             
         except json.JSONDecodeError:

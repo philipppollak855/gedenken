@@ -353,6 +353,26 @@
             padding: 10px;
             margin-bottom: 15px;
         }
+        
+        .quick-add-form input, .quick-add-form select {
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .quick-add-form input:focus, .quick-add-form select:focus {
+            border-color: #FF9800;
+            box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+            outline: none;
+        }
+        
+        .quick-add-form button:hover {
+            background: #F57C00;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .quick-add-form button:active {
+            transform: translateY(0);
+        }
 
         .search-results {
             position: absolute;
@@ -1110,24 +1130,38 @@
             const quickAddResult = document.getElementById('quickAddResult');
             
             // Populate deceased select with memorial pages
-            const memorialPages = {{ memorial_pages_json|safe }};
-            memorialPages.forEach(page => {
-                const option = document.createElement('option');
-                option.value = page.user_id;
-                option.textContent = `${page.first_name} ${page.last_name}`;
-                quickDeceasedSelect.appendChild(option);
-            });
+            try {
+                const memorialPages = {{ memorial_pages_json|safe }};
+                if (memorialPages && Array.isArray(memorialPages)) {
+                    memorialPages.forEach(page => {
+                        if (page && page.user_id) {
+                            const option = document.createElement('option');
+                            option.value = page.user_id;
+                            option.textContent = `${page.first_name || ''} ${page.last_name || ''}`.trim() || 'Unbekannt';
+                            quickDeceasedSelect.appendChild(option);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Gedenkseiten:', error);
+            }
             
             // Populate relative select with users (excluding deceased)
-            const users = {{ users_json|safe }};
-            users.forEach(user => {
-                if (user.id !== 0 && !user.is_deceased) {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = user.name;
-                    quickRelativeSelect.appendChild(option);
+            try {
+                const users = {{ users_json|safe }};
+                if (users && Array.isArray(users)) {
+                    users.forEach(user => {
+                        if (user && user.id !== 0 && !user.is_deceased) {
+                            const option = document.createElement('option');
+                            option.value = user.id;
+                            option.textContent = user.name || 'Unbekannt';
+                            quickRelativeSelect.appendChild(option);
+                        }
+                    });
                 }
-            });
+            } catch (error) {
+                console.error('Fehler beim Laden der Benutzer:', error);
+            }
             
             // Auto-select deceased from memorial page selection
             const memorialPageSelect = document.getElementById('memorial_page');
@@ -1150,6 +1184,15 @@
                     return;
                 }
                 
+                if (deceasedId === relativeId) {
+                    showQuickAddResult('Verstorbener und Angehöriger müssen verschiedene Personen sein.', 'error');
+                    return;
+                }
+                
+                // Loading state
+                quickAddBtn.disabled = true;
+                quickAddBtn.textContent = '⏳ Erstelle...';
+                
                 try {
                     const response = await fetch('/admin/api/familylink/add/', {
                         method: 'POST',
@@ -1169,17 +1212,28 @@
                     });
                     
                     if (response.ok) {
-                        showQuickAddResult('✅ Angehörigen-Verknüpfung erfolgreich erstellt!', 'success');
+                        const result = await response.json();
+                        showQuickAddResult(`✅ ${result.message}`, 'success');
+                        
+                        // Clear form
+                        quickDeceasedSelect.value = '';
+                        quickRelativeSelect.value = '';
+                        document.getElementById('quickRelationship').value = '';
+                        
                         // Reload users to show new family member
                         setTimeout(() => {
                             loadUsers();
                         }, 1000);
                     } else {
-                        const error = await response.text();
-                        showQuickAddResult(`❌ Fehler: ${error}`, 'error');
+                        const error = await response.json().catch(() => ({ error: 'Unbekannter Fehler' }));
+                        showQuickAddResult(`❌ Fehler: ${error.error || 'Unbekannter Fehler'}`, 'error');
                     }
                 } catch (error) {
                     showQuickAddResult(`❌ Fehler beim Erstellen der Verknüpfung: ${error.message}`, 'error');
+                } finally {
+                    // Reset button state
+                    quickAddBtn.disabled = false;
+                    quickAddBtn.textContent = '➕ Hinzufügen';
                 }
             });
         }

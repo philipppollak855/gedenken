@@ -4,7 +4,7 @@ import TrauerdruckFreigabeModal from './TrauerdruckFreigabeModal';
 import './TrauerdruckUnterlagen.css';
 
 const TrauerdruckUnterlagen = () => {
-    const { get } = useApi();
+    const { apiGet, apiPost } = useApi();
     const [freigaben, setFreigaben] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -25,15 +25,17 @@ const TrauerdruckUnterlagen = () => {
     const loadFreigaben = async () => {
         try {
             setLoading(true);
-            const response = await get('/api/trauerdruck-entwuerfe/');
-            setFreigaben(response.data);
+            const response = await apiGet('/trauerdruck-entwuerfe/');
+            const data = await response.json();
+            setFreigaben(data.results || data);
             
             // Statistiken berechnen
+            const entwuerfeData = data.results || data;
             const newStats = {
-                total: response.data.length,
-                pending: response.data.filter(f => f.status === 'pending_approval').length,
-                approved: response.data.filter(f => f.status === 'approved').length,
-                revision_requested: response.data.filter(f => f.status === 'revision_requested').length
+                total: entwuerfeData.length,
+                pending: entwuerfeData.filter(f => f.status === 'pending_approval').length,
+                approved: entwuerfeData.filter(f => f.status === 'approved').length,
+                revision_requested: entwuerfeData.filter(f => f.status === 'revision_requested').length
             };
             setStats(newStats);
         } catch (err) {

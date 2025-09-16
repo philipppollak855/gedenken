@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import './TrauerdruckFreigabeModal.css';
 
 const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
-    const { get, post, put } = useApi();
+    const { apiGet, apiPost, apiPut } = useApi();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [kommentare, setKommentare] = useState([]);
@@ -22,32 +22,34 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
             loadKommentare();
             loadFreigaben();
         }
-    }, [entwurf]);
+    }, [entwurf, loadKommentare, loadFreigaben]);
 
-    const loadKommentare = async () => {
+    const loadKommentare = useCallback(async () => {
         try {
-            const response = await get(`/api/trauerdruck-entwuerfe/${entwurf.id}/kommentare/`);
-            setKommentare(response.data);
+            const response = await apiGet(`/trauerdruck-entwuerfe/${entwurf.id}/kommentare/`);
+            const data = await response.json();
+            setKommentare(data.results || data);
         } catch (err) {
             console.error('Error loading kommentare:', err);
         }
-    };
+    }, [apiGet, entwurf.id]);
 
-    const loadFreigaben = async () => {
+    const loadFreigaben = useCallback(async () => {
         try {
-            const response = await get(`/api/trauerdruck-entwuerfe/${entwurf.id}/freigaben/`);
-            setFreigaben(response.data);
+            const response = await apiGet(`/trauerdruck-entwuerfe/${entwurf.id}/freigaben/`);
+            const data = await response.json();
+            setFreigaben(data.results || data);
         } catch (err) {
             console.error('Error loading freigaben:', err);
         }
-    };
+    }, [apiGet, entwurf.id]);
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
         
         try {
             setLoading(true);
-            await post(`/api/trauerdruck-kommentare/`, {
+            await apiPost(`/trauerdruck-kommentare/`, {
                 entwurf: entwurf.id,
                 content: newComment,
                 is_internal: false
@@ -66,7 +68,7 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
         
         try {
             setLoading(true);
-            await post(`/api/trauerdruck-freigaben/`, {
+            await apiPost(`/trauerdruck-freigaben/`, {
                 entwurf: entwurf.id,
                 decision: decision,
                 comment: decisionComment,
@@ -74,7 +76,7 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
             });
             
             // Update entwurf status
-            await put(`/api/trauerdruck-entwuerfe/${entwurf.id}/`, {
+            await apiPut(`/trauerdruck-entwuerfe/${entwurf.id}/`, {
                 ...entwurf,
                 status: decision === 'approved' ? 'approved' : 
                        decision === 'revision_requested' ? 'revision_requested' : 'rejected'

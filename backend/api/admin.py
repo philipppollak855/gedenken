@@ -1094,18 +1094,40 @@ def trauerdruck_entwurf_form_view(request):
         
         # Sichere Datenabfrage mit Fallbacks
         try:
-            users = User.objects.filter(is_active=True)[:20]
+            users = User.objects.filter(is_active=True).order_by('first_name', 'last_name')[:50]
             users_data = []
             for user in users:
+                # Sichere Namensverarbeitung
+                first_name = user.first_name or ''
+                last_name = user.last_name or ''
+                full_name = f"{first_name} {last_name}".strip()
+                if not full_name:
+                    full_name = user.username or f"Benutzer {user.id}"
+                
+                # Sichere Avatar-Generierung
+                avatar = ''
+                if first_name and last_name:
+                    avatar = f"{first_name[0]}{last_name[0]}".upper()
+                elif first_name:
+                    avatar = first_name[0].upper()
+                elif last_name:
+                    avatar = last_name[0].upper()
+                else:
+                    avatar = (user.username or 'U')[0].upper()
+                
                 users_data.append({
                     'id': user.id,
-                    'name': f"{user.first_name or ''} {user.last_name or ''}".strip() or user.username,
+                    'name': full_name,
                     'email': user.email or '',
-                    'avatar': f"{user.first_name[0] if user.first_name else ''}{user.last_name[0] if user.last_name else ''}".upper() or user.username[0].upper()
+                    'avatar': avatar
                 })
+            
+            print(f"Geladene Benutzer: {len(users_data)}")
         except Exception as e:
             users_data = []
             print(f"Fehler beim Laden der Benutzer: {e}")
+            import traceback
+            traceback.print_exc()
         
         try:
             memorial_pages = MemorialPage.objects.all()[:50]
@@ -1118,6 +1140,15 @@ def trauerdruck_entwurf_form_view(request):
         except Exception as e:
             trauerdruck_types = []
             print(f"Fehler beim Laden der Trauerdruck-Typen: {e}")
+        
+        # Fallback für leere Benutzerdaten
+        if not users_data:
+            users_data = [{
+                'id': 0,
+                'name': 'Keine Benutzer verfügbar',
+                'email': 'Bitte kontaktieren Sie den Administrator',
+                'avatar': '?'
+            }]
         
         context = {
             'memorial_pages': memorial_pages,

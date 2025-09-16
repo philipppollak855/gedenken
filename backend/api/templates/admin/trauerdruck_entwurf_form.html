@@ -808,32 +808,41 @@
                 const users = {{ users_json|safe }};
                 
                 console.log('Lade Benutzer:', users);
+                console.log('Anzahl Benutzer:', users ? users.length : 'undefined');
 
                 if (users && users.length > 0) {
-                    users.forEach(user => {
-                        const userCard = document.createElement('div');
-                        userCard.className = 'user-card';
-                        userCard.innerHTML = `
-                            <input type="checkbox" id="user_${user.id}" value="${user.id}">
-                            <div class="user-avatar">${user.avatar}</div>
-                            <div class="user-name">${user.name}</div>
-                            <div class="user-role">${user.email}</div>
-                        `;
-                        
-                        userCard.addEventListener('click', function() {
-                            const checkbox = this.querySelector('input[type="checkbox"]');
-                            checkbox.checked = !checkbox.checked;
-                            this.classList.toggle('selected', checkbox.checked);
-                            updateAssignedUsers();
+                    // Filtere Fallback-Benutzer heraus
+                    const realUsers = users.filter(user => user.id !== 0);
+                    
+                    if (realUsers.length > 0) {
+                        realUsers.forEach(user => {
+                            const userCard = document.createElement('div');
+                            userCard.className = 'user-card';
+                            userCard.innerHTML = `
+                                <input type="checkbox" id="user_${user.id}" value="${user.id}">
+                                <div class="user-avatar">${user.avatar}</div>
+                                <div class="user-name">${user.name}</div>
+                                <div class="user-role">${user.email}</div>
+                            `;
+                            
+                            userCard.addEventListener('click', function() {
+                                const checkbox = this.querySelector('input[type="checkbox"]');
+                                checkbox.checked = !checkbox.checked;
+                                this.classList.toggle('selected', checkbox.checked);
+                                updateAssignedUsers();
+                            });
+                            
+                            container.appendChild(userCard);
                         });
-                        
-                        container.appendChild(userCard);
-                    });
+                    } else {
+                        container.innerHTML = '<div class="no-users-message">Keine aktiven Benutzer verfügbar. Bitte kontaktieren Sie den Administrator.</div>';
+                    }
                 } else {
                     container.innerHTML = '<div class="no-users-message">Keine Benutzer verfügbar. Bitte kontaktieren Sie den Administrator.</div>';
                 }
             } catch (error) {
                 console.error('Fehler beim Laden der Benutzer:', error);
+                console.error('JSON-Daten:', {{ users_json|safe }});
                 container.innerHTML = '<div class="error-message">Fehler beim Laden der Benutzer. Bitte versuchen Sie es erneut.</div>';
             }
         }

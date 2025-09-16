@@ -31,15 +31,19 @@ from .serializers import (
     GalleryItemSerializer, ReleaseRequestSerializer,
     MemorialPageListSerializer, SiteSettingsSerializer, CondolenceTemplateSerializer,
     CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer,
-    MemorialEventSerializer, MeinBereichDataSerializer
+    MemorialEventSerializer, MeinBereichDataSerializer,
+    TrauerdruckTypeSerializer, TrauerdruckEntwurfSerializer, TrauerdruckKommentarSerializer,
+    TrauerdruckFreigabeSerializer, TrauerdruckBenachrichtigungSerializer, TrauerdruckTemplateSerializer
 )
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
     Document, LastWishes, MemorialPage, Condolence, MemorialCandle,
     TimelineEvent, GalleryItem, ReleaseRequest, SiteSettings, CondolenceTemplate,
     CandleImage, CandleMessageTemplate, EventLocation, MemorialEvent, EventAttendance,
-    FamilyLink
+    FamilyLink, TrauerdruckType, TrauerdruckEntwurf, TrauerdruckKommentar,
+    TrauerdruckFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate
 )
+from .services import TrauerdruckNotificationService, TrauerdruckWorkflowService
 
 class GlobalSearchView(APIView):
     authentication_classes = [SessionAuthentication]
@@ -473,3 +477,195 @@ class CreateMemorialPageView(APIView):
         serializer = MemorialPageSerializer(page, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
+# ===== TRAUERDRUCK VIEWS =====
+
+class TrauerdruckTypeViewSet(viewsets.ModelViewSet):
+    """ViewSet für Trauerdruck-Typen"""
+    queryset = TrauerdruckType.objects.filter(is_active=True)
+    serializer_class = TrauerdruckTypeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return TrauerdruckType.objects.filter(is_active=True).order_by('name')
+
+
+class TrauerdruckEntwurfViewSet(viewsets.ModelViewSet):
+    """ViewSet für Trauerdruck-Entwürfe"""
+    queryset = TrauerdruckEntwurf.objects.all()
+    serializer_class = TrauerdruckEntwurfSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    
+    def get_queryset(self):
+        queryset = TrauerdruckEntwurf.objects.select_related(
+            'memorial_page', 'trauerdruck_type', 'created_by', 'design_file', 'preview_file'
+        ).prefetch_related('assigned_to', 'kommentare', 'freigaben')
+        
+        # Filter by user role and permissions
+        user = self.request.user
+        if user.role == 'bestatter':
+            # Bestatter können alle Entwürfe sehen
+            pass
+        else:
+            # Angehörige können nur Entwürfe ihrer Gedenkseiten sehen
+            queryset = queryset.filter(
+                memorial_page__family_members__user=user
+            )
+        
+        # Additional filters
+        status = self.request.query_params.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+            
+        priority = self.request.query_params.get('priority')
+        if priority:
+            queryset = queryset.filter(priority=priority)
+            
+        memorial_page = self.request.query_params.get('memorial_page')
+        if memorial_page:
+            queryset = queryset.filter(memorial_page=memorial_page)
+        
+        return queryset.order_by('-created_at')
+    
+    def perform_create(self, serializer):
+        entwurf = serializer.save(created_by=self.request.user)
+        # Benachrichtigungen senden
+        TrauerdruckNotificationService.notify_new_draft(entwurf)
+    
+    @action(detail=True, methods=['get'])
+    def kommentare(self, request, pk=None):
+        """Alle Kommentare für einen Entwurf abrufen"""
+        entwurf = self.get_object()
+        kommentare = entwurf.kommentare.all().order_by('created_at')
+        serializer = TrauerdruckKommentarSerializer(kommentare, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def freigaben(self, request, pk=None):
+        """Alle Freigaben für einen Entwurf abrufen"""
+        entwurf = self.get_object()
+        freigaben = entwurf.freigaben.all().order_by('-created_at')
+        serializer = TrauerdruckFreigabeSerializer(freigaben, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Statistiken für das Dashboard abrufen"""
+        queryset = self.get_queryset()
+        
+        stats = {
+            'total': queryset.count(),
+            'pending': queryset.filter(status='pending_approval').count(),
+            'approved': queryset.filter(status='approved').count(),
+            'revision_requested': queryset.filter(status='revision_requested').count(),
+            'rejected': queryset.filter(status='rejected').count(),
+            'completed': queryset.filter(status='completed').count(),
+        }
+        
+        return Response(stats)
+
+
+class TrauerdruckKommentarViewSet(viewsets.ModelViewSet):
+    """ViewSet für Trauerdruck-Kommentare"""
+    queryset = TrauerdruckKommentar.objects.all()
+    serializer_class = TrauerdruckKommentarSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = TrauerdruckKommentar.objects.select_related('entwurf', 'author')
+        
+        # Filter by entwurf if provided
+        entwurf_id = self.request.query_params.get('entwurf')
+        if entwurf_id:
+            queryset = queryset.filter(entwurf=entwurf_id)
+        
+        return queryset.order_by('created_at')
+    
+    def perform_create(self, serializer):
+        kommentar = serializer.save(author=self.request.user)
+        # Benachrichtigungen senden
+        TrauerdruckNotificationService.notify_comment_added(kommentar.entwurf, self.request.user)
+
+
+class TrauerdruckFreigabeViewSet(viewsets.ModelViewSet):
+    """ViewSet für Trauerdruck-Freigaben"""
+    queryset = TrauerdruckFreigabe.objects.all()
+    serializer_class = TrauerdruckFreigabeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = TrauerdruckFreigabe.objects.select_related('entwurf', 'reviewer')
+        
+        # Filter by entwurf if provided
+        entwurf_id = self.request.query_params.get('entwurf')
+        if entwurf_id:
+            queryset = queryset.filter(entwurf=entwurf_id)
+        
+        return queryset.order_by('-created_at')
+    
+    def perform_create(self, serializer):
+        freigabe = serializer.save(reviewer=self.request.user)
+        # Workflow verarbeiten
+        TrauerdruckWorkflowService.process_approval(
+            entwurf=freigabe.entwurf,
+            decision=freigabe.decision,
+            reviewer=self.request.user,
+            comment=freigabe.comment,
+            revision_notes=freigabe.revision_notes
+        )
+
+
+class TrauerdruckBenachrichtigungViewSet(viewsets.ModelViewSet):
+    """ViewSet für Trauerdruck-Benachrichtigungen"""
+    queryset = TrauerdruckBenachrichtigung.objects.all()
+    serializer_class = TrauerdruckBenachrichtigungSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return TrauerdruckBenachrichtigung.objects.filter(
+            user=self.request.user
+        ).select_related('entwurf').order_by('-created_at')
+    
+    @action(detail=False, methods=['get'])
+    def unread(self, request):
+        """Ungelesene Benachrichtigungen abrufen"""
+        unread_notifications = self.get_queryset().filter(is_read=False)
+        serializer = self.get_serializer(unread_notifications, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        """Benachrichtigung als gelesen markieren"""
+        notification = self.get_object()
+        notification.is_read = True
+        notification.save()
+        return Response({'status': 'marked as read'})
+    
+    @action(detail=False, methods=['post'])
+    def mark_all_as_read(self, request):
+        """Alle Benachrichtigungen als gelesen markieren"""
+        self.get_queryset().filter(is_read=False).update(is_read=True)
+        return Response({'status': 'all marked as read'})
+
+
+class TrauerdruckTemplateViewSet(viewsets.ModelViewSet):
+    """ViewSet für Trauerdruck-Templates"""
+    queryset = TrauerdruckTemplate.objects.filter(is_active=True)
+    serializer_class = TrauerdruckTemplateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = TrauerdruckTemplate.objects.filter(is_active=True).select_related(
+            'trauerdruck_type', 'created_by', 'template_file'
+        )
+        
+        # Filter by type if provided
+        trauerdruck_type = self.request.query_params.get('trauerdruck_type')
+        if trauerdruck_type:
+            queryset = queryset.filter(trauerdruck_type=trauerdruck_type)
+        
+        return queryset.order_by('name')
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)

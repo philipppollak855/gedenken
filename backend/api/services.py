@@ -1,0 +1,233 @@
+# backend/api/services.py
+# Service-Funktionen für Trauerdruck-Workflow
+
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from .models import TrauerdruckEntwurf, TrauerdruckBenachrichtigung, MemorialPage
+
+User = get_user_model()
+
+
+class TrauerdruckNotificationService:
+    """Service für Trauerdruck-Benachrichtigungen"""
+    
+    @staticmethod
+    def create_notification(user, entwurf, notification_type, title, message):
+        """Erstellt eine neue Benachrichtigung"""
+        return TrauerdruckBenachrichtigung.objects.create(
+            user=user,
+            entwurf=entwurf,
+            notification_type=notification_type,
+            title=title,
+            message=message
+        )
+    
+    @staticmethod
+    def notify_new_draft(entwurf):
+        """Benachrichtigt Angehörige über neuen Entwurf"""
+        # Alle Familienmitglieder der Gedenkseite benachrichtigen
+        family_members = entwurf.memorial_page.family_members.all()
+        
+        for family_member in family_members:
+            if family_member.user and family_member.user.email:
+                TrauerdruckNotificationService.create_notification(
+                    user=family_member.user,
+                    entwurf=entwurf,
+                    notification_type='new_draft',
+                    title=f'Neuer Trauerdruck-Entwurf für {entwurf.memorial_page.deceased_name}',
+                    message=f'Ein neuer {entwurf.trauerdruck_type.name}-Entwurf wurde erstellt und wartet auf Ihre Freigabe.'
+                )
+                
+                # E-Mail senden
+                TrauerdruckNotificationService.send_email_notification(
+                    user=family_member.user,
+                    entwurf=entwurf,
+                    notification_type='new_draft'
+                )
+    
+    @staticmethod
+    def notify_approval_requested(entwurf):
+        """Benachrichtigt Angehörige über Freigabeanfrage"""
+        family_members = entwurf.memorial_page.family_members.all()
+        
+        for family_member in family_members:
+            if family_member.user and family_member.user.email:
+                TrauerdruckNotificationService.create_notification(
+                    user=family_member.user,
+                    entwurf=entwurf,
+                    notification_type='approval_requested',
+                    title=f'Freigabe angefordert für {entwurf.title}',
+                    message=f'Der Entwurf "{entwurf.title}" wartet auf Ihre Freigabe.'
+                )
+    
+    @staticmethod
+    def notify_decision(entwurf, decision, reviewer):
+        """Benachrichtigt Bestatter über Entscheidung"""
+        # Bestatter benachrichtigen
+        if entwurf.created_by and entwurf.created_by.email:
+            decision_text = {
+                'approved': 'freigegeben',
+                'revision_requested': 'zur Revision angefordert',
+                'rejected': 'abgelehnt'
+            }.get(decision, decision)
+            
+            TrauerdruckNotificationService.create_notification(
+                user=entwurf.created_by,
+                entwurf=entwurf,
+                notification_type=decision,
+                title=f'Entwurf {decision_text}',
+                message=f'Der Entwurf "{entwurf.title}" wurde von {reviewer.first_name} {reviewer.last_name} {decision_text}.'
+            )
+            
+            # E-Mail senden
+            TrauerdruckNotificationService.send_email_notification(
+                user=entwurf.created_by,
+                entwurf=entwurf,
+                notification_type=decision
+            )
+    
+    @staticmethod
+    def notify_comment_added(entwurf, comment_author):
+        """Benachrichtigt relevante Personen über neuen Kommentar"""
+        # Alle Personen benachrichtigen, die mit dem Entwurf verbunden sind
+        users_to_notify = set()
+        
+        # Bestatter
+        if entwurf.created_by:
+            users_to_notify.add(entwurf.created_by)
+        
+        # Zugewiesene Personen
+        users_to_notify.update(entwurf.assigned_to.all())
+        
+        # Familienmitglieder
+        family_members = entwurf.memorial_page.family_members.all()
+        for family_member in family_members:
+            if family_member.user:
+                users_to_notify.add(family_member.user)
+        
+        # Kommentar-Autor nicht benachrichtigen
+        users_to_notify.discard(comment_author)
+        
+        for user in users_to_notify:
+            TrauerdruckNotificationService.create_notification(
+                user=user,
+                entwurf=entwurf,
+                notification_type='comment_added',
+                title=f'Neuer Kommentar zu {entwurf.title}',
+                message=f'{comment_author.first_name} {comment_author.last_name} hat einen Kommentar hinzugefügt.'
+            )
+    
+    @staticmethod
+    def send_email_notification(user, entwurf, notification_type):
+        """Sendet E-Mail-Benachrichtigung"""
+        if not user.email:
+            return
+        
+        subject_templates = {
+            'new_draft': f'Neuer Trauerdruck-Entwurf für {entwurf.memorial_page.deceased_name}',
+            'approval_requested': f'Freigabe angefordert für {entwurf.title}',
+            'approved': f'Entwurf freigegeben: {entwurf.title}',
+            'revision_requested': f'Revision angefordert: {entwurf.title}',
+            'rejected': f'Entwurf abgelehnt: {entwurf.title}',
+            'comment_added': f'Neuer Kommentar zu {entwurf.title}'
+        }
+        
+        subject = subject_templates.get(notification_type, f'Trauerdruck-Benachrichtigung: {entwurf.title}')
+        
+        context = {
+            'user': user,
+            'entwurf': entwurf,
+            'notification_type': notification_type,
+            'site_url': getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
+        }
+        
+        try:
+            html_message = render_to_string('emails/trauerdruck_notification.html', context)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                html_message=html_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Fehler beim Senden der E-Mail: {e}")
+
+
+class TrauerdruckWorkflowService:
+    """Service für Trauerdruck-Workflow-Logik"""
+    
+    @staticmethod
+    def create_new_version(entwurf, new_design_file, new_preview_file=None):
+        """Erstellt eine neue Version eines Entwurfs"""
+        # Alte Version als nicht neueste markieren
+        entwurf.is_latest_version = False
+        entwurf.save()
+        
+        # Neue Version erstellen
+        new_version = TrauerdruckEntwurf.objects.create(
+            title=entwurf.title,
+            description=entwurf.description,
+            trauerdruck_type=entwurf.trauerdruck_type,
+            memorial_page=entwurf.memorial_page,
+            design_file=new_design_file,
+            preview_file=new_preview_file,
+            created_by=entwurf.created_by,
+            version=entwurf.version + 1,
+            is_latest_version=True,
+            status='pending_approval',
+            priority=entwurf.priority,
+            deadline=entwurf.deadline
+        )
+        
+        # Zuweisungen übertragen
+        new_version.assigned_to.set(entwurf.assigned_to.all())
+        
+        # Benachrichtigungen senden
+        TrauerdruckNotificationService.notify_new_draft(new_version)
+        
+        return new_version
+    
+    @staticmethod
+    def process_approval(entwurf, decision, reviewer, comment='', revision_notes=''):
+        """Verarbeitet eine Freigabe-Entscheidung"""
+        from .models import TrauerdruckFreigabe
+        
+        # Freigabe-Entscheidung speichern
+        freigabe, created = TrauerdruckFreigabe.objects.get_or_create(
+            entwurf=entwurf,
+            reviewer=reviewer,
+            defaults={
+                'decision': decision,
+                'comment': comment,
+                'revision_notes': revision_notes
+            }
+        )
+        
+        if not created:
+            # Bestehende Freigabe aktualisieren
+            freigabe.decision = decision
+            freigabe.comment = comment
+            freigabe.revision_notes = revision_notes
+            freigabe.save()
+        
+        # Entwurf-Status aktualisieren
+        if decision == 'approved':
+            entwurf.status = 'approved'
+        elif decision == 'revision_requested':
+            entwurf.status = 'revision_requested'
+        elif decision == 'rejected':
+            entwurf.status = 'rejected'
+        
+        entwurf.save()
+        
+        # Benachrichtigungen senden
+        TrauerdruckNotificationService.notify_decision(entwurf, decision, reviewer)
+        
+        return freigabe

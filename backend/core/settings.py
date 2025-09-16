@@ -46,12 +46,12 @@ else:
 
     DATABASES = {
         'default': {
-            'ENGINE': os.getenv('DATABASE_ENGINE'),
-            'NAME': os.getenv('DATABASE_DB'),
-            'USER': os.getenv('DATABASE_USER'),
-            'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-            'HOST': os.getenv('DATABASE_HOST'),
-            'PORT': os.getenv('DATABASE_PORT'),
+            'ENGINE': os.getenv('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
+            'NAME': os.getenv('DATABASE_DB', os.path.join(BASE_DIR, 'db.sqlite3')),
+            'USER': os.getenv('DATABASE_USER', ''),
+            'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
+            'HOST': os.getenv('DATABASE_HOST', ''),
+            'PORT': os.getenv('DATABASE_PORT', ''),
         }
     }
     CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]

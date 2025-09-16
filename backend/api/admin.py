@@ -1069,7 +1069,15 @@ def trauerdruck_entwurf_form_view(request):
                 </script>
             ''')
     
-    return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html'))
+    # Daten für die Form bereitstellen
+    from .models import MemorialPage, TrauerdruckType
+    
+    context = {
+        'memorial_pages': MemorialPage.objects.all()[:50],  # Limit für Performance
+        'trauerdruck_types': TrauerdruckType.objects.filter(is_active=True),
+    }
+    
+    return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html', context))
 
 def custom_get_urls(self):
     # Originale URLs bekommen

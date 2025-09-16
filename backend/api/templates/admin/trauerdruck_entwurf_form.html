@@ -488,6 +488,9 @@
                             <label for="trauerdruck_type">Trauerdruck-Art *</label>
                             <select id="trauerdruck_type" name="trauerdruck_type" required>
                                 <option value="">Bitte wählen...</option>
+                                {% for type in trauerdruck_types %}
+                                <option value="{{ type.id }}">{{ type.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         
@@ -495,6 +498,9 @@
                             <label for="memorial_page">Gedenkseite *</label>
                             <select id="memorial_page" name="memorial_page" required>
                                 <option value="">Bitte wählen...</option>
+                                {% for page in memorial_pages %}
+                                <option value="{{ page.id }}">{{ page.first_name }} {{ page.last_name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         
@@ -804,46 +810,10 @@
             }
         }
 
-        // Load Memorial Pages
-        async function loadMemorialPages() {
-            try {
-                const response = await fetch('/api/memorial-pages/');
-                const data = await response.json();
-                const select = document.getElementById('memorial_page');
-                
-                data.results.forEach(page => {
-                    const option = document.createElement('option');
-                    option.value = page.id;
-                    option.textContent = `${page.first_name} ${page.last_name}`;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Fehler beim Laden der Gedenkseiten:', error);
-            }
-        }
-
-        // Load Trauerdruck Types
-        async function loadTrauerdruckTypes() {
-            try {
-                const response = await fetch('/api/trauerdruck-types/');
-                const data = await response.json();
-                const select = document.getElementById('trauerdruck_type');
-                
-                data.results.forEach(type => {
-                    const option = document.createElement('option');
-                    option.value = type.id;
-                    option.textContent = type.name;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Fehler beim Laden der Trauerdruck-Typen:', error);
-            }
-        }
+        // Daten werden jetzt direkt vom Django-Template bereitgestellt
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            loadMemorialPages();
-            loadTrauerdruckTypes();
             loadUsers();
             updateNavigation();
         });

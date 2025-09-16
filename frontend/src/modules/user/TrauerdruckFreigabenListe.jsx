@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useApi from '../../hooks/useApi';
 import { Link } from 'react-router-dom';
 import TrauerdruckFreigabeModal from './TrauerdruckFreigabeModal';
@@ -17,11 +17,7 @@ const TrauerdruckFreigabenListe = () => {
     const [sortOrder, setSortOrder] = useState('desc'); // asc, desc
     const [viewMode, setViewMode] = useState('grid'); // grid, list
 
-    useEffect(() => {
-        loadFreigaben();
-    }, []);
-
-    const loadFreigaben = async () => {
+    const loadFreigaben = useCallback(async () => {
         try {
             setLoading(true);
             const response = await get('/api/trauerdruck-entwuerfe/');
@@ -32,7 +28,11 @@ const TrauerdruckFreigabenListe = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [get]);
+
+    useEffect(() => {
+        loadFreigaben();
+    }, [loadFreigaben]);
 
     const getStatusBadge = (status) => {
         const statusConfig = {

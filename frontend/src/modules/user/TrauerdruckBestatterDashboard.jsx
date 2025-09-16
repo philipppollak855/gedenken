@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useApi from '../../hooks/useApi';
 import { Link } from 'react-router-dom';
 import './TrauerdruckBestatterDashboard.css';
@@ -17,11 +17,7 @@ const TrauerdruckBestatterDashboard = () => {
     const [recentEntwuerfe, setRecentEntwuerfe] = useState([]);
     const [urgentEntwuerfe, setUrgentEntwuerfe] = useState([]);
 
-    useEffect(() => {
-        loadDashboardData();
-    }, []);
-
-    const loadDashboardData = async () => {
+    const loadDashboardData = useCallback(async () => {
         try {
             setLoading(true);
             
@@ -42,7 +38,11 @@ const TrauerdruckBestatterDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [get]);
+
+    useEffect(() => {
+        loadDashboardData();
+    }, [loadDashboardData]);
 
     const getStatusBadge = (status) => {
         const statusConfig = {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useApi from '../../hooks/useApi';
 import { Link } from 'react-router-dom';
 import './TrauerdruckEntwurfErstellen.css';
@@ -30,11 +30,7 @@ const TrauerdruckEntwurfErstellen = () => {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        loadOptions();
-    }, []);
-
-    const loadOptions = async () => {
+    const loadOptions = useCallback(async () => {
         try {
             const [typesResponse, pagesResponse, usersResponse] = await Promise.all([
                 get('/api/trauerdruck-types/'),
@@ -49,7 +45,11 @@ const TrauerdruckEntwurfErstellen = () => {
             setError('Fehler beim Laden der Optionen');
             console.error('Error loading options:', err);
         }
-    };
+    }, [get]);
+
+    useEffect(() => {
+        loadOptions();
+    }, [loadOptions]);
 
     const filteredMemorialPages = memorialPages.filter(page => 
         page.deceased_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -96,17 +96,6 @@ const TrauerdruckEntwurfErstellen = () => {
         }));
     };
 
-    const handleMultiSelectChange = (e) => {
-        const { name, options } = e.target;
-        const selectedValues = Array.from(options)
-            .filter(option => option.selected)
-            .map(option => option.value);
-        
-        setFormData(prev => ({
-            ...prev,
-            [name]: selectedValues
-        }));
-    };
 
     const uploadFile = async (file, type) => {
         const formData = new FormData();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useApi from '../../hooks/useApi';
 import './TrauerdruckFreigabeModal.css';
 
@@ -17,30 +17,32 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
     const [decision, setDecision] = useState('pending');
     const [decisionComment, setDecisionComment] = useState('');
 
-    useEffect(() => {
-        if (entwurf) {
-            loadKommentare();
-            loadFreigaben();
-        }
-    }, [entwurf]);
-
-    const loadKommentare = async () => {
+    const loadKommentare = useCallback(async () => {
+        if (!entwurf) return;
         try {
             const response = await get(`/api/trauerdruck-entwuerfe/${entwurf.id}/kommentare/`);
             setKommentare(response.data);
         } catch (err) {
             console.error('Error loading kommentare:', err);
         }
-    };
+    }, [get, entwurf]);
 
-    const loadFreigaben = async () => {
+    const loadFreigaben = useCallback(async () => {
+        if (!entwurf) return;
         try {
             const response = await get(`/api/trauerdruck-entwuerfe/${entwurf.id}/freigaben/`);
             setFreigaben(response.data);
         } catch (err) {
             console.error('Error loading freigaben:', err);
         }
-    };
+    }, [get, entwurf]);
+
+    useEffect(() => {
+        if (entwurf) {
+            loadKommentare();
+            loadFreigaben();
+        }
+    }, [entwurf, loadKommentare, loadFreigaben]);
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;

@@ -316,6 +316,17 @@
             font-size: 0.8rem;
             color: #999;
         }
+        
+        .no-users-message, .error-message {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+        }
 
         .search-results {
             position: absolute;
@@ -541,7 +552,8 @@
                         <div class="form-group">
                             <label for="memorial_page_search">Gedenkseite *</label>
                             <input type="text" id="memorial_page_search" placeholder="Vor- oder Nachname eingeben..." autocomplete="off">
-                            <select id="memorial_page" name="memorial_page" required style="display: none;">
+                            <input type="hidden" id="memorial_page" name="memorial_page" required>
+                            <select id="memorial_page_select" style="display: none;">
                                 <option value="">Bitte wählen...</option>
                                 {% for page in memorial_pages %}
                                 <option value="{{ page.id }}" data-name="{{ page.first_name|default:'' }} {{ page.last_name|default:'' }}">{{ page.first_name|default:'' }} {{ page.last_name|default:'' }}</option>
@@ -598,7 +610,7 @@
                         <label>Angehörige auswählen</label>
                         <p style="color: #999; margin-bottom: 15px;">Wählen Sie die Personen aus, die an diesem Entwurf beteiligt sein sollen:</p>
                         <div class="assigned-users" id="assignedUsers">
-                            <!-- Wird dynamisch gefüllt -->
+                            <div class="loading-message">Lade Angehörige...</div>
                         </div>
                         <input type="hidden" id="assigned_to" name="assigned_to">
                     </div>
@@ -720,16 +732,17 @@
                     return false;
                 }
                 
-                // Wenn das Suchfeld ausgefüllt ist, aber das Select nicht, versuche es zu synchronisieren
+                // Wenn das Suchfeld ausgefüllt ist, aber das versteckte Input nicht, versuche es zu synchronisieren
                 if (pageSearch && !page) {
-                    const selectElement = document.getElementById('memorial_page');
+                    const selectElement = document.getElementById('memorial_page_select');
+                    const hiddenInput = document.getElementById('memorial_page');
                     const options = Array.from(selectElement.options);
                     const matchingOption = options.find(option => 
                         option.dataset.name && option.dataset.name.toLowerCase() === pageSearch.toLowerCase()
                     );
                     
                     if (matchingOption) {
-                        selectElement.value = matchingOption.value;
+                        hiddenInput.value = matchingOption.value;
                         console.log('Gedenkseite synchronisiert:', matchingOption.value);
                     } else {
                         alert('Bitte wählen Sie eine gültige Gedenkseite aus der Liste aus.');
@@ -790,28 +803,39 @@
             const container = document.getElementById('assignedUsers');
             container.innerHTML = '';
 
-            // Benutzerdaten aus JSON verwenden
-            const users = {{ users_json|safe }};
+            try {
+                // Benutzerdaten aus JSON verwenden
+                const users = {{ users_json|safe }};
+                
+                console.log('Lade Benutzer:', users);
 
-            users.forEach(user => {
-                const userCard = document.createElement('div');
-                userCard.className = 'user-card';
-                userCard.innerHTML = `
-                    <input type="checkbox" id="user_${user.id}" value="${user.id}">
-                    <div class="user-avatar">${user.avatar}</div>
-                    <div class="user-name">${user.name}</div>
-                    <div class="user-role">${user.email}</div>
-                `;
-                
-                userCard.addEventListener('click', function() {
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    checkbox.checked = !checkbox.checked;
-                    this.classList.toggle('selected', checkbox.checked);
-                    updateAssignedUsers();
-                });
-                
-                container.appendChild(userCard);
-            });
+                if (users && users.length > 0) {
+                    users.forEach(user => {
+                        const userCard = document.createElement('div');
+                        userCard.className = 'user-card';
+                        userCard.innerHTML = `
+                            <input type="checkbox" id="user_${user.id}" value="${user.id}">
+                            <div class="user-avatar">${user.avatar}</div>
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-role">${user.email}</div>
+                        `;
+                        
+                        userCard.addEventListener('click', function() {
+                            const checkbox = this.querySelector('input[type="checkbox"]');
+                            checkbox.checked = !checkbox.checked;
+                            this.classList.toggle('selected', checkbox.checked);
+                            updateAssignedUsers();
+                        });
+                        
+                        container.appendChild(userCard);
+                    });
+                } else {
+                    container.innerHTML = '<div class="no-users-message">Keine Benutzer verfügbar. Bitte kontaktieren Sie den Administrator.</div>';
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Benutzer:', error);
+                container.innerHTML = '<div class="error-message">Fehler beim Laden der Benutzer. Bitte versuchen Sie es erneut.</div>';
+            }
         }
 
         function updateAssignedUsers() {
@@ -897,7 +921,8 @@
         function initializeMemorialPageSearch() {
             const searchInput = document.getElementById('memorial_page_search');
             const resultsDiv = document.getElementById('memorial_page_results');
-            const selectElement = document.getElementById('memorial_page');
+            const selectElement = document.getElementById('memorial_page_select');
+            const hiddenInput = document.getElementById('memorial_page');
             
             searchInput.addEventListener('input', function() {
                 const query = this.value.toLowerCase().trim();
@@ -926,18 +951,18 @@
                         
                         resultItem.addEventListener('click', function() {
                             searchInput.value = option.dataset.name;
-                            selectElement.value = option.value;
+                            hiddenInput.value = option.value; // Verstecktes Input-Feld aktualisieren
                             resultsDiv.style.display = 'none';
                             
                             // Debug-Information
                             console.log('Gedenkseite ausgewählt:', {
                                 name: option.dataset.name,
                                 value: option.value,
-                                selectValue: selectElement.value
+                                hiddenValue: hiddenInput.value
                             });
                             
                             // Event auslösen um sicherzustellen, dass die Änderung erkannt wird
-                            selectElement.dispatchEvent(new Event('change'));
+                            hiddenInput.dispatchEvent(new Event('change'));
                         });
                         
                         resultsDiv.appendChild(resultItem);

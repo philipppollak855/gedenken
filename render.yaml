@@ -13,8 +13,8 @@ services:
     env: python
     plan: free
     rootDir: backend
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
-    startCommand: "bash entrypoint.sh" # GEÄNDERT: Startet über das entrypoint-Skript
+    buildCommand: "pip install -r requirements.txt && python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic --noinput --clear"
+    startCommand: "gunicorn --chdir . core.wsgi"
     
     disks:
       - name: media-storage

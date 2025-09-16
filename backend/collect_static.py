@@ -36,5 +36,23 @@ if __name__ == "__main__":
                     shutil.rmtree(dest_path)
                 shutil.copytree(unfold_static, dest_path)
                 print(f"Copied UNFOLD static files to {dest_path}")
+            else:
+                print(f"UNFOLD static directory not found at {unfold_static}")
         except Exception as e2:
             print(f"Error copying UNFOLD files: {e2}")
+            # Try alternative approach - find UNFOLD in site-packages
+            try:
+                import site
+                for site_dir in site.getsitepackages():
+                    unfold_path = os.path.join(site_dir, 'unfold')
+                    if os.path.exists(unfold_path):
+                        unfold_static = os.path.join(unfold_path, 'static')
+                        if os.path.exists(unfold_static):
+                            dest_path = os.path.join(static_root, 'unfold')
+                            if os.path.exists(dest_path):
+                                shutil.rmtree(dest_path)
+                            shutil.copytree(unfold_static, dest_path)
+                            print(f"Copied UNFOLD static files from {unfold_static} to {dest_path}")
+                            break
+            except Exception as e3:
+                print(f"Alternative UNFOLD copy also failed: {e3}")

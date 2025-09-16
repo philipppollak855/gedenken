@@ -11,7 +11,7 @@ const MeinBereich = () => {
     const [settings, setSettings] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const location = useLocation();
-    const api = useApi();
+    const { api } = useApi();
 
     useEffect(() => {
         const fetchSettings = async () => {

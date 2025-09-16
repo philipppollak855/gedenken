@@ -993,10 +993,18 @@ class TrauerdruckTemplateAdmin(ModelAdmin):
 # Trauerdruck-Dashboard URL hinzufügen
 from django.urls import path
 from django.contrib.admin import AdminSite
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 
 
 # Admin-URLs überschreiben - Rekursion vermeiden
 original_get_urls = AdminSite.get_urls
+
+def trauerdruck_entwurf_form_view(request):
+    """
+    Moderne Eingabemaske für neue Trauerdruck-Entwürfe
+    """
+    return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html'))
 
 def custom_get_urls(self):
     # Originale URLs bekommen
@@ -1005,6 +1013,7 @@ def custom_get_urls(self):
     # Neue URLs hinzufügen
     custom_urls = [
         path('trauerdruck-dashboard/', self.admin_view(trauerdruck_dashboard_view), name='trauerdruck_dashboard'),
+        path('trauerdruck-entwurf-form/', self.admin_view(trauerdruck_entwurf_form_view), name='trauerdruck_entwurf_form'),
     ]
     
     return custom_urls + original_urls

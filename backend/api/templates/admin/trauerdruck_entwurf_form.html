@@ -13,25 +13,28 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1a1a1a;
+            color: #e0e0e0;
             min-height: 100vh;
             padding: 20px;
         }
 
         .form-container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
-            background: white;
+            background: #2d2d2d;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             overflow: hidden;
+            border: 1px solid #404040;
         }
 
         .form-header {
-            background: linear-gradient(135deg, #8c8073 0%, #6b5b73 100%);
-            color: white;
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            color: #ffffff;
             padding: 30px;
             text-align: center;
+            border-bottom: 1px solid #404040;
         }
 
         .form-header h1 {
@@ -42,11 +45,73 @@
 
         .form-header p {
             font-size: 1.1rem;
-            opacity: 0.9;
+            opacity: 0.8;
+        }
+
+        .workflow-steps {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: #333;
+            border-bottom: 1px solid #404040;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: #404040;
+            color: #999;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            background: #8c8073;
+            color: #fff;
+        }
+
+        .step.completed {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .step-number {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #555;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .step.active .step-number {
+            background: #fff;
+            color: #8c8073;
+        }
+
+        .step.completed .step-number {
+            background: #fff;
+            color: #28a745;
         }
 
         .form-content {
             padding: 40px;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
         }
 
         .form-grid {
@@ -68,7 +133,7 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #333;
+            color: #e0e0e0;
             font-size: 0.95rem;
         }
 
@@ -77,11 +142,12 @@
         .form-group textarea {
             width: 100%;
             padding: 15px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid #555;
             border-radius: 10px;
             font-size: 1rem;
             transition: all 0.3s ease;
-            background: #f8f9fa;
+            background: #404040;
+            color: #e0e0e0;
         }
 
         .form-group input:focus,
@@ -89,8 +155,8 @@
         .form-group textarea:focus {
             outline: none;
             border-color: #8c8073;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.1);
+            background: #4a4a4a;
+            box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.2);
         }
 
         .form-group textarea {
@@ -107,17 +173,18 @@
         .priority-option {
             flex: 1;
             padding: 15px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid #555;
             border-radius: 10px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: #f8f9fa;
+            background: #404040;
+            color: #e0e0e0;
         }
 
         .priority-option:hover {
             border-color: #8c8073;
-            background: white;
+            background: #4a4a4a;
         }
 
         .priority-option.selected {
@@ -163,19 +230,19 @@
             border-radius: 10px;
             padding: 40px;
             text-align: center;
-            background: #f8f9fa;
+            background: #333;
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
         .file-upload-area:hover {
-            border-color: #6b5b73;
-            background: #f0f0f0;
+            border-color: #a0a0a0;
+            background: #3a3a3a;
         }
 
         .file-upload-area.dragover {
             border-color: #8c8073;
-            background: #e8f4f8;
+            background: #2a2a2a;
         }
 
         .file-upload-icon {
@@ -185,7 +252,7 @@
         }
 
         .file-upload-text {
-            color: #666;
+            color: #e0e0e0;
             font-size: 1.1rem;
         }
 
@@ -195,13 +262,68 @@
             margin-top: 10px;
         }
 
+        .assigned-users {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .user-card {
+            padding: 15px;
+            border: 2px solid #555;
+            border-radius: 10px;
+            background: #404040;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .user-card:hover {
+            border-color: #8c8073;
+            background: #4a4a4a;
+        }
+
+        .user-card.selected {
+            border-color: #8c8073;
+            background: #8c8073;
+        }
+
+        .user-card input[type="checkbox"] {
+            display: none;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #8c8073;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
         .form-actions {
             display: flex;
             gap: 20px;
-            justify-content: center;
+            justify-content: space-between;
             margin-top: 40px;
             padding-top: 30px;
-            border-top: 1px solid #e1e5e9;
+            border-top: 1px solid #555;
         }
 
         .btn {
@@ -237,10 +359,21 @@
             transform: translateY(-2px);
         }
 
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #8c8073;
+            color: #8c8073;
+        }
+
+        .btn-outline:hover {
+            background: #8c8073;
+            color: white;
+        }
+
         .progress-bar {
             width: 100%;
             height: 6px;
-            background: #e1e5e9;
+            background: #555;
             border-radius: 3px;
             overflow: hidden;
             margin-top: 20px;
@@ -254,21 +387,34 @@
         }
 
         .success-message {
-            background: #d4edda;
-            color: #155724;
+            background: #1e4d2b;
+            color: #d4edda;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
-            border: 1px solid #c3e6cb;
+            border: 1px solid #28a745;
         }
 
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
+            background: #4d1e1e;
+            color: #f8d7da;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
+            border: 1px solid #dc3545;
+        }
+
+        .revision-notes {
+            background: #2a2a2a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .revision-notes h3 {
+            color: #8c8073;
+            margin-bottom: 15px;
         }
 
         @media (max-width: 768px) {
@@ -288,6 +434,15 @@
             .form-header h1 {
                 font-size: 2rem;
             }
+
+            .workflow-steps {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .assigned-users {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -298,82 +453,200 @@
             <p>Erstellen Sie einen würdevollen Entwurf für Trauerdruck-Materialien</p>
         </div>
         
+        <div class="workflow-steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <span>Grunddaten</span>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <span>Designs</span>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <span>Angehörige</span>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <span>Revision</span>
+            </div>
+        </div>
+        
         <div class="form-content">
             <form id="trauerdruckForm" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="title">Titel des Entwurfs *</label>
-                        <input type="text" id="title" name="title" required placeholder="z.B. Trauerkarte für Max Mustermann">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="trauerdruck_type">Trauerdruck-Art *</label>
-                        <select id="trauerdruck_type" name="trauerdruck_type" required>
-                            <option value="">Bitte wählen...</option>
-                            <option value="1">Trauerkarte</option>
-                            <option value="2">Danksagung</option>
-                            <option value="3">Einladung</option>
-                            <option value="4">Gedenkblatt</option>
-                            <option value="5">Urkunde</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="memorial_page">Gedenkseite *</label>
-                        <select id="memorial_page" name="memorial_page" required>
-                            <option value="">Bitte wählen...</option>
-                            <!-- Wird dynamisch gefüllt -->
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="priority">Priorität</label>
-                        <div class="priority-selector">
-                            <div class="priority-option normal" data-value="normal">
-                                <div>Normal</div>
-                                <small>Standard</small>
-                            </div>
-                            <div class="priority-option high" data-value="high">
-                                <div>Hoch</div>
-                                <small>Wichtig</small>
-                            </div>
-                            <div class="priority-option urgent" data-value="urgent">
-                                <div>Dringend</div>
-                                <small>Eilig</small>
-                            </div>
+                
+                <!-- Schritt 1: Grunddaten -->
+                <div class="step-content active" id="step1">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="title">Titel des Entwurfs *</label>
+                            <input type="text" id="title" name="title" required placeholder="z.B. Trauerkarte für Max Mustermann">
                         </div>
-                        <input type="hidden" id="priority" name="priority" value="normal">
+                        
+                        <div class="form-group">
+                            <label for="trauerdruck_type">Trauerdruck-Art *</label>
+                            <select id="trauerdruck_type" name="trauerdruck_type" required>
+                                <option value="">Bitte wählen...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="memorial_page">Gedenkseite *</label>
+                            <select id="memorial_page" name="memorial_page" required>
+                                <option value="">Bitte wählen...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="priority">Priorität</label>
+                            <div class="priority-selector">
+                                <div class="priority-option normal" data-value="normal">
+                                    <div>Normal</div>
+                                    <small>Standard</small>
+                                </div>
+                                <div class="priority-option high" data-value="high">
+                                    <div>Hoch</div>
+                                    <small>Wichtig</small>
+                                </div>
+                                <div class="priority-option urgent" data-value="urgent">
+                                    <div>Dringend</div>
+                                    <small>Eilig</small>
+                                </div>
+                            </div>
+                            <input type="hidden" id="priority" name="priority" value="normal">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="description">Beschreibung</label>
+                        <textarea id="description" name="description" placeholder="Beschreiben Sie den Entwurf und besondere Wünsche..."></textarea>
                     </div>
                 </div>
-                
-                <div class="form-group full-width">
-                    <label for="description">Beschreibung</label>
-                    <textarea id="description" name="description" placeholder="Beschreiben Sie den Entwurf und besondere Wünsche..."></textarea>
-                </div>
-                
-                <div class="form-group full-width">
-                    <label>Design-Dateien hochladen</label>
-                    <div class="file-upload-area" id="fileUploadArea">
-                        <div class="file-upload-icon">📁</div>
-                        <div class="file-upload-text">Dateien hier ablegen oder klicken zum Auswählen</div>
-                        <div class="file-upload-hint">Unterstützte Formate: PDF, JPG, PNG, AI, PSD (max. 10MB)</div>
-                        <input type="file" id="design_files" name="design_files" multiple accept=".pdf,.jpg,.jpeg,.png,.ai,.psd" style="display: none;">
+
+                <!-- Schritt 2: Designs -->
+                <div class="step-content" id="step2">
+                    <div class="form-group full-width">
+                        <label>Design-Dateien hochladen</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <div class="file-upload-icon">📁</div>
+                            <div class="file-upload-text">Dateien hier ablegen oder klicken zum Auswählen</div>
+                            <div class="file-upload-hint">Unterstützte Formate: PDF, JPG, PNG, AI, PSD (max. 10MB)</div>
+                            <input type="file" id="design_files" name="design_files" multiple accept=".pdf,.jpg,.jpeg,.png,.ai,.psd" style="display: none;">
+                        </div>
+                        <div class="progress-bar" id="progressBar" style="display: none;">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
                     </div>
-                    <div class="progress-bar" id="progressBar" style="display: none;">
-                        <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <!-- Schritt 3: Angehörige -->
+                <div class="step-content" id="step3">
+                    <div class="form-group full-width">
+                        <label>Angehörige auswählen</label>
+                        <p style="color: #999; margin-bottom: 15px;">Wählen Sie die Personen aus, die an diesem Entwurf beteiligt sein sollen:</p>
+                        <div class="assigned-users" id="assignedUsers">
+                            <!-- Wird dynamisch gefüllt -->
+                        </div>
+                        <input type="hidden" id="assigned_to" name="assigned_to">
+                    </div>
+                </div>
+
+                <!-- Schritt 4: Revision -->
+                <div class="step-content" id="step4">
+                    <div class="revision-notes">
+                        <h3>Revision & Workflow</h3>
+                        <div class="form-group">
+                            <label for="deadline">Deadline (optional)</label>
+                            <input type="date" id="deadline" name="deadline">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="revision_notes">Revisionshinweise</label>
+                            <textarea id="revision_notes" name="revision_notes" placeholder="Besondere Anforderungen oder Hinweise für die Bearbeitung..."></textarea>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Entwurf erstellen</button>
+                    <div>
+                        <button type="button" class="btn btn-outline" id="prevStep" onclick="previousStep()" style="display: none;">Zurück</button>
+                        <button type="button" class="btn btn-primary" id="nextStep" onclick="nextStep()">Weiter</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none;">Entwurf erstellen</button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        // Workflow Navigation
+        function nextStep() {
+            if (validateCurrentStep()) {
+                if (currentStep < totalSteps) {
+                    document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+                    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('completed');
+                    document.getElementById(`step${currentStep}`).classList.remove('active');
+                    
+                    currentStep++;
+                    
+                    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+                    document.getElementById(`step${currentStep}`).classList.add('active');
+                    
+                    updateNavigation();
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                
+                currentStep--;
+                
+                document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('completed');
+                document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                
+                updateNavigation();
+            }
+        }
+
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prevStep');
+            const nextBtn = document.getElementById('nextStep');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+            
+            if (currentStep === totalSteps) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        function validateCurrentStep() {
+            if (currentStep === 1) {
+                const title = document.getElementById('title').value;
+                const type = document.getElementById('trauerdruck_type').value;
+                const page = document.getElementById('memorial_page').value;
+                
+                if (!title || !type || !page) {
+                    alert('Bitte füllen Sie alle Pflichtfelder aus.');
+                    return false;
+                }
+            }
+            return true;
+        }
+
         // Priority Selection
         document.querySelectorAll('.priority-option').forEach(option => {
             option.addEventListener('click', function() {
@@ -418,6 +691,46 @@
             }
         }
 
+        // User Selection
+        function loadUsers() {
+            // Simulierte Benutzerdaten - in der echten Anwendung von der API laden
+            const users = [
+                { id: 1, name: 'Maria Schmidt', role: 'Tochter', avatar: 'MS' },
+                { id: 2, name: 'Peter Schmidt', role: 'Sohn', avatar: 'PS' },
+                { id: 3, name: 'Anna Schmidt', role: 'Schwiegertochter', avatar: 'AS' },
+                { id: 4, name: 'Thomas Schmidt', role: 'Bruder', avatar: 'TS' }
+            ];
+
+            const container = document.getElementById('assignedUsers');
+            container.innerHTML = '';
+
+            users.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+                userCard.innerHTML = `
+                    <input type="checkbox" id="user_${user.id}" value="${user.id}">
+                    <div class="user-avatar">${user.avatar}</div>
+                    <div class="user-name">${user.name}</div>
+                    <div class="user-role">${user.role}</div>
+                `;
+                
+                userCard.addEventListener('click', function() {
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                    this.classList.toggle('selected', checkbox.checked);
+                    updateAssignedUsers();
+                });
+                
+                container.appendChild(userCard);
+            });
+        }
+
+        function updateAssignedUsers() {
+            const checkboxes = document.querySelectorAll('#assignedUsers input[type="checkbox"]:checked');
+            const assignedIds = Array.from(checkboxes).map(cb => cb.value);
+            document.getElementById('assigned_to').value = assignedIds.join(',');
+        }
+
         // Form Submission
         document.getElementById('trauerdruckForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -442,7 +755,6 @@
                 
                 if (response.ok) {
                     const responseText = await response.text();
-                    // Die Response enthält bereits ein Script mit Alert und Modal-Schließung
                     document.body.innerHTML = responseText;
                 } else {
                     showMessage('Fehler beim Erstellen: HTTP ' + response.status, 'error');
@@ -495,7 +807,7 @@
         // Load Memorial Pages
         async function loadMemorialPages() {
             try {
-                const response = await fetch('/admin/api/memorialpage/');
+                const response = await fetch('/api/memorial-pages/');
                 const data = await response.json();
                 const select = document.getElementById('memorial_page');
                 
@@ -513,7 +825,7 @@
         // Load Trauerdruck Types
         async function loadTrauerdruckTypes() {
             try {
-                const response = await fetch('/admin/api/trauerdrucktype/');
+                const response = await fetch('/api/trauerdruck-types/');
                 const data = await response.json();
                 const select = document.getElementById('trauerdruck_type');
                 
@@ -532,6 +844,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadMemorialPages();
             loadTrauerdruckTypes();
+            loadUsers();
+            updateNavigation();
         });
     </script>
 </body>

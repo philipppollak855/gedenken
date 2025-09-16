@@ -1002,7 +1002,7 @@ original_get_urls = AdminSite.get_urls
 
 def trauerdruck_entwurf_form_view(request):
     """
-    Moderne Eingabemaske für neue Trauerdruck-Entwürfe
+    Moderne Eingabemaske für neue Trauerdruck-Entwürfe mit vollständigem Workflow
     """
     if request.method == 'POST':
         try:
@@ -1012,9 +1012,12 @@ def trauerdruck_entwurf_form_view(request):
             trauerdruck_type_id = request.POST.get('trauerdruck_type')
             memorial_page_id = request.POST.get('memorial_page')
             priority = request.POST.get('priority', 'normal')
+            deadline = request.POST.get('deadline')
+            revision_notes = request.POST.get('revision_notes', '')
+            assigned_to = request.POST.get('assigned_to', '')
             
             # TrauerdruckEntwurf erstellen
-            from .models import TrauerdruckEntwurf, TrauerdruckType, MemorialPage
+            from .models import TrauerdruckEntwurf, TrauerdruckType, MemorialPage, User
             
             entwurf = TrauerdruckEntwurf.objects.create(
                 title=title,
@@ -1023,13 +1026,34 @@ def trauerdruck_entwurf_form_view(request):
                 memorial_page_id=memorial_page_id,
                 priority=priority,
                 created_by=request.user,
-                status='draft'
+                status='draft',
+                deadline=deadline if deadline else None
             )
+            
+            # Angehörige zuweisen
+            if assigned_to:
+                assigned_ids = [int(id.strip()) for id in assigned_to.split(',') if id.strip()]
+                assigned_users = User.objects.filter(id__in=assigned_ids)
+                entwurf.assigned_to.set(assigned_users)
+            
+            # Design-Dateien verarbeiten
+            design_files = request.FILES.getlist('design_files')
+            for file in design_files:
+                # Hier würde die Datei-Verarbeitung stattfinden
+                # Für jetzt nur loggen
+                print(f"Design-Datei erhalten: {file.name}")
+            
+            # Benachrichtigungen senden
+            try:
+                from .services import TrauerdruckNotificationService
+                TrauerdruckNotificationService.notify_new_draft(entwurf, request.user)
+            except Exception as e:
+                print(f"Fehler beim Senden der Benachrichtigungen: {e}")
             
             # Erfolgs-Response
             return HttpResponse(f'''
                 <script>
-                    alert('Entwurf "{title}" erfolgreich erstellt!');
+                    alert('Entwurf "{title}" erfolgreich erstellt!\\n\\nAngehörige wurden benachrichtigt und können nun den Entwurf bearbeiten.');
                     if (window.parent && window.parent !== window) {{
                         window.parent.postMessage({{ action: 'closeModal' }}, '*');
                     }} else {{

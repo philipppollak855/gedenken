@@ -722,8 +722,9 @@ class TrauerdruckEntwurfAdmin(ModelAdmin):
         ('Status & Workflow', {
             'fields': ('status', 'version', 'is_latest_version', 'priority', 'deadline')
         }),
-        ('Personen', {
-            'fields': ('created_by', 'assigned_to')
+        ('Angehörige & Beteiligte', {
+            'fields': ('created_by', 'assigned_to', 'assigned_to_info'),
+            'description': 'Wählen Sie die Angehörigen aus, die an diesem Entwurf beteiligt sein sollen. Diese können den Entwurf prüfen, kommentieren und freigeben.'
         }),
         ('Designs & Dateien', {
             'classes': ('collapse',),
@@ -735,7 +736,22 @@ class TrauerdruckEntwurfAdmin(ModelAdmin):
         }),
     )
     
-    readonly_fields = ('manage_designs', 'manage_comments', 'manage_approvals', 'quick_actions')
+    readonly_fields = ('manage_designs', 'manage_comments', 'manage_approvals', 'quick_actions', 'assigned_to_info')
+    
+    @admin.display(description='Angehörige-Info')
+    def assigned_to_info(self, obj):
+        if not obj.pk:
+            return "Speichern Sie zuerst den Entwurf, um Angehörige-Informationen zu sehen."
+        
+        assigned_users = obj.assigned_to.all()
+        if not assigned_users.exists():
+            return format_html('<span style="color: #999;">Keine Angehörigen zugewiesen</span>')
+        
+        user_info = []
+        for user in assigned_users:
+            user_info.append(f"• {user.first_name} {user.last_name} ({user.email})")
+        
+        return format_html('<br>'.join(user_info))
     
     @admin.display(description='Designs verwalten')
     def manage_designs(self, obj):

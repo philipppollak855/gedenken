@@ -12,23 +12,36 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f4f1ee;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .header {
-            background-color: #8c8073;
-            color: white;
-            padding: 20px;
             text-align: center;
-            border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid #8c8073;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #8c8073;
+            margin: 0;
+            font-size: 24px;
         }
         .content {
-            background-color: #f9fafb;
-            padding: 30px;
-            border-radius: 0 0 8px 8px;
+            margin-bottom: 30px;
+        }
+        .content h2 {
+            color: #3a3a3a;
+            margin-top: 0;
         }
         .entwurf-info {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
             margin: 20px 0;
             border-left: 4px solid #8c8073;
         }
@@ -38,84 +51,95 @@
             color: white;
             padding: 12px 24px;
             text-decoration: none;
-            border-radius: 6px;
-            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background-color: #6d6d6d;
         }
         .footer {
             text-align: center;
-            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #ddd;
             padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            color: #6b7280;
-            font-size: 14px;
+            margin-top: 30px;
         }
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
-            border-radius: 20px;
+            border-radius: 15px;
             font-size: 12px;
             font-weight: bold;
             text-transform: uppercase;
+            margin-left: 10px;
         }
-        .status-pending { background-color: #f59e0b; color: white; }
-        .status-approved { background-color: #10b981; color: white; }
-        .status-revision { background-color: #f97316; color: white; }
-        .status-rejected { background-color: #ef4444; color: white; }
+        .status-new_draft { background-color: #e9ecef; color: #495057; }
+        .status-approval_requested { background-color: #fff3cd; color: #856404; }
+        .status-approved { background-color: #d4edda; color: #155724; }
+        .status-revision_requested { background-color: #f8d7da; color: #721c24; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; }
+        .status-completed { background-color: #d1ecf1; color: #0c5460; }
+        .status-comment_added { background-color: #e2e3e5; color: #383d41; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Trauerdruck-Benachrichtigung</h1>
-    </div>
-    
-    <div class="content">
-        <p>Hallo {{ user.first_name }},</p>
-        
-        {% if notification_type == 'new_draft' %}
-            <p>ein neuer Trauerdruck-Entwurf wurde für Sie erstellt und wartet auf Ihre Freigabe.</p>
-        {% elif notification_type == 'approval_requested' %}
-            <p>ein Trauerdruck-Entwurf wartet auf Ihre Freigabe.</p>
-        {% elif notification_type == 'approved' %}
-            <p>ein Trauerdruck-Entwurf wurde freigegeben.</p>
-        {% elif notification_type == 'revision_requested' %}
-            <p>ein Trauerdruck-Entwurf wurde zur Revision angefordert.</p>
-        {% elif notification_type == 'rejected' %}
-            <p>ein Trauerdruck-Entwurf wurde abgelehnt.</p>
-        {% elif notification_type == 'comment_added' %}
-            <p>ein neuer Kommentar wurde zu einem Trauerdruck-Entwurf hinzugefügt.</p>
-        {% endif %}
-        
-        <div class="entwurf-info">
-            <h3>{{ entwurf.title }}</h3>
-            <p><strong>Verstorbener:</strong> {{ entwurf.memorial_page.deceased_name }}</p>
-            <p><strong>Trauerdruckart:</strong> {{ entwurf.trauerdruck_type.name }}</p>
-            <p><strong>Version:</strong> v{{ entwurf.version }}</p>
-            <p><strong>Status:</strong> 
-                <span class="status-badge status-{{ entwurf.status }}">
-                    {{ entwurf.get_status_display }}
-                </span>
-            </p>
-            {% if entwurf.deadline %}
-                <p><strong>Deadline:</strong> {{ entwurf.deadline|date:"d.m.Y H:i" }}</p>
-            {% endif %}
-            {% if entwurf.description %}
-                <p><strong>Beschreibung:</strong> {{ entwurf.description }}</p>
-            {% endif %}
+    <div class="container">
+        <div class="header">
+            <h1>Gedenken & Vorsorge</h1>
+            <p>Trauerdruck-Benachrichtigung</p>
         </div>
         
-        <p>
-            <a href="{{ site_url }}/mein-bereich/unterlagen/freigaben" class="button">
-                Entwurf ansehen
-            </a>
-        </p>
+        <div class="content">
+            <h2>Liebe/r {{ user.first_name }} {{ user.last_name }},</h2>
+            
+            {% if notification_type == 'new_draft' %}
+                <p>ein neuer Trauerdruck-Entwurf wurde für Sie erstellt und wartet auf Ihre Freigabe.</p>
+            {% elif notification_type == 'approval_requested' %}
+                <p>ein Trauerdruck-Entwurf wartet auf Ihre Freigabe.</p>
+            {% elif notification_type == 'approved' %}
+                <p>ein Trauerdruck-Entwurf wurde von Ihnen freigegeben.</p>
+            {% elif notification_type == 'revision_requested' %}
+                <p>eine Revision wurde für einen Trauerdruck-Entwurf angefordert.</p>
+            {% elif notification_type == 'rejected' %}
+                <p>ein Trauerdruck-Entwurf wurde abgelehnt.</p>
+            {% elif notification_type == 'completed' %}
+                <p>ein Trauerdruck-Entwurf wurde erfolgreich abgeschlossen.</p>
+            {% elif notification_type == 'comment_added' %}
+                <p>ein neuer Kommentar wurde zu einem Trauerdruck-Entwurf hinzugefügt.</p>
+            {% else %}
+                <p>es gibt eine neue Benachrichtigung zu einem Trauerdruck-Entwurf.</p>
+            {% endif %}
+            
+            <div class="entwurf-info">
+                <h3>{{ entwurf.title }}</h3>
+                <p><strong>Typ:</strong> {{ entwurf.trauerdruck_type.name }}</p>
+                <p><strong>Für:</strong> {{ entwurf.memorial_page.first_name }} {{ entwurf.memorial_page.last_name }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="status-badge status-{{ entwurf.status }}">
+                        {{ entwurf.get_status_display }}
+                    </span>
+                </p>
+                {% if entwurf.description %}
+                <p><strong>Beschreibung:</strong> {{ entwurf.description }}</p>
+                {% endif %}
+                {% if entwurf.deadline %}
+                <p><strong>Deadline:</strong> {{ entwurf.deadline|date:"d.m.Y H:i" }}</p>
+                {% endif %}
+            </div>
+            
+            <p>Bitte loggen Sie sich in Ihr Konto ein, um weitere Details zu sehen und entsprechende Aktionen durchzuführen.</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ site_url }}/login" class="button">Zum Login</a>
+            </div>
+        </div>
         
-        <p>Mit freundlichen Grüßen,<br>
-        Ihr Gedenken-Team</p>
-    </div>
-    
-    <div class="footer">
-        <p>Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht direkt auf diese E-Mail.</p>
-        <p>© 2024 Gedenken. Alle Rechte vorbehalten.</p>
+        <div class="footer">
+            <p>Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht direkt auf diese E-Mail.</p>
+            <p>© 2024 Gedenken & Vorsorge. Alle Rechte vorbehalten.</p>
+        </div>
     </div>
 </body>
 </html>

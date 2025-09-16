@@ -243,3 +243,32 @@ class TrauerdruckWorkflowService:
             import traceback
             traceback.print_exc()
             raise
+    
+    @staticmethod
+    def notify_revision_requested(entwurf, requester):
+        """Benachrichtigt Bestatter über Revisionsanfrage"""
+        if entwurf.created_by and entwurf.created_by.email:
+            TrauerdruckNotificationService.create_notification(
+                user=entwurf.created_by,
+                entwurf=entwurf,
+                notification_type='revision_requested',
+                title=f'Revision angefordert für {entwurf.title}',
+                message=f'{requester.first_name} {requester.last_name} hat eine Revision für den Entwurf angefordert.'
+            )
+    
+    @staticmethod
+    def notify_completed(entwurf):
+        """Benachrichtigt alle Beteiligten über Abschluss"""
+        # Alle Familienmitglieder benachrichtigen
+        from .models import FamilyLink
+        family_links = FamilyLink.objects.filter(deceased_user=entwurf.memorial_page.user)
+        
+        for family_link in family_links:
+            if family_link.relative_user and family_link.relative_user.email:
+                TrauerdruckNotificationService.create_notification(
+                    user=family_link.relative_user,
+                    entwurf=entwurf,
+                    notification_type='completed',
+                    title=f'Trauerdruck abgeschlossen: {entwurf.title}',
+                    message=f'Der Trauerdruck-Entwurf "{entwurf.title}" wurde erfolgreich abgeschlossen.'
+                )

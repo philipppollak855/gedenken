@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import useApi from '../../hooks/useApi';
+import React, { useState, useEffect } from 'react';
+import { useApi } from '../../hooks/useApi';
 import { Link } from 'react-router-dom';
 import './TrauerdruckBestatterDashboard.css';
 
@@ -17,7 +17,11 @@ const TrauerdruckBestatterDashboard = () => {
     const [recentEntwuerfe, setRecentEntwuerfe] = useState([]);
     const [urgentEntwuerfe, setUrgentEntwuerfe] = useState([]);
 
-    const loadDashboardData = useCallback(async () => {
+    useEffect(() => {
+        loadDashboardData();
+    }, []);
+
+    const loadDashboardData = async () => {
         try {
             setLoading(true);
             
@@ -38,11 +42,7 @@ const TrauerdruckBestatterDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [get]);
-
-    useEffect(() => {
-        loadDashboardData();
-    }, [loadDashboardData]);
+    };
 
     const getStatusBadge = (status) => {
         const statusConfig = {
@@ -99,15 +99,15 @@ const TrauerdruckBestatterDashboard = () => {
                     <div className="action-icon">➕</div>
                     <div className="action-content">
                         <h3>Neuen Entwurf erstellen</h3>
-                        <p>Erstellen Sie einen neuen Trauerdruck-Entwurf und senden Sie ihn zur Freigabe</p>
+                        <p>Erstellen Sie einen neuen Trauerdruck-Entwurf</p>
                     </div>
                 </Link>
                 
-                <Link to="/mein-bereich/unterlagen/trauerdruck" className="action-card">
+                <Link to="/mein-bereich/trauerdruck/freigabestatus" className="action-card">
                     <div className="action-icon">📊</div>
                     <div className="action-content">
-                        <h3>Freigaben verwalten</h3>
-                        <p>Übersicht aller Entwürfe und deren Freigabestatus</p>
+                        <h3>Freigabestatus verwalten</h3>
+                        <p>Übersicht aller Entwürfe und deren Status</p>
                     </div>
                 </Link>
                 
@@ -115,7 +115,7 @@ const TrauerdruckBestatterDashboard = () => {
                     <div className="action-icon">📋</div>
                     <div className="action-content">
                         <h3>Templates verwalten</h3>
-                        <p>Vorlagen für häufige Entwürfe (optional)</p>
+                        <p>Vorlagen für häufige Entwürfe</p>
                     </div>
                 </Link>
             </div>
@@ -180,7 +180,7 @@ const TrauerdruckBestatterDashboard = () => {
             <div className="recent-section">
                 <div className="section-header">
                     <h2>Neueste Entwürfe</h2>
-                    <Link to="/mein-bereich/unterlagen/trauerdruck" className="view-all-link">
+                    <Link to="/mein-bereich/trauerdruck/freigabestatus" className="view-all-link">
                         Alle anzeigen →
                     </Link>
                 </div>

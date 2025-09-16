@@ -1,28 +1,66 @@
-/* TrauerdruckFreigabenListe.css */
+/* TrauerdruckUnterlagen.css */
 
-.freigaben-liste-container {
+.trauerdruck-unterlagen-container {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.freigaben-header {
+.trauerdruck-header {
     margin-bottom: 2rem;
 }
 
-.freigaben-header h1 {
+.trauerdruck-header h1 {
     font-family: 'Playfair Display', serif;
     font-size: 2.5rem;
     color: #3a3a3a;
     margin-bottom: 0.5rem;
 }
 
-.freigaben-header p {
+.trauerdruck-header p {
     color: #6b7280;
     font-size: 1.1rem;
+    line-height: 1.6;
 }
 
-.freigaben-filters {
+/* Statistiken */
+.trauerdruck-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #8c8073;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Filter */
+.trauerdruck-filters {
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
@@ -51,13 +89,14 @@
     color: white;
 }
 
-.freigaben-liste {
+/* Entwürfe Liste */
+.trauerdruck-liste {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
 }
 
-.freigaben-item {
+.trauerdruck-item {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
@@ -67,32 +106,41 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.freigaben-item:hover {
+.trauerdruck-item:hover {
     border-color: #8c8073;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
 
-.freigaben-item-header {
+.trauerdruck-item-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1rem;
 }
 
-.freigaben-item-header h3 {
-    font-size: 1.25rem;
-    color: #3a3a3a;
-    margin: 0;
+.item-title-section {
     flex: 1;
 }
 
-.freigaben-badges {
+.item-title-section h3 {
+    font-size: 1.25rem;
+    color: #3a3a3a;
+    margin: 0 0 0.5rem 0;
+}
+
+.item-badges {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
 }
 
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Badges */
 .status-badge, .priority-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
@@ -100,13 +148,6 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-.status-badge {
-    color: white;
-}
-
-.priority-badge {
     color: white;
 }
 
@@ -152,14 +193,18 @@
     background: #6b7280;
 }
 
-.freigaben-item-details {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 0.75rem;
+/* Details */
+.trauerdruck-item-details {
     margin-bottom: 1rem;
 }
 
-.detail-row {
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
+}
+
+.detail-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -180,12 +225,99 @@
     font-weight: 600;
 }
 
-.freigaben-item-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
+/* Vorschau */
+.trauerdruck-preview {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1rem;
 }
 
+.trauerdruck-preview h4 {
+    margin: 0 0 1rem 0;
+    color: #3a3a3a;
+    font-size: 1rem;
+}
+
+.preview-thumbnails {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.preview-thumbnail {
+    width: 80px;
+    height: 80px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: #f9fafb;
+}
+
+.thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-thumbnail {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.thumbnail-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.25rem;
+    text-align: center;
+}
+
+.preview-thumbnail.more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #8c8073;
+    color: white;
+}
+
+.more-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* No Freigaben */
+.no-freigaben {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6b7280;
+}
+
+.no-freigaben-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.no-freigaben h3 {
+    margin: 0 0 0.5rem 0;
+    color: #3a3a3a;
+}
+
+.no-freigaben p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* Buttons */
 .btn-primary {
     background: #8c8073;
     color: white;
@@ -201,12 +333,7 @@
     background: #7a6f63;
 }
 
-.no-freigaben {
-    text-align: center;
-    padding: 3rem;
-    color: #6b7280;
-}
-
+/* Loading & Error */
 .loading, .error {
     text-align: center;
     padding: 3rem;
@@ -217,70 +344,18 @@
     color: #dc2626;
 }
 
-/* Modal Styles */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 2rem;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    max-width: 800px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-header h2 {
-    margin: 0;
-    color: #3a3a3a;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #6b7280;
-    padding: 0.5rem;
-    border-radius: 4px;
-    transition: background 0.3s ease;
-}
-
-.modal-close:hover {
-    background: #f3f4f6;
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
-    .freigaben-liste-container {
+    .trauerdruck-unterlagen-container {
         padding: 1rem;
     }
     
-    .freigaben-filters {
+    .trauerdruck-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .trauerdruck-filters {
         flex-direction: column;
     }
     
@@ -288,17 +363,17 @@
         text-align: center;
     }
     
-    .freigaben-item-header {
+    .trauerdruck-item-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
     }
     
-    .freigaben-item-details {
+    .detail-grid {
         grid-template-columns: 1fr;
     }
     
-    .detail-row {
+    .detail-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.25rem;
@@ -308,7 +383,7 @@
         min-width: auto;
     }
     
-    .modal-overlay {
-        padding: 1rem;
+    .preview-thumbnails {
+        justify-content: center;
     }
 }

@@ -749,7 +749,7 @@ class TrauerdruckEntwurf(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.title} - {self.memorial_page} (v{self.version})"
+        return f"{self.title} - {self.memorial_page.deceased_name} (v{self.version})"
 
 
 class TrauerdruckDesign(models.Model):

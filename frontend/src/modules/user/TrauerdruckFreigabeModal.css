@@ -105,6 +105,11 @@
     border-bottom: 1px solid #e5e7eb;
 }
 
+.preview-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
 .preview-header h3 {
     margin: 0;
     color: #3a3a3a;
@@ -124,6 +129,97 @@
     max-height: 400px;
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.preview-image:hover {
+    transform: scale(1.02);
+}
+
+/* Design Variants */
+.design-variants {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.design-variant {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.design-variant:hover {
+    border-color: #8c8073;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.variant-header {
+    padding: 1rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.variant-header h4 {
+    margin: 0;
+    color: #3a3a3a;
+    font-size: 1rem;
+}
+
+.variant-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge-approved {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-approvals {
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.variant-preview {
+    padding: 1rem;
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.variant-preview .preview-image {
+    max-height: 300px;
+}
+
+.variant-description {
+    padding: 1rem;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.variant-description p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
 }
 
 .no-preview {
@@ -155,6 +251,24 @@
     gap: 1.5rem;
 }
 
+.collaboration-header {
+    background: #f0f9ff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #bae6fd;
+}
+
+.collaboration-header h3 {
+    margin: 0 0 0.5rem 0;
+    color: #1e40af;
+}
+
+.collaboration-header p {
+    margin: 0;
+    color: #1e40af;
+    font-size: 0.9rem;
+}
+
 .comments-list {
     max-height: 300px;
     overflow-y: auto;
@@ -174,9 +288,20 @@
 
 .comment-header {
     display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.comment-author-info {
+    display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 0.5rem;
+}
+
+.comment-badges {
+    display: flex;
+    gap: 0.5rem;
 }
 
 .comment-author {
@@ -235,6 +360,42 @@
     outline: none;
     border-color: #8c8073;
     box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.1);
+}
+
+.comment-types {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.comment-type-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background 0.3s ease;
+}
+
+.comment-type-option:hover {
+    background: #f9fafb;
+}
+
+.comment-type-option input[type="radio"] {
+    margin: 0;
+}
+
+.comment-type-option span {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
 }
 
 /* History Tab */

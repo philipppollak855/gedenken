@@ -589,6 +589,111 @@ def admin_dashboard_view(request):
 admin.site.index = admin_dashboard_view
 
 
+def trauerdruck_dashboard_view(request):
+    """
+    Trauerdruck-Dashboard für Bestatter
+    """
+    from .models import TrauerdruckEntwurf, TrauerdruckType, TrauerdruckDesign, TrauerdruckKommentar, TrauerdruckFreigabe
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Erweiterte Statistiken sammeln
+    stats = {
+        'total_entwuerfe': TrauerdruckEntwurf.objects.count(),
+        'draft': TrauerdruckEntwurf.objects.filter(status='draft').count(),
+        'pending_approval': TrauerdruckEntwurf.objects.filter(status='pending_approval').count(),
+        'approved': TrauerdruckEntwurf.objects.filter(status='approved').count(),
+        'revision_requested': TrauerdruckEntwurf.objects.filter(status='revision_requested').count(),
+        'rejected': TrauerdruckEntwurf.objects.filter(status='rejected').count(),
+        'completed': TrauerdruckEntwurf.objects.filter(status='completed').count(),
+        'total_designs': TrauerdruckDesign.objects.count(),
+        'active_designs': TrauerdruckDesign.objects.filter(is_active=True).count(),
+        'approved_designs': TrauerdruckDesign.objects.filter(is_approved=True).count(),
+        'total_comments': TrauerdruckKommentar.objects.count(),
+        'total_approvals': TrauerdruckFreigabe.objects.count(),
+    }
+    
+    # Zeitbasierte Statistiken
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    
+    stats.update({
+        'created_today': TrauerdruckEntwurf.objects.filter(created_at__date=today).count(),
+        'created_this_week': TrauerdruckEntwurf.objects.filter(created_at__date__gte=week_ago).count(),
+        'created_this_month': TrauerdruckEntwurf.objects.filter(created_at__date__gte=month_ago).count(),
+        'overdue': TrauerdruckEntwurf.objects.filter(
+            deadline__lt=timezone.now(),
+            status__in=['draft', 'pending_approval', 'revision_requested']
+        ).count(),
+    })
+    
+    # Aktuelle Entwürfe (letzte 10)
+    recent_entwuerfe = TrauerdruckEntwurf.objects.select_related(
+        'memorial_page', 'trauerdruck_type', 'created_by'
+    ).order_by('-created_at')[:10]
+    
+    # Alle Entwürfe für Übersicht (mit Filterung)
+    queryset = TrauerdruckEntwurf.objects.select_related(
+        'memorial_page', 'trauerdruck_type', 'created_by'
+    ).prefetch_related('designs', 'kommentare', 'freigaben')
+    
+    # Filter anwenden
+    status_filter = request.GET.get('status')
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    
+    priority_filter = request.GET.get('priority')
+    if priority_filter:
+        queryset = queryset.filter(priority=priority_filter)
+    
+    type_filter = request.GET.get('type')
+    if type_filter:
+        queryset = queryset.filter(trauerdruck_type_id=type_filter)
+    
+    timeframe_filter = request.GET.get('timeframe')
+    if timeframe_filter == 'today':
+        queryset = queryset.filter(created_at__date=today)
+    elif timeframe_filter == 'week':
+        queryset = queryset.filter(created_at__date__gte=week_ago)
+    elif timeframe_filter == 'month':
+        queryset = queryset.filter(created_at__date__gte=month_ago)
+    elif timeframe_filter == 'overdue':
+        queryset = queryset.filter(
+            deadline__lt=timezone.now(),
+            status__in=['draft', 'pending_approval', 'revision_requested']
+        )
+    
+    all_entwuerfe = queryset.order_by('-created_at')[:20]
+    
+    # Trauerdruck-Typen für Filter
+    trauerdruck_types = TrauerdruckType.objects.filter(is_active=True).order_by('name')
+    
+    # Dringende Entwürfe (überfällig oder hohe Priorität)
+    from django.db import models
+    urgent_entwuerfe = TrauerdruckEntwurf.objects.filter(
+        models.Q(deadline__lt=timezone.now(), status__in=['draft', 'pending_approval', 'revision_requested']) |
+        models.Q(priority='urgent')
+    ).select_related('memorial_page', 'trauerdruck_type', 'created_by')[:5]
+    
+    context = {
+        **admin.site.each_context(request),
+        "title": "Trauerdruck Dashboard",
+        "stats": stats,
+        "recent_entwuerfe": recent_entwuerfe,
+        "all_entwuerfe": all_entwuerfe,
+        "trauerdruck_types": trauerdruck_types,
+        "urgent_entwuerfe": urgent_entwuerfe,
+        "current_filters": {
+            'status': status_filter,
+            'priority': priority_filter,
+            'type': type_filter,
+            'timeframe': timeframe_filter,
+        }
+    }
+    return render(request, "admin/trauerdruck_dashboard.html", context)
+
+
 # ===== TRAUERDRUCK-ADMIN =====
 
 @admin.register(TrauerdruckType)
@@ -601,13 +706,14 @@ class TrauerdruckTypeAdmin(ModelAdmin):
 
 @admin.register(TrauerdruckEntwurf)
 class TrauerdruckEntwurfAdmin(ModelAdmin):
-    list_display = ('title', 'memorial_page', 'trauerdruck_type', 'status', 'version', 'priority', 'created_by', 'created_at', 'deadline')
+    list_display = ('title', 'memorial_page', 'trauerdruck_type', 'status', 'version', 'priority', 'created_by', 'created_at', 'deadline', 'quick_actions')
     list_filter = ('status', 'trauerdruck_type', 'priority', 'created_at', 'deadline')
-    search_fields = ('title', 'description', 'memorial_page__deceased_name', 'created_by__first_name', 'created_by__last_name')
+    search_fields = ('title', 'description', 'memorial_page__first_name', 'memorial_page__last_name', 'created_by__first_name', 'created_by__last_name')
     raw_id_fields = ('memorial_page', 'created_by')
     filter_horizontal = ('assigned_to',)
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
+    actions = ['send_to_family', 'request_revision', 'mark_completed']
     
     fieldsets = (
         ('Grunddaten', {
@@ -619,28 +725,218 @@ class TrauerdruckEntwurfAdmin(ModelAdmin):
         ('Personen', {
             'fields': ('created_by', 'assigned_to')
         }),
+        ('Designs & Dateien', {
+            'classes': ('collapse',),
+            'fields': ('manage_designs',)
+        }),
+        ('Kommentare & Freigaben', {
+            'classes': ('collapse',),
+            'fields': ('manage_comments', 'manage_approvals')
+        }),
     )
+    
+    readonly_fields = ('manage_designs', 'manage_comments', 'manage_approvals', 'quick_actions')
+    
+    @admin.display(description='Designs verwalten')
+    def manage_designs(self, obj):
+        if not obj.pk:
+            return "Speichern Sie zuerst den Entwurf, um Designs hinzuzufügen."
+        
+        designs_count = obj.designs.count()
+        url = reverse('admin:api_trauerdruckdesign_changelist') + f'?entwurf__pk__exact={obj.pk}'
+        return format_html(
+            f'{designs_count} Designs <a href="{url}" class="button manage-button" data-modal-title="Designs für {obj.title}">Verwalten</a>'
+        )
+    
+    @admin.display(description='Kommentare verwalten')
+    def manage_comments(self, obj):
+        if not obj.pk:
+            return "Speichern Sie zuerst den Entwurf, um Kommentare zu verwalten."
+        
+        comments_count = obj.kommentare.count()
+        url = reverse('admin:api_trauerdruckkommentar_changelist') + f'?entwurf__pk__exact={obj.pk}'
+        return format_html(
+            f'{comments_count} Kommentare <a href="{url}" class="button manage-button" data-modal-title="Kommentare für {obj.title}">Verwalten</a>'
+        )
+    
+    @admin.display(description='Freigaben verwalten')
+    def manage_approvals(self, obj):
+        if not obj.pk:
+            return "Speichern Sie zuerst den Entwurf, um Freigaben zu verwalten."
+        
+        approvals_count = obj.freigaben.count()
+        url = reverse('admin:api_trauerdruckfreigabe_changelist') + f'?entwurf__pk__exact={obj.pk}'
+        return format_html(
+            f'{approvals_count} Freigaben <a href="{url}" class="button manage-button" data-modal-title="Freigaben für {obj.title}">Verwalten</a>'
+        )
+    
+    @admin.display(description='Schnellaktionen')
+    def quick_actions(self, obj):
+        if not obj.pk:
+            return ""
+        
+        actions = []
+        
+        # Status-spezifische Aktionen
+        if obj.status == 'draft':
+            actions.append(f'<a href="#" class="button" onclick="sendToFamily({obj.pk})">An Familie senden</a>')
+        
+        if obj.status in ['pending_approval', 'approved']:
+            actions.append(f'<a href="#" class="button" onclick="requestRevision({obj.pk})">Revision anfordern</a>')
+        
+        if obj.status == 'approved':
+            actions.append(f'<a href="#" class="button" onclick="markCompleted({obj.pk})">Als abgeschlossen markieren</a>')
+        
+        # Immer verfügbare Aktionen
+        actions.append(f'<a href="{reverse("admin:api_trauerdruckdesign_add")}?entwurf={obj.pk}" class="button">Design hinzufügen</a>')
+        actions.append(f'<a href="{reverse("admin:api_trauerdruckkommentar_add")}?entwurf={obj.pk}" class="button">Kommentar hinzufügen</a>')
+        
+        return format_html(' '.join(actions))
+    
+    @admin.action(description='Ausgewählte Entwürfe an Familie senden')
+    def send_to_family(self, request, queryset):
+        updated = 0
+        for entwurf in queryset.filter(status='draft'):
+            entwurf.status = 'pending_approval'
+            entwurf.save()
+            updated += 1
+        
+        if updated:
+            self.message_user(request, f'{updated} Entwürfe wurden an die Familie gesendet.')
+        else:
+            self.message_user(request, 'Keine Entwürfe im Status "Entwurf" gefunden.', level=messages.WARNING)
+    
+    @admin.action(description='Revision für ausgewählte Entwürfe anfordern')
+    def request_revision(self, request, queryset):
+        updated = 0
+        for entwurf in queryset.filter(status__in=['pending_approval', 'approved']):
+            entwurf.status = 'revision_requested'
+            entwurf.save()
+            updated += 1
+        
+        if updated:
+            self.message_user(request, f'{updated} Entwürfe wurden für Revision markiert.')
+        else:
+            self.message_user(request, 'Keine geeigneten Entwürfe für Revision gefunden.', level=messages.WARNING)
+    
+    @admin.action(description='Ausgewählte Entwürfe als abgeschlossen markieren')
+    def mark_completed(self, request, queryset):
+        updated = 0
+        for entwurf in queryset.filter(status='approved'):
+            entwurf.status = 'completed'
+            entwurf.save()
+            updated += 1
+        
+        if updated:
+            self.message_user(request, f'{updated} Entwürfe wurden als abgeschlossen markiert.')
+        else:
+            self.message_user(request, 'Keine freigegebenen Entwürfe gefunden.', level=messages.WARNING)
 
 
 @admin.register(TrauerdruckDesign)
 class TrauerdruckDesignAdmin(ModelAdmin):
-    list_display = ('title', 'entwurf', 'order', 'is_active', 'is_approved', 'created_at')
-    list_filter = ('is_active', 'is_approved', 'created_at')
-    search_fields = ('title', 'description', 'entwurf__title')
+    list_display = ('title', 'entwurf', 'order', 'is_active', 'is_approved', 'approval_stats', 'created_at', 'quick_actions')
+    list_filter = ('is_active', 'is_approved', 'created_at', 'entwurf__status')
+    search_fields = ('title', 'description', 'entwurf__title', 'entwurf__memorial_page__first_name', 'entwurf__memorial_page__last_name')
     raw_id_fields = ('entwurf', 'design_file', 'preview_file')
     ordering = ('entwurf', 'order', 'created_at')
+    actions = ['activate_designs', 'deactivate_designs', 'approve_designs', 'reject_designs']
     
     fieldsets = (
         ('Grunddaten', {
             'fields': ('entwurf', 'title', 'description', 'order')
         }),
         ('Dateien', {
-            'fields': ('design_file', 'preview_file')
+            'fields': ('design_file', 'preview_file', 'file_preview')
         }),
         ('Status', {
             'fields': ('is_active', 'is_approved')
         }),
+        ('Freigaben', {
+            'classes': ('collapse',),
+            'fields': ('manage_freigaben',)
+        }),
     )
+    
+    readonly_fields = ('file_preview', 'manage_freigaben', 'approval_stats', 'quick_actions')
+    
+    @admin.display(description='Datei-Vorschau')
+    def file_preview(self, obj):
+        if obj.design_file and obj.design_file.asset_type == 'image':
+            return format_html('<img src="{}" width="200" height="auto" style="max-width: 200px; border: 1px solid #ddd;" />', obj.design_file.url)
+        elif obj.preview_file and obj.preview_file.asset_type == 'image':
+            return format_html('<img src="{}" width="200" height="auto" style="max-width: 200px; border: 1px solid #ddd;" />', obj.preview_file.url)
+        return "Keine Bildvorschau verfügbar"
+    
+    @admin.display(description='Freigaben verwalten')
+    def manage_freigaben(self, obj):
+        if not obj.pk:
+            return "Speichern Sie zuerst das Design, um Freigaben zu verwalten."
+        
+        freigaben_count = obj.freigaben.count()
+        url = reverse('admin:api_trauerdruckdesignfreigabe_changelist') + f'?design__pk__exact={obj.pk}'
+        return format_html(
+            f'{freigaben_count} Freigaben <a href="{url}" class="button manage-button" data-modal-title="Freigaben für {obj.title}">Verwalten</a>'
+        )
+    
+    @admin.display(description='Freigabe-Statistik')
+    def approval_stats(self, obj):
+        approved = obj.freigaben.filter(decision='approved').count()
+        rejected = obj.freigaben.filter(decision='rejected').count()
+        pending = obj.freigaben.filter(decision='pending').count()
+        
+        stats = []
+        if approved > 0:
+            stats.append(f'<span style="color: green;">✓ {approved}</span>')
+        if rejected > 0:
+            stats.append(f'<span style="color: red;">✗ {rejected}</span>')
+        if pending > 0:
+            stats.append(f'<span style="color: orange;">⏳ {pending}</span>')
+        
+        return format_html(' '.join(stats)) if stats else "Keine Freigaben"
+    
+    @admin.display(description='Schnellaktionen')
+    def quick_actions(self, obj):
+        if not obj.pk:
+            return ""
+        
+        actions = []
+        
+        # Status-spezifische Aktionen
+        if not obj.is_active:
+            actions.append(f'<a href="#" class="button" onclick="activateDesign({obj.pk})">Aktivieren</a>')
+        else:
+            actions.append(f'<a href="#" class="button" onclick="deactivateDesign({obj.pk})">Deaktivieren</a>')
+        
+        if not obj.is_approved:
+            actions.append(f'<a href="#" class="button" onclick="approveDesign({obj.pk})">Freigeben</a>')
+        else:
+            actions.append(f'<a href="#" class="button" onclick="rejectDesign({obj.pk})">Ablehnen</a>')
+        
+        # Immer verfügbare Aktionen
+        actions.append(f'<a href="{reverse("admin:api_trauerdruckdesignfreigabe_add")}?design={obj.pk}" class="button">Freigabe hinzufügen</a>')
+        
+        return format_html(' '.join(actions))
+    
+    @admin.action(description='Ausgewählte Designs aktivieren')
+    def activate_designs(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} Designs wurden aktiviert.')
+    
+    @admin.action(description='Ausgewählte Designs deaktivieren')
+    def deactivate_designs(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} Designs wurden deaktiviert.')
+    
+    @admin.action(description='Ausgewählte Designs freigeben')
+    def approve_designs(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f'{updated} Designs wurden freigegeben.')
+    
+    @admin.action(description='Ausgewählte Designs ablehnen')
+    def reject_designs(self, request, queryset):
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, f'{updated} Designs wurden abgelehnt.')
 
 
 @admin.register(TrauerdruckKommentar)
@@ -692,4 +988,26 @@ class TrauerdruckTemplateAdmin(ModelAdmin):
     search_fields = ('name', 'description', 'created_by__first_name', 'created_by__last_name')
     raw_id_fields = ('template_file', 'created_by')
     ordering = ('name',)
+
+
+# Trauerdruck-Dashboard URL hinzufügen
+from django.urls import path
+from django.contrib.admin import AdminSite
+
+
+# Admin-URLs überschreiben - Rekursion vermeiden
+original_get_urls = AdminSite.get_urls
+
+def custom_get_urls(self):
+    # Originale URLs bekommen
+    original_urls = original_get_urls(self)
+    
+    # Neue URLs hinzufügen
+    custom_urls = [
+        path('trauerdruck-dashboard/', admin.site.admin_view(trauerdruck_dashboard_view), name='trauerdruck_dashboard'),
+    ]
+    
+    return custom_urls + original_urls
+
+AdminSite.get_urls = custom_get_urls
 

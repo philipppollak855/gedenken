@@ -1,0 +1,344 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}Trauerdruck Dashboard{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'admin/js/trauerdruck_admin.js' %}"></script>
+<style>
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #417690;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.9em;
+    }
+    
+    .dashboard-sections {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .section-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #333;
+        border-bottom: 2px solid #417690;
+        padding-bottom: 5px;
+    }
+    
+    .quick-action {
+        display: inline-block;
+        background: #417690;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        margin: 5px;
+        font-size: 0.9em;
+    }
+    
+    .quick-action:hover {
+        background: #205067;
+        color: white;
+    }
+    
+    .recent-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .recent-item:last-child {
+        border-bottom: none;
+    }
+    
+    .recent-item-title {
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .recent-item-meta {
+        font-size: 0.8em;
+        color: #666;
+        margin-top: 2px;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8em;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .status-draft { background: #f0f0f0; color: #666; }
+    .status-pending_approval { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d4edda; color: #155724; }
+    .status-revision_requested { background: #f8d7da; color: #721c24; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-completed { background: #d1ecf1; color: #0c5460; }
+    
+    .priority-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 0.7em;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .priority-low { background: #e9ecef; color: #495057; }
+    .priority-normal { background: #d4edda; color: #155724; }
+    .priority-high { background: #fff3cd; color: #856404; }
+    .priority-urgent { background: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.total_entwuerfe }}</div>
+        <div class="stat-label">Gesamt Entwürfe</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.pending_approval }}</div>
+        <div class="stat-label">Warten auf Freigabe</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.revision_requested }}</div>
+        <div class="stat-label">Revision angefordert</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.completed }}</div>
+        <div class="stat-label">Abgeschlossen</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.overdue }}</div>
+        <div class="stat-label">Überfällig</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.created_today }}</div>
+        <div class="stat-label">Heute erstellt</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.total_designs }}</div>
+        <div class="stat-label">Gesamt Designs</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.approved_designs }}</div>
+        <div class="stat-label">Freigegebene Designs</div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <div class="section-card">
+        <div class="section-title">Schnellaktionen</div>
+        <div>
+            <a href="{% url 'admin:api_trauerdruckentwurf_add' %}" class="quick-action">
+                Neuer Entwurf
+            </a>
+            <a href="{% url 'admin:api_trauerdruckdesign_add' %}" class="quick-action">
+                Design hinzufügen
+            </a>
+            <a href="{% url 'admin:api_trauerdrucktype_changelist' %}" class="quick-action">
+                Typen verwalten
+            </a>
+            <a href="{% url 'admin:api_trauerdrucktemplate_changelist' %}" class="quick-action">
+                Templates verwalten
+            </a>
+        </div>
+    </div>
+    
+    <div class="section-card">
+        <div class="section-title">Dringende Entwürfe</div>
+        {% for entwurf in urgent_entwuerfe %}
+        <div class="recent-item" style="border-left: 4px solid #dc3545; background: #fff5f5;">
+            <div class="recent-item-title">
+                <a href="{% url 'admin:api_trauerdruckentwurf_change' entwurf.pk %}">
+                    {{ entwurf.title }}
+                </a>
+                <span class="status-badge status-{{ entwurf.status }}">
+                    {{ entwurf.get_status_display }}
+                </span>
+                <span class="priority-badge priority-{{ entwurf.priority }}">
+                    {{ entwurf.get_priority_display }}
+                </span>
+            </div>
+            <div class="recent-item-meta">
+                {{ entwurf.memorial_page.first_name }} {{ entwurf.memorial_page.last_name }} • 
+                {{ entwurf.trauerdruck_type.name }} • 
+                {% if entwurf.deadline %}
+                    Deadline: {{ entwurf.deadline|date:"d.m.Y H:i" }}
+                {% else %}
+                    {{ entwurf.created_at|date:"d.m.Y H:i" }}
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>Keine dringenden Entwürfe vorhanden.</p>
+        {% endfor %}
+    </div>
+    
+    <div class="section-card">
+        <div class="section-title">Aktuelle Entwürfe</div>
+        {% for entwurf in recent_entwuerfe %}
+        <div class="recent-item">
+            <div class="recent-item-title">
+                <a href="{% url 'admin:api_trauerdruckentwurf_change' entwurf.pk %}">
+                    {{ entwurf.title }}
+                </a>
+                <span class="status-badge status-{{ entwurf.status }}">
+                    {{ entwurf.get_status_display }}
+                </span>
+                <span class="priority-badge priority-{{ entwurf.priority }}">
+                    {{ entwurf.get_priority_display }}
+                </span>
+            </div>
+            <div class="recent-item-meta">
+                {{ entwurf.memorial_page.first_name }} {{ entwurf.memorial_page.last_name }} • 
+                {{ entwurf.trauerdruck_type.name }} • 
+                {{ entwurf.created_at|date:"d.m.Y H:i" }}
+            </div>
+        </div>
+        {% empty %}
+        <p>Keine aktuellen Entwürfe vorhanden.</p>
+        {% endfor %}
+    </div>
+</div>
+
+        <div class="section-card">
+            <div class="section-title">Übersicht aller Entwürfe</div>
+            <div style="margin-bottom: 15px;">
+                <a href="{% url 'admin:api_trauerdruckentwurf_changelist' %}" class="quick-action">
+                    Alle Entwürfe anzeigen
+                </a>
+                <a href="{% url 'admin:api_trauerdruckentwurf_changelist' %}?status__exact=draft" class="quick-action">
+                    Entwürfe ({{ stats.draft|default:0 }})
+                </a>
+                <a href="{% url 'admin:api_trauerdruckentwurf_changelist' %}?status__exact=pending_approval" class="quick-action">
+                    Warten auf Freigabe ({{ stats.pending_approval }})
+                </a>
+                <a href="{% url 'admin:api_trauerdruckentwurf_changelist' %}?status__exact=revision_requested" class="quick-action">
+                    Revision angefordert ({{ stats.revision_requested }})
+                </a>
+                <a href="{% url 'admin:api_trauerdruckentwurf_changelist' %}?status__exact=approved" class="quick-action">
+                    Freigegeben ({{ stats.approved|default:0 }})
+                </a>
+                <a href="{% url 'admin:api_trauerdruckentwurf_changelist' %}?status__exact=completed" class="quick-action">
+                    Abgeschlossen ({{ stats.completed }})
+                </a>
+            </div>
+            
+            <!-- Erweiterte Filter -->
+            <div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-top: 0;">Erweiterte Filter</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <div>
+                        <label>Trauerdruck-Typ:</label>
+                        <select onchange="filterByType(this.value)" style="width: 100%; padding: 5px;">
+                            <option value="">Alle Typen</option>
+                            {% for type in trauerdruck_types %}
+                            <option value="{{ type.id }}">{{ type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Priorität:</label>
+                        <select onchange="filterByPriority(this.value)" style="width: 100%; padding: 5px;">
+                            <option value="">Alle Prioritäten</option>
+                            <option value="low">Niedrig</option>
+                            <option value="normal">Normal</option>
+                            <option value="high">Hoch</option>
+                            <option value="urgent">Dringend</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Zeitraum:</label>
+                        <select onchange="filterByTimeframe(this.value)" style="width: 100%; padding: 5px;">
+                            <option value="">Alle</option>
+                            <option value="today">Heute</option>
+                            <option value="week">Diese Woche</option>
+                            <option value="month">Dieser Monat</option>
+                            <option value="overdue">Überfällig</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        {% for entwurf in all_entwuerfe %}
+        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 15px; background: #fafafa;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                <h4 style="margin: 0;">
+                    <a href="{% url 'admin:api_trauerdruckentwurf_change' entwurf.pk %}">
+                        {{ entwurf.title }}
+                    </a>
+                </h4>
+                <span class="status-badge status-{{ entwurf.status }}">
+                    {{ entwurf.get_status_display }}
+                </span>
+            </div>
+            
+            <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                <strong>{{ entwurf.memorial_page.first_name }} {{ entwurf.memorial_page.last_name }}</strong><br>
+                {{ entwurf.trauerdruck_type.name }} • v{{ entwurf.version }}<br>
+                Erstellt: {{ entwurf.created_at|date:"d.m.Y H:i" }}<br>
+                {% if entwurf.deadline %}
+                Deadline: {{ entwurf.deadline|date:"d.m.Y H:i" }}
+                {% endif %}
+            </div>
+            
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <a href="{% url 'admin:api_trauerdruckdesign_changelist' %}?entwurf__pk__exact={{ entwurf.pk }}" 
+                   class="quick-action" style="font-size: 0.8em; padding: 5px 10px;">
+                    Designs ({{ entwurf.designs.count }})
+                </a>
+                <a href="{% url 'admin:api_trauerdruckkommentar_changelist' %}?entwurf__pk__exact={{ entwurf.pk }}" 
+                   class="quick-action" style="font-size: 0.8em; padding: 5px 10px;">
+                    Kommentare ({{ entwurf.kommentare.count }})
+                </a>
+                <a href="{% url 'admin:api_trauerdruckfreigabe_changelist' %}?entwurf__pk__exact={{ entwurf.pk }}" 
+                   class="quick-action" style="font-size: 0.8em; padding: 5px 10px;">
+                    Freigaben ({{ entwurf.freigaben.count }})
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <p>Keine Entwürfe vorhanden.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

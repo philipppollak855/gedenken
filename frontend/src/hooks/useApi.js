@@ -31,36 +31,7 @@ const useApi = () => {
         return response;
     }, [authTokens, logoutUser, API_URL]);
 
-    const get = useCallback(async (url, options = {}) => {
-        const response = await api(url, { ...options, method: 'GET' });
-        return response;
-    }, [api]);
-
-    const post = useCallback(async (url, data, options = {}) => {
-        const response = await api(url, {
-            ...options,
-            method: 'POST',
-            body: data instanceof FormData ? data : JSON.stringify(data),
-        });
-        return response;
-    }, [api]);
-
-    const put = useCallback(async (url, data, options = {}) => {
-        const response = await api(url, {
-            ...options,
-            method: 'PUT',
-            body: data instanceof FormData ? data : JSON.stringify(data),
-        });
-        return response;
-    }, [api]);
-
-    const del = useCallback(async (url, options = {}) => {
-        const response = await api(url, { ...options, method: 'DELETE' });
-        return response;
-    }, [api]);
-
-    return { api, get, post, put, delete: del };
+    return api;
 };
 
-export { useApi };
 export default useApi;

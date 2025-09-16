@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import useApi from '../../hooks/useApi';
+import React, { useState, useEffect } from 'react';
+import { useApi } from '../../hooks/useApi';
 import './TrauerdruckFreigabeModal.css';
 
 const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
@@ -17,32 +17,30 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
     const [decision, setDecision] = useState('pending');
     const [decisionComment, setDecisionComment] = useState('');
 
-    const loadKommentare = useCallback(async () => {
-        if (!entwurf) return;
+    useEffect(() => {
+        if (entwurf) {
+            loadKommentare();
+            loadFreigaben();
+        }
+    }, [entwurf]);
+
+    const loadKommentare = async () => {
         try {
             const response = await get(`/api/trauerdruck-entwuerfe/${entwurf.id}/kommentare/`);
             setKommentare(response.data);
         } catch (err) {
             console.error('Error loading kommentare:', err);
         }
-    }, [get, entwurf]);
+    };
 
-    const loadFreigaben = useCallback(async () => {
-        if (!entwurf) return;
+    const loadFreigaben = async () => {
         try {
             const response = await get(`/api/trauerdruck-entwuerfe/${entwurf.id}/freigaben/`);
             setFreigaben(response.data);
         } catch (err) {
             console.error('Error loading freigaben:', err);
         }
-    }, [get, entwurf]);
-
-    useEffect(() => {
-        if (entwurf) {
-            loadKommentare();
-            loadFreigaben();
-        }
-    }, [entwurf, loadKommentare, loadFreigaben]);
+    };
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
@@ -191,19 +189,68 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
                                 <div className="design-preview">
                                     <div className="preview-header">
                                         <h3>Design-Vorschau</h3>
-                                        <button 
-                                            className="btn-secondary"
-                                            onClick={() => setShowFullscreen(true)}
-                                        >
-                                            Vollbild anzeigen
-                                        </button>
+                                        <div className="preview-actions">
+                                            <button 
+                                                className="btn-secondary"
+                                                onClick={() => setShowFullscreen(true)}
+                                            >
+                                                Vollbild anzeigen
+                                            </button>
+                                            <button 
+                                                className="btn-secondary"
+                                                onClick={() => window.open(entwurf.design_file_url, '_blank')}
+                                                disabled={!entwurf.design_file_url}
+                                            >
+                                                In neuem Tab öffnen
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="preview-container">
-                                        {entwurf.design_file_url ? (
+                                        {entwurf.designs && entwurf.designs.length > 0 ? (
+                                            <div className="design-variants">
+                                                {entwurf.designs.map((design, index) => (
+                                                    <div key={design.id} className="design-variant">
+                                                        <div className="variant-header">
+                                                            <h4>{design.title}</h4>
+                                                            <div className="variant-badges">
+                                                                {design.is_approved && (
+                                                                    <span className="badge-approved">✓ Freigegeben</span>
+                                                                )}
+                                                                {design.approval_count > 0 && (
+                                                                    <span className="badge-approvals">
+                                                                        {design.approval_count} Freigaben
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="variant-preview">
+                                                            {design.design_file_url ? (
+                                                                <img 
+                                                                    src={design.design_file_url} 
+                                                                    alt={`${design.title} - Vorschau`}
+                                                                    className="preview-image"
+                                                                    onClick={() => setShowFullscreen(true)}
+                                                                />
+                                                            ) : (
+                                                                <div className="no-preview">
+                                                                    <p>Keine Vorschau verfügbar</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {design.description && (
+                                                            <div className="variant-description">
+                                                                <p>{design.description}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : entwurf.design_file_url ? (
                                             <img 
                                                 src={entwurf.design_file_url} 
                                                 alt="Design-Vorschau"
                                                 className="preview-image"
+                                                onClick={() => setShowFullscreen(true)}
                                             />
                                         ) : (
                                             <div className="no-preview">
@@ -224,20 +271,29 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
 
                         {activeTab === 'comments' && (
                             <div className="comments-tab">
+                                <div className="collaboration-header">
+                                    <h3>Zusammenarbeit & Abstimmung</h3>
+                                    <p>Hier können Sie mit anderen Angehörigen über die Entwürfe diskutieren und abstimmen.</p>
+                                </div>
+
                                 <div className="comments-list">
                                     {kommentare.length === 0 ? (
                                         <div className="no-comments">
-                                            <p>Noch keine Kommentare vorhanden.</p>
+                                            <p>Noch keine Kommentare vorhanden. Seien Sie der Erste, der einen Kommentar hinzufügt.</p>
                                         </div>
                                     ) : (
                                         kommentare.map((kommentar) => (
                                             <div key={kommentar.id} className="comment-item">
                                                 <div className="comment-header">
-                                                    <span className="comment-author">{kommentar.author_name}</span>
-                                                    <span className="comment-date">{formatDate(kommentar.created_at)}</span>
-                                                    {kommentar.is_internal && (
-                                                        <span className="comment-internal">Intern</span>
-                                                    )}
+                                                    <div className="comment-author-info">
+                                                        <span className="comment-author">{kommentar.author_name}</span>
+                                                        <span className="comment-date">{formatDate(kommentar.created_at)}</span>
+                                                    </div>
+                                                    <div className="comment-badges">
+                                                        {kommentar.is_internal && (
+                                                            <span className="comment-internal">Intern</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="comment-content">
                                                     {kommentar.content}
@@ -249,19 +305,47 @@ const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
 
                                 <div className="add-comment">
                                     <h3>Kommentar hinzufügen</h3>
+                                    <div className="comment-types">
+                                        <label className="comment-type-option">
+                                            <input
+                                                type="radio"
+                                                name="commentType"
+                                                value="public"
+                                                defaultChecked
+                                            />
+                                            <span>Öffentlicher Kommentar (für alle Angehörigen sichtbar)</span>
+                                        </label>
+                                        <label className="comment-type-option">
+                                            <input
+                                                type="radio"
+                                                name="commentType"
+                                                value="internal"
+                                            />
+                                            <span>Interner Kommentar (nur für Bestatter sichtbar)</span>
+                                        </label>
+                                    </div>
                                     <textarea
                                         value={newComment}
                                         onChange={(e) => setNewComment(e.target.value)}
-                                        placeholder="Ihren Kommentar hier eingeben..."
+                                        placeholder="Ihren Kommentar hier eingeben... Teilen Sie Ihre Gedanken und Wünsche mit anderen Angehörigen."
                                         rows={4}
                                     />
-                                    <button 
-                                        className="btn-primary"
-                                        onClick={handleAddComment}
-                                        disabled={loading || !newComment.trim()}
-                                    >
-                                        {loading ? 'Speichern...' : 'Kommentar hinzufügen'}
-                                    </button>
+                                    <div className="comment-actions">
+                                        <button 
+                                            className="btn-primary"
+                                            onClick={handleAddComment}
+                                            disabled={loading || !newComment.trim()}
+                                        >
+                                            {loading ? 'Speichern...' : 'Kommentar hinzufügen'}
+                                        </button>
+                                        <button 
+                                            className="btn-secondary"
+                                            onClick={() => setNewComment('')}
+                                            disabled={loading}
+                                        >
+                                            Abbrechen
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

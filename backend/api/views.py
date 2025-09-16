@@ -530,12 +530,6 @@ class TrauerdruckEntwurfViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         entwurf = serializer.save(created_by=self.request.user)
-        
-        # Automatisch auf "pending_approval" setzen, wenn assigned_to gesetzt ist
-        if entwurf.assigned_to.exists():
-            entwurf.status = 'pending_approval'
-            entwurf.save()
-        
         # Benachrichtigungen senden
         try:
             TrauerdruckNotificationService.notify_new_draft(entwurf)
@@ -574,6 +568,62 @@ class TrauerdruckEntwurfViewSet(viewsets.ModelViewSet):
         }
         
         return Response(stats)
+    
+    @action(detail=True, methods=['post'])
+    def send_to_family(self, request, pk=None):
+        """Entwurf an Familie senden"""
+        entwurf = self.get_object()
+        entwurf.status = 'pending_approval'
+        entwurf.save()
+        
+        # Benachrichtigungen senden
+        try:
+            TrauerdruckNotificationService.notify_approval_requested(entwurf)
+        except Exception as e:
+            print(f"Fehler beim Senden der Benachrichtigungen: {e}")
+        
+        return Response({'status': 'sent_to_family'})
+    
+    @action(detail=True, methods=['post'])
+    def request_revision(self, request, pk=None):
+        """Revision anfordern"""
+        entwurf = self.get_object()
+        reason = request.data.get('reason', '')
+        
+        entwurf.status = 'revision_requested'
+        entwurf.save()
+        
+        # Kommentar hinzufügen
+        if reason:
+            TrauerdruckKommentar.objects.create(
+                entwurf=entwurf,
+                author=request.user,
+                content=f"Revision angefordert: {reason}",
+                is_internal=True
+            )
+        
+        # Benachrichtigungen senden
+        try:
+            TrauerdruckNotificationService.notify_revision_requested(entwurf, request.user)
+        except Exception as e:
+            print(f"Fehler beim Senden der Benachrichtigungen: {e}")
+        
+        return Response({'status': 'revision_requested'})
+    
+    @action(detail=True, methods=['post'])
+    def mark_completed(self, request, pk=None):
+        """Entwurf als abgeschlossen markieren"""
+        entwurf = self.get_object()
+        entwurf.status = 'completed'
+        entwurf.save()
+        
+        # Benachrichtigungen senden
+        try:
+            TrauerdruckNotificationService.notify_completed(entwurf)
+        except Exception as e:
+            print(f"Fehler beim Senden der Benachrichtigungen: {e}")
+        
+        return Response({'status': 'completed'})
 
 
 class TrauerdruckKommentarViewSet(viewsets.ModelViewSet):
@@ -753,6 +803,22 @@ class TrauerdruckDesignViewSet(viewsets.ModelViewSet):
             print(f"Fehler beim Senden der Benachrichtigungen: {e}")
         
         return Response({'status': 'rejected'})
+    
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        """Design aktivieren"""
+        design = self.get_object()
+        design.is_active = True
+        design.save()
+        return Response({'status': 'activated'})
+    
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        """Design deaktivieren"""
+        design = self.get_object()
+        design.is_active = False
+        design.save()
+        return Response({'status': 'deactivated'})
 
 
 class TrauerdruckDesignFreigabeViewSet(viewsets.ModelViewSet):

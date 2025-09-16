@@ -214,8 +214,6 @@ function initializeSideDock() {
                 { id: 'freigaben', label: 'Freigaben', icon: 'fa-check-circle', url: '/admin/api/trauerdruckfreigabe/' },
                 { id: 'kommentare', label: 'Kommentare', icon: 'fa-comments', url: '/admin/api/trauerdruckkommentar/' },
                 { id: 'benachrichtigungen', label: 'Benachrichtigungen', icon: 'fa-bell', url: '/admin/api/trauerdruckbenachrichtigung/' },
-                { id: 'templates', label: 'Templates', icon: 'fa-copy', url: '/admin/api/trauerdrucktemplate/' },
-                { id: 'typen', label: 'Typen', icon: 'fa-tags', url: '/admin/api/trauerdrucktype/' },
             ]},
             { id: 'vorsorge', label: 'Vorsorge', icon: 'fa-file-invoice', children: [
                  { id: 'lastwishes', label: 'Letzte Wünsche', icon: 'fa-hand-holding-heart', url: '/admin/api/lastwishes/' },
@@ -230,6 +228,8 @@ function initializeSideDock() {
                 { id: 'condolence-tpl', label: 'Kondolenz-Vorlagen', icon: 'fa-paste', url: '/admin/api/condolencetemplate/' },
                 { id: 'candle-img', label: 'Kerzen-Bilder', icon: 'fa-image', url: '/admin/api/candleimage/' },
                 { id: 'candle-msg-tpl', label: 'Kerzen-Nachrichten', icon: 'fa-comment-alt', url: '/admin/api/candlemessagetemplate/' },
+                { id: 'trauerdruck-typen', label: 'Trauerdruck-Typen', icon: 'fa-tags', url: '/admin/api/trauerdrucktype/' },
+                { id: 'trauerdruck-templates', label: 'Trauerdruck-Templates', icon: 'fa-copy', url: '/admin/api/trauerdrucktemplate/' },
             ]},
              { id: 'design', label: 'Design & Medien', icon: 'fa-palette', children: [
                 { id: 'settings', label: 'Globale Einstellungen', icon: 'fa-sliders-h', url: '/admin/api/sitesettings/' },

@@ -17,13 +17,20 @@ class TrauerdruckNotificationService:
     @staticmethod
     def create_notification(user, entwurf, notification_type, title, message):
         """Erstellt eine neue Benachrichtigung"""
-        return TrauerdruckBenachrichtigung.objects.create(
-            user=user,
-            entwurf=entwurf,
-            notification_type=notification_type,
-            title=title,
-            message=message
-        )
+        try:
+            return TrauerdruckBenachrichtigung.objects.create(
+                user=user,
+                entwurf=entwurf,
+                notification_type=notification_type,
+                title=title,
+                message=message
+            )
+        except Exception as e:
+            print(f"Fehler beim Erstellen der Benachrichtigung: {e}")
+            print(f"User: {user}, Entwurf: {entwurf}, Type: {notification_type}")
+            import traceback
+            traceback.print_exc()
+            raise
     
     @staticmethod
     def notify_new_draft(entwurf):
@@ -203,35 +210,45 @@ class TrauerdruckWorkflowService:
         """Verarbeitet eine Freigabe-Entscheidung"""
         from .models import TrauerdruckFreigabe
         
-        # Freigabe-Entscheidung speichern
-        freigabe, created = TrauerdruckFreigabe.objects.get_or_create(
-            entwurf=entwurf,
-            reviewer=reviewer,
-            defaults={
-                'decision': decision,
-                'comment': comment,
-                'revision_notes': revision_notes
-            }
-        )
-        
-        if not created:
-            # Bestehende Freigabe aktualisieren
-            freigabe.decision = decision
-            freigabe.comment = comment
-            freigabe.revision_notes = revision_notes
-            freigabe.save()
-        
-        # Entwurf-Status aktualisieren
-        if decision == 'approved':
-            entwurf.status = 'approved'
-        elif decision == 'revision_requested':
-            entwurf.status = 'revision_requested'
-        elif decision == 'rejected':
-            entwurf.status = 'rejected'
-        
-        entwurf.save()
-        
-        # Benachrichtigungen senden
-        TrauerdruckNotificationService.notify_decision(entwurf, decision, reviewer)
-        
-        return freigabe
+        try:
+            # Freigabe-Entscheidung speichern
+            freigabe, created = TrauerdruckFreigabe.objects.get_or_create(
+                entwurf=entwurf,
+                reviewer=reviewer,
+                defaults={
+                    'decision': decision,
+                    'comment': comment,
+                    'revision_notes': revision_notes
+                }
+            )
+            
+            if not created:
+                # Bestehende Freigabe aktualisieren
+                freigabe.decision = decision
+                freigabe.comment = comment
+                freigabe.revision_notes = revision_notes
+                freigabe.save()
+            
+            # Entwurf-Status aktualisieren
+            if decision == 'approved':
+                entwurf.status = 'approved'
+            elif decision == 'revision_requested':
+                entwurf.status = 'revision_requested'
+            elif decision == 'rejected':
+                entwurf.status = 'rejected'
+            
+            entwurf.save()
+            
+            # Benachrichtigungen senden
+            try:
+                TrauerdruckNotificationService.notify_decision(entwurf, decision, reviewer)
+            except Exception as notification_error:
+                print(f"Fehler beim Senden der Benachrichtigungen: {notification_error}")
+                # Benachrichtigungsfehler sollen den Workflow nicht stoppen
+            
+            return freigabe
+        except Exception as e:
+            print(f"Fehler im process_approval: {e}")
+            import traceback
+            traceback.print_exc()
+            raise

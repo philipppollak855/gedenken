@@ -616,17 +616,25 @@ class TrauerdruckFreigabeViewSet(viewsets.ModelViewSet):
         try:
             freigabe = serializer.save(reviewer=self.request.user)
             # Workflow verarbeiten
-            TrauerdruckWorkflowService.process_approval(
-                entwurf=freigabe.entwurf,
-                decision=freigabe.decision,
-                reviewer=self.request.user,
-                comment=freigabe.comment,
-                revision_notes=freigabe.revision_notes
-            )
+            try:
+                TrauerdruckWorkflowService.process_approval(
+                    entwurf=freigabe.entwurf,
+                    decision=freigabe.decision,
+                    reviewer=self.request.user,
+                    comment=freigabe.comment,
+                    revision_notes=freigabe.revision_notes
+                )
+            except Exception as workflow_error:
+                # Log den Workflow-Fehler, aber lasse die Freigabe trotzdem speichern
+                print(f"Fehler im Workflow-Service: {workflow_error}")
+                import traceback
+                traceback.print_exc()
         except Exception as e:
-            # Log den Fehler, aber lasse die Freigabe trotzdem speichern
-            print(f"Fehler im Workflow-Service: {e}")
-            # Die Freigabe wurde bereits gespeichert, das ist das Wichtigste
+            # Log den Serializer-Fehler
+            print(f"Fehler beim Speichern der Freigabe: {e}")
+            import traceback
+            traceback.print_exc()
+            raise  # Re-raise den Fehler, damit der Client ihn sieht
 
 
 class TrauerdruckBenachrichtigungViewSet(viewsets.ModelViewSet):

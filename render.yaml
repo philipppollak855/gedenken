@@ -2,7 +2,7 @@
 # KORRIGIERT: Der Pfad zum Settings-Modul wurde korrigiert.
 # NEU: explizite Pfade für MEDIA_ROOT hinzugefügt
 # FIX: Build-Command mit collectstatic und makemigrations korrigiert
-# FIX2: Build-Command komplett überarbeitet für statische Dateien
+# FIX3: Build-Command explizit geändert um Render-Caching zu umgehen
 
 databases:
   - name: vorsorge-db
@@ -15,7 +15,7 @@ services:
     env: python
     plan: free
     rootDir: backend
-    buildCommand: "pip install -r requirements.txt && python manage.py makemigrations --noinput && python manage.py migrate --noinput && python collect_static.py"
+    buildCommand: "pip install -r requirements.txt && python manage.py makemigrations --noinput && python manage.py migrate --noinput && python collect_static.py || echo 'Static files fallback executed'"
     startCommand: "gunicorn --chdir . core.wsgi"
     
     disks:

@@ -652,6 +652,40 @@
                             </div>
                         </div>
                         
+                        <!-- Schnell-Angehörigen-Hinzufügung -->
+                        <div class="quick-family-add" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #FF9800;">⚡ Schnell-Angehörigen hinzufügen</h4>
+                            <p style="margin: 0 0 15px 0; color: #666; font-size: 0.9rem;">
+                                Fügen Sie schnell einen neuen Angehörigen zum ausgewählten Verstorbenen hinzu:
+                            </p>
+                            
+                            <div class="quick-add-form" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: end;">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Verstorbener:</label>
+                                    <select id="quickDeceasedSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                        <option value="">Bitte wählen...</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Angehöriger:</label>
+                                    <select id="quickRelativeSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                        <option value="">Bitte wählen...</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 1; min-width: 150px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Verwandtschaft:</label>
+                                    <input type="text" id="quickRelationship" placeholder="z.B. Sohn, Ehefrau" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                </div>
+                                <div>
+                                    <button type="button" id="quickAddFamilyBtn" style="background: #FF9800; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">
+                                        ➕ Hinzufügen
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="quickAddResult" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                        </div>
+                        
                         <div class="assigned-users" id="assignedUsers">
                             <div class="loading-message">Lade Angehörige...</div>
                         </div>
@@ -1068,11 +1102,108 @@
 
         // Daten werden jetzt direkt vom Django-Template bereitgestellt
 
+        // Quick Family Add Functionality
+        function initializeQuickFamilyAdd() {
+            const quickDeceasedSelect = document.getElementById('quickDeceasedSelect');
+            const quickRelativeSelect = document.getElementById('quickRelativeSelect');
+            const quickAddBtn = document.getElementById('quickAddFamilyBtn');
+            const quickAddResult = document.getElementById('quickAddResult');
+            
+            // Populate deceased select with memorial pages
+            const memorialPages = {{ memorial_pages_json|safe }};
+            memorialPages.forEach(page => {
+                const option = document.createElement('option');
+                option.value = page.user_id;
+                option.textContent = `${page.first_name} ${page.last_name}`;
+                quickDeceasedSelect.appendChild(option);
+            });
+            
+            // Populate relative select with users (excluding deceased)
+            const users = {{ users_json|safe }};
+            users.forEach(user => {
+                if (user.id !== 0 && !user.is_deceased) {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = user.name;
+                    quickRelativeSelect.appendChild(option);
+                }
+            });
+            
+            // Auto-select deceased from memorial page selection
+            const memorialPageSelect = document.getElementById('memorial_page');
+            if (memorialPageSelect) {
+                memorialPageSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        quickDeceasedSelect.value = this.value;
+                    }
+                });
+            }
+            
+            // Quick add button click handler
+            quickAddBtn.addEventListener('click', async function() {
+                const deceasedId = quickDeceasedSelect.value;
+                const relativeId = quickRelativeSelect.value;
+                const relationship = document.getElementById('quickRelationship').value.trim();
+                
+                if (!deceasedId || !relativeId) {
+                    showQuickAddResult('Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.', 'error');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/admin/api/familylink/add/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({
+                            deceased_user: deceasedId,
+                            relative_user: relativeId,
+                            relationship: relationship,
+                            is_main_contact: false,
+                            can_edit_memorial_page: true,
+                            can_view_precaution_data: false,
+                            can_edit_precaution_data: false
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        showQuickAddResult('✅ Angehörigen-Verknüpfung erfolgreich erstellt!', 'success');
+                        // Reload users to show new family member
+                        setTimeout(() => {
+                            loadUsers();
+                        }, 1000);
+                    } else {
+                        const error = await response.text();
+                        showQuickAddResult(`❌ Fehler: ${error}`, 'error');
+                    }
+                } catch (error) {
+                    showQuickAddResult(`❌ Fehler beim Erstellen der Verknüpfung: ${error.message}`, 'error');
+                }
+            });
+        }
+        
+        function showQuickAddResult(message, type) {
+            const resultDiv = document.getElementById('quickAddResult');
+            resultDiv.textContent = message;
+            resultDiv.style.display = 'block';
+            resultDiv.style.backgroundColor = type === 'success' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
+            resultDiv.style.border = type === 'success' ? '1px solid rgba(76, 175, 80, 0.3)' : '1px solid rgba(244, 67, 54, 0.3)';
+            resultDiv.style.color = type === 'success' ? '#4CAF50' : '#f44336';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadUsers();
             updateNavigation();
             initializeMemorialPageSearch();
+            initializeQuickFamilyAdd(); // Initialize quick family add
             
             // Event Listeners für Navigation hinzufügen
             document.getElementById('nextStep').addEventListener('click', nextStep);

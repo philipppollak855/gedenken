@@ -10,6 +10,7 @@ from django.utils.html import format_html
 from django.utils.text import slugify
 from django.utils.timezone import now
 from django.template.response import TemplateResponse
+from django.http import JsonResponse
 from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
@@ -1146,8 +1147,18 @@ def trauerdruck_entwurf_form_view(request):
         
         try:
             memorial_pages = MemorialPage.objects.all()[:50]
+            memorial_pages_data = []
+            for page in memorial_pages:
+                memorial_pages_data.append({
+                    'id': page.id,
+                    'user_id': page.user.id if page.user else None,
+                    'first_name': page.first_name or '',
+                    'last_name': page.last_name or '',
+                    'full_name': f"{page.first_name or ''} {page.last_name or ''}".strip()
+                })
         except Exception as e:
             memorial_pages = []
+            memorial_pages_data = []
             print(f"Fehler beim Laden der Gedenkseiten: {e}")
         
         try:
@@ -1167,6 +1178,7 @@ def trauerdruck_entwurf_form_view(request):
         
         context = {
             'memorial_pages': memorial_pages,
+            'memorial_pages_json': json.dumps(memorial_pages_data),
             'trauerdruck_types': trauerdruck_types,
             'users_json': json.dumps(users_data),
         }
@@ -1186,6 +1198,62 @@ def trauerdruck_entwurf_form_view(request):
             </html>
         ''')
 
+def quick_family_link_add_view(request):
+    """
+    API-Endpoint für das schnelle Hinzufügen von FamilyLink-Einträgen
+    """
+    if request.method == 'POST':
+        try:
+            import json
+            from .models import FamilyLink
+            from django.contrib.auth.models import User
+            
+            # JSON-Daten parsen
+            data = json.loads(request.body)
+            
+            deceased_user_id = data.get('deceased_user')
+            relative_user_id = data.get('relative_user')
+            relationship = data.get('relationship', '')
+            is_main_contact = data.get('is_main_contact', False)
+            can_edit_memorial_page = data.get('can_edit_memorial_page', True)
+            can_view_precaution_data = data.get('can_view_precaution_data', False)
+            can_edit_precaution_data = data.get('can_edit_precaution_data', False)
+            
+            # Benutzer validieren
+            try:
+                deceased_user = User.objects.get(id=deceased_user_id)
+                relative_user = User.objects.get(id=relative_user_id)
+            except User.DoesNotExist:
+                return JsonResponse({'error': 'Benutzer nicht gefunden'}, status=400)
+            
+            # Prüfen ob Verknüpfung bereits existiert
+            if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
+                return JsonResponse({'error': 'Diese Verknüpfung existiert bereits'}, status=400)
+            
+            # FamilyLink erstellen
+            family_link = FamilyLink.objects.create(
+                deceased_user=deceased_user,
+                relative_user=relative_user,
+                relationship=relationship,
+                is_main_contact=is_main_contact,
+                can_edit_memorial_page=can_edit_memorial_page,
+                can_view_precaution_data=can_view_precaution_data,
+                can_edit_precaution_data=can_edit_precaution_data
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Angehörigen-Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}',
+                'family_link_id': str(family_link.link_id)
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Ungültige JSON-Daten'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': f'Fehler beim Erstellen der Verknüpfung: {str(e)}'}, status=500)
+    
+    return JsonResponse({'error': 'Nur POST-Requests erlaubt'}, status=405)
+
 def custom_get_urls(self):
     # Originale URLs bekommen
     original_urls = original_get_urls(self)
@@ -1194,6 +1262,7 @@ def custom_get_urls(self):
     custom_urls = [
         path('trauerdruck-dashboard/', self.admin_view(trauerdruck_dashboard_view), name='trauerdruck_dashboard'),
         path('trauerdruck-entwurf-form/', self.admin_view(trauerdruck_entwurf_form_view), name='trauerdruck_entwurf_form'),
+        path('api/familylink/add/', self.admin_view(quick_family_link_add_view), name='quick_family_link_add'),
     ]
     
     return custom_urls + original_urls

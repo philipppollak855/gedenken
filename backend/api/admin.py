@@ -1072,11 +1072,22 @@ def trauerdruck_entwurf_form_view(request):
     # Daten für die Form bereitstellen
     from .models import MemorialPage, TrauerdruckType
     from django.contrib.auth.models import User
+    import json
+    
+    users = User.objects.filter(is_active=True)[:20]
+    users_data = []
+    for user in users:
+        users_data.append({
+            'id': user.id,
+            'name': f"{user.first_name} {user.last_name}".strip() or user.username,
+            'email': user.email,
+            'avatar': f"{user.first_name[0] if user.first_name else ''}{user.last_name[0] if user.last_name else ''}".upper() or user.username[0].upper()
+        })
     
     context = {
         'memorial_pages': MemorialPage.objects.all()[:50],  # Limit für Performance
         'trauerdruck_types': TrauerdruckType.objects.filter(is_active=True),
-        'users': User.objects.filter(is_active=True)[:20],  # Aktive Benutzer für Angehörige
+        'users_json': json.dumps(users_data),  # JSON für JavaScript
     }
     
     return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html', context))

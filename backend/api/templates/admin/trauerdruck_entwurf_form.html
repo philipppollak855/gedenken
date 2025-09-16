@@ -544,7 +544,7 @@
                             <select id="memorial_page" name="memorial_page" required style="display: none;">
                                 <option value="">Bitte wählen...</option>
                                 {% for page in memorial_pages %}
-                                <option value="{{ page.id }}" data-name="{{ page.first_name }} {{ page.last_name }}">{{ page.first_name }} {{ page.last_name }}</option>
+                                <option value="{{ page.id }}" data-name="{{ page.first_name|default:'' }} {{ page.last_name|default:'' }}">{{ page.first_name|default:'' }} {{ page.last_name|default:'' }}</option>
                                 {% endfor %}
                             </select>
                             <div id="memorial_page_results" class="search-results" style="display: none;"></div>
@@ -763,17 +763,8 @@
             const container = document.getElementById('assignedUsers');
             container.innerHTML = '';
 
-            // Echte Benutzerdaten aus Django-Template verwenden
-            const users = [
-                {% for user in users %}
-                { 
-                    id: {{ user.id }}, 
-                    name: '{{ user.first_name }} {{ user.last_name }}', 
-                    email: '{{ user.email }}',
-                    avatar: '{{ user.first_name|first }}{{ user.last_name|first }}' 
-                }{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
+            // Benutzerdaten aus JSON verwenden
+            const users = {{ users_json|safe }};
 
             users.forEach(user => {
                 const userCard = document.createElement('div');

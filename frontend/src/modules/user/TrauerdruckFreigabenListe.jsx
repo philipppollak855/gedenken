@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import TrauerdruckFreigabeModal from './TrauerdruckFreigabeModal';
 import './TrauerdruckFreigabenListe.css';
 
 const TrauerdruckFreigabenListe = () => {
@@ -191,23 +192,6 @@ const TrauerdruckFreigabenListe = () => {
                     onUpdate={loadFreigaben}
                 />
             )}
-        </div>
-    );
-};
-
-// Placeholder für das Modal - wird in separater Datei implementiert
-const TrauerdruckFreigabeModal = ({ entwurf, onClose, onUpdate }) => {
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>{entwurf.title}</h2>
-                    <button className="modal-close" onClick={onClose}>×</button>
-                </div>
-                <div className="modal-body">
-                    <p>Modal wird implementiert...</p>
-                </div>
-            </div>
         </div>
     );
 };

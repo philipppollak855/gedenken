@@ -1,0 +1,316 @@
+/* TrauerdruckEntwurfErstellen.css */
+
+.entwurf-erstellen-container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.entwurf-header {
+    margin-bottom: 2rem;
+}
+
+.entwurf-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: #3a3a3a;
+    margin-bottom: 0.5rem;
+}
+
+.entwurf-header p {
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+.entwurf-form {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.form-section {
+    padding: 2rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.form-section:last-child {
+    border-bottom: none;
+}
+
+.form-section h2 {
+    font-size: 1.5rem;
+    color: #3a3a3a;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #8c8073;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #3a3a3a;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #8c8073;
+    box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.1);
+}
+
+.form-group input[type="file"] {
+    padding: 0.5rem;
+    background: #f9fafb;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-group input[type="file"]:hover {
+    border-color: #8c8073;
+    background: #f3f4f6;
+}
+
+.form-group input[type="file"]:focus {
+    border-color: #8c8073;
+    box-shadow: 0 0 0 3px rgba(140, 128, 115, 0.1);
+}
+
+.form-group select[multiple] {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-group small {
+    display: block;
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Upload Progress */
+.upload-progress {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8c8073, #7a6f63);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.upload-progress span {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Form Actions */
+.form-actions {
+    padding: 2rem;
+    background: #f9fafb;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+/* Messages */
+.success-message,
+.error-message {
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.success-message {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.success-message h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.success-message p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.error-message {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.error-message h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.error-message p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background: #8c8073;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #7a6f63;
+}
+
+.btn-primary:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: white;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #8c8073;
+    color: #8c8073;
+}
+
+/* File Input Styling */
+.form-group input[type="file"]::-webkit-file-upload-button {
+    background: #8c8073;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 1rem;
+    transition: background 0.3s ease;
+}
+
+.form-group input[type="file"]::-webkit-file-upload-button:hover {
+    background: #7a6f63;
+}
+
+/* Priority Indicators */
+.form-group select[name="priority"] option[value="urgent"] {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.form-group select[name="priority"] option[value="high"] {
+    color: #ea580c;
+    font-weight: 500;
+}
+
+.form-group select[name="priority"] option[value="normal"] {
+    color: #059669;
+}
+
+.form-group select[name="priority"] option[value="low"] {
+    color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .entwurf-erstellen-container {
+        padding: 1rem;
+    }
+    
+    .form-section {
+        padding: 1.5rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        padding: 1.5rem;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .entwurf-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .entwurf-erstellen-container {
+        padding: 0.5rem;
+    }
+    
+    .form-section {
+        padding: 1rem;
+    }
+    
+    .form-section h2 {
+        font-size: 1.25rem;
+    }
+}

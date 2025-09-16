@@ -1,0 +1,314 @@
+/* TrauerdruckFreigabenListe.css */
+
+.freigaben-liste-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.freigaben-header {
+    margin-bottom: 2rem;
+}
+
+.freigaben-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: #3a3a3a;
+    margin-bottom: 0.5rem;
+}
+
+.freigaben-header p {
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+.freigaben-filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #e5e7eb;
+    background: white;
+    color: #6b7280;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.filter-btn:hover {
+    border-color: #8c8073;
+    color: #8c8073;
+}
+
+.filter-btn.active {
+    background: #8c8073;
+    border-color: #8c8073;
+    color: white;
+}
+
+.freigaben-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.freigaben-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.freigaben-item:hover {
+    border-color: #8c8073;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.freigaben-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.freigaben-item-header h3 {
+    font-size: 1.25rem;
+    color: #3a3a3a;
+    margin: 0;
+    flex: 1;
+}
+
+.freigaben-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.status-badge, .priority-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge {
+    color: white;
+}
+
+.priority-badge {
+    color: white;
+}
+
+/* Status Badge Colors */
+.status-pending {
+    background: #f59e0b;
+}
+
+.status-approved {
+    background: #10b981;
+}
+
+.status-revision {
+    background: #f97316;
+}
+
+.status-rejected {
+    background: #ef4444;
+}
+
+.status-completed {
+    background: #6b7280;
+}
+
+.status-draft {
+    background: #8b5cf6;
+}
+
+/* Priority Badge Colors */
+.priority-urgent {
+    background: #dc2626;
+}
+
+.priority-high {
+    background: #ea580c;
+}
+
+.priority-normal {
+    background: #059669;
+}
+
+.priority-low {
+    background: #6b7280;
+}
+
+.freigaben-item-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #6b7280;
+    min-width: 120px;
+}
+
+.detail-value {
+    color: #3a3a3a;
+}
+
+.detail-value.overdue {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.freigaben-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.btn-primary {
+    background: #8c8073;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #7a6f63;
+}
+
+.no-freigaben {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+}
+
+.loading, .error {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.1rem;
+}
+
+.error {
+    color: #dc2626;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #3a3a3a;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .freigaben-liste-container {
+        padding: 1rem;
+    }
+    
+    .freigaben-filters {
+        flex-direction: column;
+    }
+    
+    .filter-btn {
+        text-align: center;
+    }
+    
+    .freigaben-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .freigaben-item-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .detail-label {
+        min-width: auto;
+    }
+    
+    .modal-overlay {
+        padding: 1rem;
+    }
+}

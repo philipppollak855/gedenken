@@ -22,7 +22,9 @@ from .models import (
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
     TimelineEvent, GalleryItem, MemorialCandle, ReleaseRequest, FamilyLink,
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
-    CandleMessageTemplate, MediaAsset, MediaFolder, EventLocation, EventAttendance
+    CandleMessageTemplate, MediaAsset, MediaFolder, EventLocation, EventAttendance,
+    TrauerdruckType, TrauerdruckEntwurf, TrauerdruckKommentar, 
+    TrauerdruckFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate
 )
 
 @admin.register(MediaFolder)
@@ -585,4 +587,82 @@ def admin_dashboard_view(request):
     return render(request, "admin/dashboard.html", context)
 
 admin.site.index = admin_dashboard_view
+
+
+# ===== TRAUERDRUCK-ADMIN =====
+
+@admin.register(TrauerdruckType)
+class TrauerdruckTypeAdmin(ModelAdmin):
+    list_display = ('name', 'description', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('name', 'description')
+    ordering = ('name',)
+
+
+@admin.register(TrauerdruckEntwurf)
+class TrauerdruckEntwurfAdmin(ModelAdmin):
+    list_display = ('title', 'memorial_page', 'trauerdruck_type', 'status', 'version', 'priority', 'created_by', 'created_at', 'deadline')
+    list_filter = ('status', 'trauerdruck_type', 'priority', 'created_at', 'deadline')
+    search_fields = ('title', 'description', 'memorial_page__deceased_name', 'created_by__first_name', 'created_by__last_name')
+    raw_id_fields = ('memorial_page', 'design_file', 'preview_file', 'created_by')
+    filter_horizontal = ('assigned_to',)
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('title', 'description', 'trauerdruck_type', 'memorial_page')
+        }),
+        ('Status & Workflow', {
+            'fields': ('status', 'version', 'is_latest_version', 'priority', 'deadline')
+        }),
+        ('Dateien', {
+            'fields': ('design_file', 'preview_file')
+        }),
+        ('Personen', {
+            'fields': ('created_by', 'assigned_to')
+        }),
+    )
+
+
+@admin.register(TrauerdruckKommentar)
+class TrauerdruckKommentarAdmin(ModelAdmin):
+    list_display = ('entwurf', 'author', 'is_internal', 'created_at')
+    list_filter = ('is_internal', 'created_at')
+    search_fields = ('content', 'author__first_name', 'author__last_name', 'entwurf__title')
+    raw_id_fields = ('entwurf', 'author')
+    ordering = ('-created_at',)
+
+
+@admin.register(TrauerdruckFreigabe)
+class TrauerdruckFreigabeAdmin(ModelAdmin):
+    list_display = ('entwurf', 'reviewer', 'decision', 'created_at')
+    list_filter = ('decision', 'created_at')
+    search_fields = ('comment', 'revision_notes', 'reviewer__first_name', 'reviewer__last_name', 'entwurf__title')
+    raw_id_fields = ('entwurf', 'reviewer')
+    ordering = ('-created_at',)
+
+
+@admin.register(TrauerdruckBenachrichtigung)
+class TrauerdruckBenachrichtigungAdmin(ModelAdmin):
+    list_display = ('user', 'entwurf', 'notification_type', 'title', 'is_read', 'created_at')
+    list_filter = ('notification_type', 'is_read', 'created_at')
+    search_fields = ('title', 'message', 'user__first_name', 'user__last_name', 'entwurf__title')
+    raw_id_fields = ('user', 'entwurf')
+    ordering = ('-created_at',)
+    
+    def mark_as_read(self, request, queryset):
+        queryset.update(is_read=True)
+    mark_as_read.short_description = "Als gelesen markieren"
+    
+    actions = [mark_as_read]
+
+
+@admin.register(TrauerdruckTemplate)
+class TrauerdruckTemplateAdmin(ModelAdmin):
+    list_display = ('name', 'trauerdruck_type', 'is_active', 'created_by', 'created_at')
+    list_filter = ('trauerdruck_type', 'is_active', 'created_at')
+    search_fields = ('name', 'description', 'created_by__first_name', 'created_by__last_name')
+    raw_id_fields = ('template_file', 'created_by')
+    ordering = ('name',)
 

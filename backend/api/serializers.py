@@ -9,7 +9,9 @@ from .models import (
     Document, LastWishes, MemorialPage, Condolence, TimelineEvent, 
     GalleryItem, MemorialCandle, ReleaseRequest, MemorialEvent, SiteSettings,
     CondolenceTemplate, CandleImage, CandleMessageTemplate, MediaAsset, EventLocation,
-    EventAttendance, FamilyLink
+    EventAttendance, FamilyLink, TrauerdruckType, TrauerdruckEntwurf, 
+    TrauerdruckKommentar, TrauerdruckFreigabe, TrauerdruckBenachrichtigung, 
+    TrauerdruckTemplate
 )
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -80,6 +82,111 @@ class RegisterSerializer(serializers.ModelSerializer):
             consent_admin_access=validated_data['consent_admin_access']
         )
         return user
+
+
+# ===== TRAUERDRUCK-SERIALIZER =====
+
+class TrauerdruckTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrauerdruckType
+        fields = ['id', 'name', 'description', 'is_active', 'created_at']
+
+
+class TrauerdruckEntwurfSerializer(serializers.ModelSerializer):
+    memorial_page_name = serializers.CharField(source='memorial_page.deceased_name', read_only=True)
+    trauerdruck_type_name = serializers.CharField(source='trauerdruck_type.name', read_only=True)
+    created_by_name = serializers.SerializerMethodField()
+    design_file_url = serializers.SerializerMethodField()
+    preview_file_url = serializers.SerializerMethodField()
+    assigned_to_names = serializers.SerializerMethodField()
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    priority_display = serializers.CharField(source='get_priority_display', read_only=True)
+    
+    class Meta:
+        model = TrauerdruckEntwurf
+        fields = [
+            'id', 'title', 'description', 'trauerdruck_type', 'trauerdruck_type_name',
+            'memorial_page', 'memorial_page_name', 'status', 'status_display',
+            'version', 'is_latest_version', 'design_file', 'design_file_url',
+            'preview_file', 'preview_file_url', 'created_by', 'created_by_name',
+            'assigned_to', 'assigned_to_names', 'created_at', 'updated_at',
+            'deadline', 'priority', 'priority_display'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+    
+    def get_created_by_name(self, obj):
+        return f"{obj.created_by.first_name} {obj.created_by.last_name}" if obj.created_by else ""
+    
+    def get_design_file_url(self, obj):
+        return obj.design_file.url if obj.design_file else None
+    
+    def get_preview_file_url(self, obj):
+        return obj.preview_file.url if obj.preview_file else None
+    
+    def get_assigned_to_names(self, obj):
+        return [f"{user.first_name} {user.last_name}" for user in obj.assigned_to.all()]
+
+
+class TrauerdruckKommentarSerializer(serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = TrauerdruckKommentar
+        fields = ['id', 'entwurf', 'author', 'author_name', 'content', 'is_internal', 'created_at']
+        read_only_fields = ['author', 'created_at']
+    
+    def get_author_name(self, obj):
+        return f"{obj.author.first_name} {obj.author.last_name}" if obj.author else ""
+
+
+class TrauerdruckFreigabeSerializer(serializers.ModelSerializer):
+    reviewer_name = serializers.SerializerMethodField()
+    decision_display = serializers.CharField(source='get_decision_display', read_only=True)
+    
+    class Meta:
+        model = TrauerdruckFreigabe
+        fields = [
+            'id', 'entwurf', 'reviewer', 'reviewer_name', 'decision', 'decision_display',
+            'comment', 'revision_notes', 'created_at'
+        ]
+        read_only_fields = ['reviewer', 'created_at']
+    
+    def get_reviewer_name(self, obj):
+        return f"{obj.reviewer.first_name} {obj.reviewer.last_name}" if obj.reviewer else ""
+
+
+class TrauerdruckBenachrichtigungSerializer(serializers.ModelSerializer):
+    entwurf_title = serializers.CharField(source='entwurf.title', read_only=True)
+    notification_type_display = serializers.CharField(source='get_notification_type_display', read_only=True)
+    
+    class Meta:
+        model = TrauerdruckBenachrichtigung
+        fields = [
+            'id', 'user', 'entwurf', 'entwurf_title', 'notification_type', 
+            'notification_type_display', 'title', 'message', 'is_read', 'created_at'
+        ]
+        read_only_fields = ['user', 'created_at']
+
+
+class TrauerdruckTemplateSerializer(serializers.ModelSerializer):
+    trauerdruck_type_name = serializers.CharField(source='trauerdruck_type.name', read_only=True)
+    created_by_name = serializers.SerializerMethodField()
+    template_file_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = TrauerdruckTemplate
+        fields = [
+            'id', 'name', 'description', 'trauerdruck_type', 'trauerdruck_type_name',
+            'template_file', 'template_file_url', 'is_active', 'created_by', 
+            'created_by_name', 'created_at'
+        ]
+        read_only_fields = ['created_by', 'created_at']
+    
+    def get_created_by_name(self, obj):
+        return f"{obj.created_by.first_name} {obj.created_by.last_name}" if obj.created_by else ""
+    
+    def get_template_file_url(self, obj):
+        return obj.template_file.url if obj.template_file else None
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

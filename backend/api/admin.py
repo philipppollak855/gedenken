@@ -1092,11 +1092,19 @@ def trauerdruck_entwurf_form_view(request):
         from django.template.loader import render_to_string
         import json
         
-        # Sichere Datenabfrage mit Fallbacks
+        # Sichere Datenabfrage mit Fallbacks - jetzt mit FamilyLink-Integration
         try:
-            users = User.objects.filter(is_active=True).order_by('first_name', 'last_name')[:50]
+            from .models import FamilyLink
+            
+            # Alle aktiven Benutzer laden (für Fallback)
+            all_users = User.objects.filter(is_active=True).order_by('first_name', 'last_name')[:50]
+            
+            # FamilyLink-Statistiken sammeln
+            family_links_count = FamilyLink.objects.count()
+            print(f"FamilyLink-Statistiken: {family_links_count} Verknüpfungen vorhanden")
+            
             users_data = []
-            for user in users:
+            for user in all_users:
                 # Sichere Namensverarbeitung
                 first_name = user.first_name or ''
                 last_name = user.last_name or ''
@@ -1115,14 +1123,21 @@ def trauerdruck_entwurf_form_view(request):
                 else:
                     avatar = (user.username or 'U')[0].upper()
                 
+                # Prüfen ob User als Angehöriger verknüpft ist
+                is_family_member = FamilyLink.objects.filter(relative_user=user).exists()
+                is_deceased = FamilyLink.objects.filter(deceased_user=user).exists()
+                
                 users_data.append({
                     'id': user.id,
                     'name': full_name,
                     'email': user.email or '',
-                    'avatar': avatar
+                    'avatar': avatar,
+                    'is_family_member': is_family_member,
+                    'is_deceased': is_deceased,
+                    'role': user.role if hasattr(user, 'role') else 'unknown'
                 })
             
-            print(f"Geladene Benutzer: {len(users_data)}")
+            print(f"Geladene Benutzer: {len(users_data)} (FamilyLink-Integration aktiv)")
         except Exception as e:
             users_data = []
             print(f"Fehler beim Laden der Benutzer: {e}")

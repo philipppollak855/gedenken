@@ -690,8 +690,16 @@
                 const title = document.getElementById('title').value.trim();
                 const type = document.getElementById('trauerdruck_type').value;
                 const page = document.getElementById('memorial_page').value;
+                const pageSearch = document.getElementById('memorial_page_search').value.trim();
                 
-                console.log('Validierung:', { title, type, page });
+                console.log('Validierung:', { 
+                    title, 
+                    type, 
+                    page, 
+                    pageSearch,
+                    selectElement: document.getElementById('memorial_page'),
+                    selectValue: document.getElementById('memorial_page').value
+                });
                 
                 if (!title) {
                     alert('Bitte geben Sie einen Titel für den Entwurf ein.');
@@ -705,10 +713,29 @@
                     return false;
                 }
                 
-                if (!page) {
+                // Prüfe sowohl das versteckte Select als auch das Suchfeld
+                if (!page && !pageSearch) {
                     alert('Bitte wählen Sie eine Gedenkseite aus.');
                     document.getElementById('memorial_page_search').focus();
                     return false;
+                }
+                
+                // Wenn das Suchfeld ausgefüllt ist, aber das Select nicht, versuche es zu synchronisieren
+                if (pageSearch && !page) {
+                    const selectElement = document.getElementById('memorial_page');
+                    const options = Array.from(selectElement.options);
+                    const matchingOption = options.find(option => 
+                        option.dataset.name && option.dataset.name.toLowerCase() === pageSearch.toLowerCase()
+                    );
+                    
+                    if (matchingOption) {
+                        selectElement.value = matchingOption.value;
+                        console.log('Gedenkseite synchronisiert:', matchingOption.value);
+                    } else {
+                        alert('Bitte wählen Sie eine gültige Gedenkseite aus der Liste aus.');
+                        document.getElementById('memorial_page_search').focus();
+                        return false;
+                    }
                 }
             }
             return true;
@@ -901,6 +928,16 @@
                             searchInput.value = option.dataset.name;
                             selectElement.value = option.value;
                             resultsDiv.style.display = 'none';
+                            
+                            // Debug-Information
+                            console.log('Gedenkseite ausgewählt:', {
+                                name: option.dataset.name,
+                                value: option.value,
+                                selectValue: selectElement.value
+                            });
+                            
+                            // Event auslösen um sicherzustellen, dass die Änderung erkannt wird
+                            selectElement.dispatchEvent(new Event('change'));
                         });
                         
                         resultsDiv.appendChild(resultItem);

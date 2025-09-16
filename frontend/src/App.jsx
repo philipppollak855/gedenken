@@ -24,6 +24,7 @@ import MeinBereich from './modules/user/MeinBereich'; // Fungiert jetzt als Haup
 import PortalChoicePage from './modules/user/PortalChoicePage'; // NEUE Auswahlseite
 import GedenkenDashboard from './modules/user/GedenkenDashboard'; // NEUES Layout für Gedenken
 import VorsorgeDashboard from './modules/user/VorsorgeDashboard'; // NEUES Layout für Vorsorge
+import UnterlagenDashboard from './modules/user/UnterlagenDashboard'; // NEUES Layout für Unterlagen
 
 // Unterseiten, die jetzt in den Dashboards gerendert werden
 import MeineVorsorge from './modules/user/MeineVorsorge';
@@ -36,6 +37,11 @@ import MyContributions from './modules/user/MyContributions';
 import GespeicherteSeiten from './modules/user/GespeicherteSeiten';
 import AngehoerigeVerwalten from './modules/user/AngehoerigeVerwalten';
 import KontoVerwalten from './modules/user/KontoVerwalten';
+
+// Unterlagen Module
+import Freigaben from './modules/user/Freigaben';
+import Dokumente from './modules/user/Dokumente';
+import Trauerdruck from './modules/user/Trauerdruck';
 
 // General Modules
 import HomePage from './modules/HomePage';
@@ -81,6 +87,14 @@ function App() {
                   <Route path="medien" element={<MeineMedien />} />
                   <Route path="konto" element={<KontoVerwalten />} />
                   <Route path="meine-daten" element={<MeineDaten />} />
+              </Route>
+
+              {/* Unterlagen Portal */}
+              <Route path="unterlagen" element={<UnterlagenDashboard />}>
+                  <Route index element={<Navigate to="freigaben" replace />} />
+                  <Route path="freigaben" element={<Freigaben />} />
+                  <Route path="dokumente" element={<Dokumente />} />
+                  <Route path="trauerdruck" element={<Trauerdruck />} />
               </Route>
           </Route>
         </Routes>

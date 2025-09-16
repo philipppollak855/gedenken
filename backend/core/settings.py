@@ -32,6 +32,9 @@ if IS_PRODUCTION:
     
     # Pfad für von Benutzern hochgeladene Dateien auf dem persistenten Speicher von Render
     MEDIA_ROOT = os.path.join('/var/media', 'media')
+    
+    # Static files configuration for production
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 else:
     DEBUG = True
@@ -113,7 +116,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.User'
@@ -132,9 +134,5 @@ UNFOLD = {
     "SITE_BRAND": "Verwaltung",
     "WELCOME_SIGN": "Willkommen in der Verwaltung der Vorsorge-Plattform.",
     "COPYRIGHT": "Ihre Bestattung GmbH",
-    "THEME": "dark",
-    "SCRIPTS": [
-        "/static/admin/js/custom_admin.js",
-    ],
 }
 

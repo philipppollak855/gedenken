@@ -42,6 +42,7 @@ import KontoVerwalten from './modules/user/KontoVerwalten';
 import Freigaben from './modules/user/Freigaben';
 import Dokumente from './modules/user/Dokumente';
 import Trauerdruck from './modules/user/Trauerdruck';
+import TrauerdruckUnterlagen from './modules/user/TrauerdruckUnterlagen';
 
 // Trauerdruck Module
 import TrauerdruckEntwurfErstellen from './modules/user/TrauerdruckEntwurfErstellen';
@@ -97,7 +98,7 @@ function App() {
                   <Route index element={<Navigate to="freigaben" replace />} />
                   <Route path="freigaben" element={<Freigaben />} />
                   <Route path="dokumente" element={<Dokumente />} />
-                  <Route path="trauerdruck" element={<Trauerdruck />} />
+                  <Route path="trauerdruck" element={<TrauerdruckUnterlagen />} />
               </Route>
 
               {/* Trauerdruck Portal - Bestatter-Funktionen */}

@@ -210,10 +210,11 @@ function initializeSideDock() {
                 { id: 'candles', label: 'Gedenkkerzen', icon: 'fa-lightbulb', url: '/admin/api/memorialcandle/' },
             ]},
             { id: 'trauerdruck', label: 'Trauerdruck', icon: 'fa-print', children: [
-                { id: 'entwuerfe', label: 'Entwürfe', icon: 'fa-file-image', url: '/admin/api/trauerdruckentwurf/' },
+                { id: 'neuer-entwurf', label: 'Neuer Entwurf', icon: 'fa-plus-circle', url: '/admin/api/trauerdruckentwurf/add/', action: 'create' },
+                { id: 'dashboard', label: 'Dashboard', icon: 'fa-tachometer-alt', url: '/admin/trauerdruck-dashboard/' },
+                { id: 'entwuerfe', label: 'Alle Entwürfe', icon: 'fa-file-image', url: '/admin/api/trauerdruckentwurf/' },
                 { id: 'designs', label: 'Designs', icon: 'fa-palette', url: '/admin/api/trauerdruckdesign/' },
                 { id: 'freigaben', label: 'Freigaben', icon: 'fa-check-circle', url: '/admin/api/trauerdruckfreigabe/' },
-                { id: 'design-freigaben', label: 'Design-Freigaben', icon: 'fa-thumbs-up', url: '/admin/api/trauerdruckdesignfreigabe/' },
                 { id: 'kommentare', label: 'Kommentare', icon: 'fa-comments', url: '/admin/api/trauerdruckkommentar/' },
                 { id: 'benachrichtigungen', label: 'Benachrichtigungen', icon: 'fa-bell', url: '/admin/api/trauerdruckbenachrichtigung/' },
             ]},

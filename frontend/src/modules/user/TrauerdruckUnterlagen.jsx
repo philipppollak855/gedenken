@@ -4,7 +4,7 @@ import TrauerdruckFreigabeModal from './TrauerdruckFreigabeModal';
 import './TrauerdruckUnterlagen.css';
 
 const TrauerdruckUnterlagen = () => {
-    const { apiGet, apiPost } = useApi();
+    const { apiGet } = useApi();
     const [freigaben, setFreigaben] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -17,10 +17,6 @@ const TrauerdruckUnterlagen = () => {
         approved: 0,
         revision_requested: 0
     });
-
-    useEffect(() => {
-        loadFreigaben();
-    }, [loadFreigaben]);
 
     const loadFreigaben = useCallback(async () => {
         try {
@@ -51,6 +47,10 @@ const TrauerdruckUnterlagen = () => {
             setLoading(false);
         }
     }, [apiGet]);
+
+    useEffect(() => {
+        loadFreigaben();
+    }, [loadFreigaben]);
 
     const getStatusBadge = (status) => {
         const statusConfig = {

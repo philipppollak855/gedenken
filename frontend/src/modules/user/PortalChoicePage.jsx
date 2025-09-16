@@ -8,6 +8,12 @@ import './PortalChoicePage.css';
 
 const PortalChoicePage = () => {
     const { settings } = useOutletContext();
+    
+    // Debug: Settings ausgeben
+    console.log('PortalChoicePage Settings:', settings);
+    console.log('Gedenken Card Image:', settings?.gedenken_card_image);
+    console.log('Vorsorge Card Image:', settings?.vorsorge_card_image);
+    console.log('Unterlagen Card Image:', settings?.unterlagen_card_image);
 
     // Allgemeines Seiten-Styling, inklusive des spezifischen Hintergrunds
     const pageStyle = {

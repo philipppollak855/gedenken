@@ -111,7 +111,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ADMINISTRATOR = 'administrator', 'Administrator'
 
     id = models.UUIDField("ID", primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.CharField("E-Mail-Adresse", max_length=254, unique=True, blank=True, null=True)
+    email = models.EmailField("E-Mail-Adresse", unique=True, blank=True, null=True)
     first_name = models.CharField("Vorname", max_length=100, blank=True)
     last_name = models.CharField("Nachname", max_length=100, blank=True)
     role = models.CharField("Rolle", max_length=20, choices=Role.choices, default=Role.VORSORGENDER)
@@ -642,6 +642,7 @@ class FamilyLink(models.Model):
     can_edit_memorial_page = models.BooleanField("Gedenkseite bearbeiten", default=False)
     can_view_precaution_data = models.BooleanField("Vorsorge einsehen", default=False)
     can_edit_precaution_data = models.BooleanField("Vorsorge bearbeiten", default=False)
+    can_manage_proofs = models.BooleanField("Beweise verwalten", default=False)
     
     power_of_attorney = models.FileField("Vollmacht (PDF, JPG, PNG)", upload_to='power_of_attorney/%Y/%m/', blank=True, null=True)
     is_validated_by_admin = models.BooleanField("Vom Admin validiert", default=False, help_text="Admin bestätigt die Berechtigung (auch ohne Vollmacht-Upload).")

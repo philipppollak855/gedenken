@@ -1315,6 +1315,7 @@ def family_link_management_view(request):
             can_edit_memorial_page = request.POST.get('can_edit_memorial_page') == 'on'
             can_view_precaution_data = request.POST.get('can_view_precaution_data') == 'on'
             can_edit_precaution_data = request.POST.get('can_edit_precaution_data') == 'on'
+            can_manage_proofs = request.POST.get('can_manage_proofs') == 'on'
             
             print(f"=== DEBUG: Verarbeitete Daten ===")
             print(f"deceased_user_id: {deceased_user_id}")
@@ -1324,6 +1325,7 @@ def family_link_management_view(request):
             print(f"can_edit_memorial_page: {can_edit_memorial_page}")
             print(f"can_view_precaution_data: {can_view_precaution_data}")
             print(f"can_edit_precaution_data: {can_edit_precaution_data}")
+            print(f"can_manage_proofs: {can_manage_proofs}")
             
             if not deceased_user_id or not relative_user_id:
                 messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
@@ -1343,7 +1345,8 @@ def family_link_management_view(request):
                         is_main_contact=is_main_contact,
                         can_edit_memorial_page=can_edit_memorial_page,
                         can_view_precaution_data=can_view_precaution_data,
-                        can_edit_precaution_data=can_edit_precaution_data
+                        can_edit_precaution_data=can_edit_precaution_data,
+                        can_manage_proofs=can_manage_proofs
                     )
                     messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
             

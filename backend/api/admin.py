@@ -1158,15 +1158,23 @@ def trauerdruck_entwurf_form_view(request):
             
             for page in memorial_pages:
                 if page.user:  # Nur Gedenkseiten mit gültigen Benutzern
+                    # Fallback für leere Namen - verwende Benutzerdaten
+                    first_name = page.first_name or page.user.first_name or ''
+                    last_name = page.last_name or page.user.last_name or ''
+                    full_name = f"{first_name} {last_name}".strip() or f"Gedenkseite {page.id}"
+                    
+                    # display_name für das Template hinzufügen
+                    page.display_name = full_name
+                    
                     memorial_pages_data.append({
                         'id': page.id,
                         'user_id': page.user.id,
-                        'first_name': page.first_name or '',
-                        'last_name': page.last_name or '',
-                        'full_name': f"{page.first_name or ''} {page.last_name or ''}".strip() or f"Gedenkseite {page.id}",
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'full_name': full_name,
                         'status': page.status
                     })
-                    print(f"MemorialPage geladen: {page.first_name} {page.last_name} (Status: {page.status})")
+                    print(f"MemorialPage geladen: {full_name} (Status: {page.status})")
             
             print(f"MemorialPages für Frontend: {len(memorial_pages_data)}")
             

@@ -1037,7 +1037,7 @@ def trauerdruck_entwurf_form_view(request):
                 # TrauerdruckEntwurf erstellen
                 from .models import TrauerdruckEntwurf, TrauerdruckType, MemorialPage, User
                 
-                # memorial_page_id ist jetzt die User-ID des Verstorbenen
+                # memorial_page_id ist jetzt die User-ID des Verstorbenen (als String)
                 # Wir müssen eine MemorialPage für diesen User finden oder erstellen
                 deceased_user = User.objects.get(id=memorial_page_id)
                 memorial_page, created = MemorialPage.objects.get_or_create(
@@ -1062,7 +1062,7 @@ def trauerdruck_entwurf_form_view(request):
                 
                 # Angehörige zuweisen
                 if assigned_to:
-                    assigned_ids = [int(id.strip()) for id in assigned_to.split(',') if id.strip()]
+                    assigned_ids = [id.strip() for id in assigned_to.split(',') if id.strip()]
                     assigned_users = User.objects.filter(id__in=assigned_ids)
                     entwurf.assigned_to.set(assigned_users)
                 
@@ -1117,8 +1117,8 @@ def trauerdruck_entwurf_form_view(request):
             print(f"FamilyLink-Statistiken: {family_links_count} Verknüpfungen vorhanden")
             
             # Pre-fetch FamilyLink-Daten für bessere Performance
-            family_links_deceased = set(FamilyLink.objects.values_list('deceased_user_id', flat=True))
-            family_links_relative = set(FamilyLink.objects.values_list('relative_user_id', flat=True))
+            family_links_deceased = set(str(uid) for uid in FamilyLink.objects.values_list('deceased_user_id', flat=True))
+            family_links_relative = set(str(uid) for uid in FamilyLink.objects.values_list('relative_user_id', flat=True))
             
             users_data = []
             for user in all_users:
@@ -1141,11 +1141,11 @@ def trauerdruck_entwurf_form_view(request):
                     avatar = (user.username or 'U')[0].upper()
                 
                 # Prüfen ob User als Angehöriger verknüpft ist (optimiert)
-                is_family_member = user.id in family_links_relative
-                is_deceased = user.id in family_links_deceased
+                is_family_member = str(user.id) in family_links_relative
+                is_deceased = str(user.id) in family_links_deceased
                 
                 users_data.append({
-                    'id': user.id,
+                    'id': str(user.id),  # UUID zu String konvertieren
                     'name': full_name,
                     'email': user.email or '',
                     'avatar': avatar,
@@ -1164,6 +1164,14 @@ def trauerdruck_entwurf_form_view(request):
         try:
             # Verstorbene Benutzer laden (statt MemorialPages)
             from .models import User
+            
+            # MockMemorialPage-Klasse außerhalb der Schleife definieren
+            class MockMemorialPage:
+                def __init__(self, user, display_name):
+                    self.id = str(user.id)  # UUID zu String konvertieren
+                    self.display_name = display_name
+                    self.user = user
+            
             deceased_users = User.objects.filter(role=User.Role.VERSTORBENER).select_related().all()[:50]
             memorial_pages_data = []
             
@@ -1177,18 +1185,9 @@ def trauerdruck_entwurf_form_view(request):
                 last_name = user.last_name or ''
                 full_name = f"{first_name} {last_name}".strip() or f"Verstorbener {user.id}"
                 
-                # display_name für das Template hinzufügen (als MemorialPage-Objekt simulieren)
-                class MockMemorialPage:
-                    def __init__(self, user, display_name):
-                        self.id = user.id
-                        self.display_name = display_name
-                        self.user = user
-                
-                mock_page = MockMemorialPage(user, full_name)
-                
                 memorial_pages_data.append({
-                    'id': user.id,
-                    'user_id': user.id,
+                    'id': str(user.id),  # UUID zu String konvertieren
+                    'user_id': str(user.id),  # UUID zu String konvertieren
                     'first_name': first_name,
                     'last_name': last_name,
                     'full_name': full_name,

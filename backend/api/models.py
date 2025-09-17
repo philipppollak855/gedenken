@@ -132,11 +132,21 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def clean(self):
         super().clean()
+        # Für Verstorbene: E-Mail automatisch generieren falls nicht vorhanden
+        if not self.email and self.role == self.Role.VERSTORBENER:
+            if not self.id:  # Nur wenn noch keine ID vorhanden (neuer User)
+                self.id = uuid.uuid4()
+            self.email = f"{self.id}@verstorben.local"
+        
+        # Für alle anderen Rollen: E-Mail ist erforderlich
         if self.role != self.Role.VERSTORBENER and not self.email:
             raise ValidationError({'email': 'Eine E-Mail-Adresse ist für diese Benutzerrolle erforderlich.'})
 
     def save(self, *args, **kwargs):
+        # E-Mail für Verstorbene setzen falls noch nicht gesetzt
         if not self.email and self.role == self.Role.VERSTORBENER:
+            if not self.id:  # ID generieren falls noch nicht vorhanden
+                self.id = uuid.uuid4()
             self.email = f"{self.id}@verstorben.local"
         super().save(*args, **kwargs)
 

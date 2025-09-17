@@ -353,6 +353,15 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     search_fields = ('first_name', 'last_name', 'email')
     inlines = [FamilyLinkInline, FamilyLinkAsRelativeInline]
     
+    def save_model(self, request, obj, form, change):
+        # Für Verstorbene: E-Mail automatisch setzen falls leer
+        if obj.role == 'verstorbener' and not obj.email:
+            from uuid import uuid4
+            if not obj.id:
+                obj.id = uuid4()
+            obj.email = f"{obj.id}@verstorben.local"
+        super().save_model(request, obj, form, change)
+    
     readonly_fields = (
         'id', 'created_at', 'updated_at',
         'manage_last_wishes', 'manage_documents', 'manage_contracts',

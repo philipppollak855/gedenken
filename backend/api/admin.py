@@ -352,19 +352,23 @@ class UserAdminForm(forms.ModelForm):
         model = User
         fields = '__all__'
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # E-Mail-Feld als nicht erforderlich markieren (wird in clean_email() validiert)
+        self.fields['email'].required = False
+    
     def clean_email(self):
         email = self.cleaned_data.get('email')
         role = self.cleaned_data.get('role')
         
-        # Für Verstorbene: E-Mail-Validierung überspringen
+        # Für Verstorbene: E-Mail automatisch generieren falls leer
         if role == 'verstorbener':
-            # E-Mail automatisch generieren falls leer
             if not email:
                 user_id = self.instance.id if self.instance.id else uuid.uuid4()
                 email = f"{user_id}@verstorben.local"
             return email
         
-        # Für alle anderen Rollen: normale E-Mail-Validierung
+        # Für alle anderen Rollen: E-Mail ist erforderlich
         if not email:
             raise forms.ValidationError('Eine E-Mail-Adresse ist für diese Benutzerrolle erforderlich.')
         return email

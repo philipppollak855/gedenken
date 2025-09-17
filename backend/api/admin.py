@@ -1247,7 +1247,7 @@ def trauerdruck_entwurf_form_view(request):
 
 def quick_family_link_add_view(request):
     """
-    API-Endpoint für das schnelle Hinzufügen von FamilyLink-Einträgen
+    API-Endpoint für das schnelle Hinzufügen von FamilyLink-Einträgen (für AJAX)
     """
     # Debug-Informationen
     print(f"=== FamilyLink Add Request ===")
@@ -1277,10 +1277,13 @@ def quick_family_link_add_view(request):
                 return JsonResponse({'error': 'Verstorbener und Angehöriger müssen ausgewählt werden'}, status=400)
                 
             try:
+                # IDs sind als Strings übergeben, aber User.id ist UUID
                 deceased_user = User.objects.get(id=deceased_user_id, is_active=True)
                 relative_user = User.objects.get(id=relative_user_id, is_active=True)
             except User.DoesNotExist:
                 return JsonResponse({'error': 'Benutzer nicht gefunden oder inaktiv'}, status=400)
+            except Exception as e:
+                return JsonResponse({'error': f'Fehler beim Laden der Benutzer: {str(e)}'}, status=400)
             
             # Prüfen ob es sich um verschiedene Benutzer handelt
             if deceased_user_id == relative_user_id:

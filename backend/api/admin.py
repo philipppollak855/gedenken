@@ -1339,11 +1339,22 @@ def quick_family_link_add_view(request):
                 
             try:
                 # IDs sind als Strings übergeben, aber User.id ist UUID
+                print(f"DEBUG: Suche Verstorbenen mit ID: {deceased_user_id}")
+                print(f"DEBUG: Suche Angehörigen mit ID: {relative_user_id}")
+                
                 deceased_user = User.objects.get(id=deceased_user_id, is_active=True)
                 relative_user = User.objects.get(id=relative_user_id, is_active=True)
-            except User.DoesNotExist:
+                
+                print(f"DEBUG: Verstorbener gefunden: {deceased_user.get_full_name()}")
+                print(f"DEBUG: Angehöriger gefunden: {relative_user.get_full_name()}")
+                
+            except User.DoesNotExist as e:
+                print(f"DEBUG: User.DoesNotExist: {e}")
                 return JsonResponse({'error': 'Benutzer nicht gefunden oder inaktiv'}, status=400)
             except Exception as e:
+                print(f"DEBUG: Exception beim Laden der Benutzer: {e}")
+                import traceback
+                traceback.print_exc()
                 return JsonResponse({'error': f'Fehler beim Laden der Benutzer: {str(e)}'}, status=400)
             
             # Prüfen ob es sich um verschiedene Benutzer handelt
@@ -1351,10 +1362,13 @@ def quick_family_link_add_view(request):
                 return JsonResponse({'error': 'Verstorbener und Angehöriger müssen verschiedene Personen sein'}, status=400)
             
             # Prüfen ob Verknüpfung bereits existiert
+            print(f"DEBUG: Prüfe ob Verknüpfung bereits existiert...")
             if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
+                print(f"DEBUG: Verknüpfung existiert bereits")
                 return JsonResponse({'error': 'Diese Verknüpfung existiert bereits'}, status=400)
             
             # FamilyLink erstellen
+            print(f"DEBUG: Erstelle FamilyLink...")
             family_link = FamilyLink.objects.create(
                 deceased_user=deceased_user,
                 relative_user=relative_user,
@@ -1364,6 +1378,7 @@ def quick_family_link_add_view(request):
                 can_view_precaution_data=can_view_precaution_data,
                 can_edit_precaution_data=can_edit_precaution_data
             )
+            print(f"DEBUG: FamilyLink erstellt mit ID: {family_link.link_id}")
             
             return JsonResponse({
                 'success': True,

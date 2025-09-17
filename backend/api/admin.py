@@ -1296,75 +1296,62 @@ def family_link_management_view(request):
     """
     Komfortable FamilyLink-Verwaltung
     """
-    try:
-        from .models import User, FamilyLink
-        from django.template.loader import render_to_string
-        from django.contrib import messages
-        
-        if request.method == 'POST':
-            try:
-                # FamilyLink erstellen
-                deceased_user_id = request.POST.get('deceased_user')
-                relative_user_id = request.POST.get('relative_user')
-                relationship = request.POST.get('relationship', '')
-                is_main_contact = request.POST.get('is_main_contact') == 'on'
-                can_edit_memorial_page = request.POST.get('can_edit_memorial_page') == 'on'
-                can_view_precaution_data = request.POST.get('can_view_precaution_data') == 'on'
-                can_edit_precaution_data = request.POST.get('can_edit_precaution_data') == 'on'
+    from .models import User, FamilyLink
+    from django.contrib import messages
+    from django.shortcuts import render
+    
+    if request.method == 'POST':
+        try:
+            # FamilyLink erstellen
+            deceased_user_id = request.POST.get('deceased_user')
+            relative_user_id = request.POST.get('relative_user')
+            relationship = request.POST.get('relationship', '')
+            is_main_contact = request.POST.get('is_main_contact') == 'on'
+            can_edit_memorial_page = request.POST.get('can_edit_memorial_page') == 'on'
+            can_view_precaution_data = request.POST.get('can_view_precaution_data') == 'on'
+            can_edit_precaution_data = request.POST.get('can_edit_precaution_data') == 'on'
+            
+            if not deceased_user_id or not relative_user_id:
+                messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
+            else:
+                deceased_user = User.objects.get(id=deceased_user_id)
+                relative_user = User.objects.get(id=relative_user_id)
                 
-                if not deceased_user_id or not relative_user_id:
-                    messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
+                # Prüfen ob Verknüpfung bereits existiert
+                if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
+                    messages.warning(request, 'Diese Verknüpfung existiert bereits.')
                 else:
-                    deceased_user = User.objects.get(id=deceased_user_id)
-                    relative_user = User.objects.get(id=relative_user_id)
-                    
-                    # Prüfen ob Verknüpfung bereits existiert
-                    if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
-                        messages.warning(request, 'Diese Verknüpfung existiert bereits.')
-                    else:
-                        # FamilyLink erstellen
-                        family_link = FamilyLink.objects.create(
-                            deceased_user=deceased_user,
-                            relative_user=relative_user,
-                            relationship=relationship,
-                            is_main_contact=is_main_contact,
-                            can_edit_memorial_page=can_edit_memorial_page,
-                            can_view_precaution_data=can_view_precaution_data,
-                            can_edit_precaution_data=can_edit_precaution_data
-                        )
-                        messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
-                
-            except Exception as e:
-                messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
-        
-        # Daten für die Form laden
-        deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
-        relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
-        
-        # Bestehende FamilyLinks laden
-        family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at' if hasattr(FamilyLink, 'created_at') else 'link_id')
-        
-        context = {
-            **admin.site.each_context(request),
-            'deceased_users': deceased_users,
-            'relative_users': relative_users,
-            'family_links': family_links,
-            'title': 'FamilyLink-Verwaltung',
-        }
-        
-        return HttpResponse(render_to_string('admin/family_link_management.html', context))
-        
-    except Exception as e:
-        return HttpResponse(f'''
-            <html>
-                <head><title>Fehler</title></head>
-                <body>
-                    <h1>Fehler beim Laden der FamilyLink-Verwaltung</h1>
-                    <p>Fehler: {str(e)}</p>
-                    <button onclick="window.close()">Schließen</button>
-                </body>
-            </html>
-        ''')
+                    # FamilyLink erstellen
+                    family_link = FamilyLink.objects.create(
+                        deceased_user=deceased_user,
+                        relative_user=relative_user,
+                        relationship=relationship,
+                        is_main_contact=is_main_contact,
+                        can_edit_memorial_page=can_edit_memorial_page,
+                        can_view_precaution_data=can_view_precaution_data,
+                        can_edit_precaution_data=can_edit_precaution_data
+                    )
+                    messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+            
+        except Exception as e:
+            messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
+    
+    # Daten für die Form laden
+    deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
+    relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
+    
+    # Bestehende FamilyLinks laden
+    family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at' if hasattr(FamilyLink, 'created_at') else 'link_id')
+    
+    context = {
+        **admin.site.each_context(request),
+        'deceased_users': deceased_users,
+        'relative_users': relative_users,
+        'family_links': family_links,
+        'title': 'FamilyLink-Verwaltung',
+    }
+    
+    return render(request, 'admin/family_link_management.html', context)
 
 def quick_family_link_add_view(request):
     """

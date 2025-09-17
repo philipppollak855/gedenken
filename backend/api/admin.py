@@ -310,9 +310,21 @@ class SiteSettingsAdmin(ModelAdmin):
 
 @admin.register(FamilyLink)
 class FamilyLinkAdmin(ModelAdmin):
-    list_display = ('deceased_user', 'relative_user', 'relationship', 'is_main_contact')
-    search_fields = ('deceased_user__first_name', 'relative_user__first_name')
+    list_display = ('deceased_user', 'relative_user', 'relationship', 'is_main_contact', 'can_edit_memorial_page', 'is_validated_by_admin')
+    list_filter = ('is_main_contact', 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data', 'is_validated_by_admin')
+    search_fields = ('deceased_user__first_name', 'deceased_user__last_name', 'relative_user__first_name', 'relative_user__last_name', 'relationship')
     autocomplete_fields = ('deceased_user', 'relative_user')
+    fieldsets = (
+        (None, {
+            'fields': ('deceased_user', 'relative_user', 'relationship', 'is_main_contact')
+        }),
+        ('Berechtigungen', {
+            'fields': ('can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data')
+        }),
+        ('Validierung', {
+            'fields': ('power_of_attorney', 'is_validated_by_admin')
+        }),
+    )
 
 class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
@@ -321,25 +333,25 @@ class FamilyLinkInline(admin.TabularInline):
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
     autocomplete_fields = ('relative_user',)
-    fieldsets = (
-        (None, {
-            'fields': ('relative_user', 'relationship', 'is_main_contact')
-        }),
-        ('Berechtigungen (optional)', {
-            'classes': ('collapse',), 
-            'fields': (
-                'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data',
-                'power_of_attorney', 'is_validated_by_admin'
-            ),
-        }),
-    )
+    fields = ('relative_user', 'relationship', 'is_main_contact', 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data')
+    readonly_fields = ('link_id',)
+
+class FamilyLinkAsRelativeInline(admin.TabularInline):
+    model = FamilyLink
+    fk_name = 'relative_user'
+    extra = 1
+    verbose_name = "Verstorbener (für den ich Angehöriger bin)"
+    verbose_name_plural = "Verstorbene (für die ich Angehöriger bin)"
+    autocomplete_fields = ('deceased_user',)
+    fields = ('deceased_user', 'relationship', 'is_main_contact', 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data')
+    readonly_fields = ('link_id',)
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
-    inlines = [FamilyLinkInline]
+    inlines = [FamilyLinkInline, FamilyLinkAsRelativeInline]
     
     readonly_fields = (
         'id', 'created_at', 'updated_at',

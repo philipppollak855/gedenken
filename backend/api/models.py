@@ -77,15 +77,20 @@ class EventLocation(models.Model):
 
 class UserManager(BaseUserManager):
     def create_user(self, email=None, password=None, **extra_fields):
+        # Für Verstorbene: E-Mail automatisch generieren falls nicht vorhanden
         if not email and extra_fields.get('role') == User.Role.VERSTORBENER:
             user_id = extra_fields.get('id', uuid.uuid4())
             email = f"{user_id}@verstorben.local"
             extra_fields['id'] = user_id
         
-        if not email:
+        # Für alle anderen Rollen: E-Mail ist erforderlich
+        if not email and extra_fields.get('role') != User.Role.VERSTORBENER:
             raise ValueError('Eine E-Mail-Adresse ist erforderlich (außer für die Rolle "Verstorbener").')
-            
-        email = self.normalize_email(email)
+        
+        # E-Mail normalisieren falls vorhanden
+        if email:
+            email = self.normalize_email(email)
+        
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)

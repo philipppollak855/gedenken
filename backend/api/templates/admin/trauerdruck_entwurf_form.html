@@ -1251,6 +1251,7 @@
                         }, 1000);
                     } else {
                         const error = await response.json().catch(() => ({ error: 'Unbekannter Fehler' }));
+                        console.error('FamilyLink creation failed:', error);
                         showQuickAddResult(`❌ Fehler: ${error.error || 'Unbekannter Fehler'}`, 'error');
                     }
                 } catch (error) {

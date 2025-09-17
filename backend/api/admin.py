@@ -1296,10 +1296,15 @@ def family_link_management_view(request):
     """
     Komfortable FamilyLink-Verwaltung
     """
-    # Berechtigung prüfen
-    if not request.user.is_authenticated or not request.user.is_staff:
-        from django.contrib.auth.views import redirect_to_login
-        return redirect_to_login(request.get_full_path())
+    # Einfache Berechtigungsprüfung
+    if not request.user.is_authenticated:
+        from django.http import HttpResponseRedirect
+        from django.urls import reverse
+        return HttpResponseRedirect(reverse('admin:login') + '?next=' + request.get_full_path())
+    
+    if not request.user.is_staff:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Sie haben keine Berechtigung für diese Seite.")
     
     try:
         from .models import User, FamilyLink
@@ -1484,7 +1489,7 @@ def custom_get_urls(self):
     custom_urls = [
         path('trauerdruck-dashboard/', self.admin_view(trauerdruck_dashboard_view), name='trauerdruck_dashboard'),
         path('trauerdruck-entwurf-form/', self.admin_view(trauerdruck_entwurf_form_view), name='trauerdruck_entwurf_form'),
-        path('family-link-management/', self.admin_view(family_link_management_view), name='family_link_management'),
+        path('family-link-management/', family_link_management_view, name='family_link_management'),
         path('api/familylink/add/', self.admin_view(quick_family_link_add_view), name='quick_family_link_add'),
     ]
     

@@ -1302,6 +1302,11 @@ def family_link_management_view(request):
     
     if request.method == 'POST':
         try:
+            # Debug: POST-Daten ausgeben
+            print(f"=== DEBUG: POST-Daten ===")
+            for key, value in request.POST.items():
+                print(f"{key}: {value}")
+            
             # FamilyLink erstellen
             deceased_user_id = request.POST.get('deceased_user')
             relative_user_id = request.POST.get('relative_user')
@@ -1310,6 +1315,15 @@ def family_link_management_view(request):
             can_edit_memorial_page = request.POST.get('can_edit_memorial_page') == 'on'
             can_view_precaution_data = request.POST.get('can_view_precaution_data') == 'on'
             can_edit_precaution_data = request.POST.get('can_edit_precaution_data') == 'on'
+            
+            print(f"=== DEBUG: Verarbeitete Daten ===")
+            print(f"deceased_user_id: {deceased_user_id}")
+            print(f"relative_user_id: {relative_user_id}")
+            print(f"relationship: {relationship}")
+            print(f"is_main_contact: {is_main_contact}")
+            print(f"can_edit_memorial_page: {can_edit_memorial_page}")
+            print(f"can_view_precaution_data: {can_view_precaution_data}")
+            print(f"can_edit_precaution_data: {can_edit_precaution_data}")
             
             if not deceased_user_id or not relative_user_id:
                 messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
@@ -1341,7 +1355,7 @@ def family_link_management_view(request):
     relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
     
     # Bestehende FamilyLinks laden
-    family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at' if hasattr(FamilyLink, 'created_at') else 'link_id')
+    family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('link_id')
     
     context = {
         **admin.site.each_context(request),

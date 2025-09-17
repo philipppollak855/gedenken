@@ -1299,6 +1299,7 @@ def family_link_management_view(request):
     try:
         from .models import User, FamilyLink
         from django.template.loader import render_to_string
+        from django.contrib import messages
         
         if request.method == 'POST':
             try:
@@ -1344,6 +1345,7 @@ def family_link_management_view(request):
         family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at' if hasattr(FamilyLink, 'created_at') else 'link_id')
         
         context = {
+            **admin.site.each_context(request),
             'deceased_users': deceased_users,
             'relative_users': relative_users,
             'family_links': family_links,

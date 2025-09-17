@@ -202,6 +202,7 @@ function initializeSideDock() {
                 { id: 'users', label: 'Benutzer', icon: 'fa-users', url: '/admin/api/user/' },
                 { id: 'releases', label: 'Freigabe-Anfragen', icon: 'fa-key', url: '/admin/api/releaserequest/' },
                 { id: 'familylinks', label: 'Familien-Verknüpfungen', icon: 'fa-link', url: '/admin/api/familylink/' },
+                { id: 'familylink-mgmt', label: 'FamilyLink-Verwaltung', icon: 'fa-sitemap', url: '/admin/family-link-management/' },
             ]},
             { id: 'gedenken', label: 'Gedenken', icon: 'fa-book-dead', children: [
                 { id: 'pages', label: 'Gedenkseiten', icon: 'fa-book-open', url: '/admin/api/memorialpage/' },

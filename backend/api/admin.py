@@ -333,9 +333,7 @@ class FamilyLinkInline(admin.TabularInline):
     extra = 1
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
-    autocomplete_fields = ('relative_user',)
-    fields = ('relative_user', 'relationship', 'is_main_contact', 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data')
-    readonly_fields = ('link_id',)
+    fields = ('relative_user', 'relationship', 'is_main_contact')
 
 class FamilyLinkAsRelativeInline(admin.TabularInline):
     model = FamilyLink
@@ -343,9 +341,7 @@ class FamilyLinkAsRelativeInline(admin.TabularInline):
     extra = 1
     verbose_name = "Verstorbener (für den ich Angehöriger bin)"
     verbose_name_plural = "Verstorbene (für die ich Angehöriger bin)"
-    autocomplete_fields = ('deceased_user',)
-    fields = ('deceased_user', 'relationship', 'is_main_contact', 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data')
-    readonly_fields = ('link_id',)
+    fields = ('deceased_user', 'relationship', 'is_main_contact')
 
 class UserAdminForm(forms.ModelForm):
     class Meta:
@@ -1295,6 +1291,78 @@ def trauerdruck_entwurf_form_view(request):
             </html>
         ''')
 
+def family_link_management_view(request):
+    """
+    Komfortable FamilyLink-Verwaltung
+    """
+    try:
+        from .models import User, FamilyLink
+        from django.template.loader import render_to_string
+        
+        if request.method == 'POST':
+            try:
+                # FamilyLink erstellen
+                deceased_user_id = request.POST.get('deceased_user')
+                relative_user_id = request.POST.get('relative_user')
+                relationship = request.POST.get('relationship', '')
+                is_main_contact = request.POST.get('is_main_contact') == 'on'
+                can_edit_memorial_page = request.POST.get('can_edit_memorial_page') == 'on'
+                can_view_precaution_data = request.POST.get('can_view_precaution_data') == 'on'
+                can_edit_precaution_data = request.POST.get('can_edit_precaution_data') == 'on'
+                
+                if not deceased_user_id or not relative_user_id:
+                    messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
+                else:
+                    deceased_user = User.objects.get(id=deceased_user_id)
+                    relative_user = User.objects.get(id=relative_user_id)
+                    
+                    # Prüfen ob Verknüpfung bereits existiert
+                    if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
+                        messages.warning(request, 'Diese Verknüpfung existiert bereits.')
+                    else:
+                        # FamilyLink erstellen
+                        family_link = FamilyLink.objects.create(
+                            deceased_user=deceased_user,
+                            relative_user=relative_user,
+                            relationship=relationship,
+                            is_main_contact=is_main_contact,
+                            can_edit_memorial_page=can_edit_memorial_page,
+                            can_view_precaution_data=can_view_precaution_data,
+                            can_edit_precaution_data=can_edit_precaution_data
+                        )
+                        messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                
+            except Exception as e:
+                messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
+        
+        # Daten für die Form laden
+        deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
+        relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
+        
+        # Bestehende FamilyLinks laden
+        family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at' if hasattr(FamilyLink, 'created_at') else 'link_id')
+        
+        context = {
+            'deceased_users': deceased_users,
+            'relative_users': relative_users,
+            'family_links': family_links,
+            'title': 'FamilyLink-Verwaltung',
+        }
+        
+        return HttpResponse(render_to_string('admin/family_link_management.html', context))
+        
+    except Exception as e:
+        return HttpResponse(f'''
+            <html>
+                <head><title>Fehler</title></head>
+                <body>
+                    <h1>Fehler beim Laden der FamilyLink-Verwaltung</h1>
+                    <p>Fehler: {str(e)}</p>
+                    <button onclick="window.close()">Schließen</button>
+                </body>
+            </html>
+        ''')
+
 def quick_family_link_add_view(request):
     """
     API-Endpoint für das schnelle Hinzufügen von FamilyLink-Einträgen (für AJAX)
@@ -1410,6 +1478,7 @@ def custom_get_urls(self):
     custom_urls = [
         path('trauerdruck-dashboard/', self.admin_view(trauerdruck_dashboard_view), name='trauerdruck_dashboard'),
         path('trauerdruck-entwurf-form/', self.admin_view(trauerdruck_entwurf_form_view), name='trauerdruck_entwurf_form'),
+        path('family-link-management/', self.admin_view(family_link_management_view), name='family_link_management'),
         path('api/familylink/add/', self.admin_view(quick_family_link_add_view), name='quick_family_link_add'),
     ]
     

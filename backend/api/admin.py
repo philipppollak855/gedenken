@@ -419,7 +419,8 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
-    inlines = [FamilyLinkInline, FamilyLinkAsRelativeInline]
+    # Temporär deaktiviert für Debugging
+    # inlines = [FamilyLinkInline, FamilyLinkAsRelativeInline]
     
     def save_model(self, request, obj, form, change):
         try:

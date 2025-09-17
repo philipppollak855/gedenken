@@ -197,6 +197,7 @@ function initializeSideDock() {
         items: [
             { id: 'logout', label: 'Logout', icon: 'fa-sign-out-alt', url: '/admin/logout/' },
             { id: 'search', label: 'Suchen', icon: 'fa-search', action: 'openSearch' },
+            { id: 'test', label: 'App-Tests', icon: 'fa-flask', action: 'runApplicationTests' },
             { id: 'home', label: 'Dashboard', icon: 'fa-home', url: '/admin/' },
             { id: 'verwaltung', label: 'Hauptverwaltung', icon: 'fa-users-cog', children: [
                 { id: 'users', label: 'Benutzer', icon: 'fa-users', url: '/admin/api/user/' },
@@ -291,6 +292,8 @@ function initializeSideDock() {
             // Weist die korrekte Aktion zu
             if (item.action === 'openSearch') {
                 wheelItem.onclick = openSearchModal;
+            } else if (item.action === 'runApplicationTests') {
+                wheelItem.onclick = runApplicationTests;
             } else if (item.url) {
                  wheelItem.href = item.url;
                  if (item.id !== 'logout' && item.url !== '/admin/') {
@@ -522,3 +525,284 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("turbo:load", initializePageFeatures);
+
+// #####################################################################
+// # 3. Globale Anwendungs-Tests
+// #####################################################################
+
+/**
+ * Umfassende Anwendungs-Tests für die gesamte Plattform
+ */
+function runApplicationTests() {
+    const testResults = [];
+    const startTime = new Date();
+    
+    // Test 1: Grundlegende DOM-Struktur
+    try {
+        const adminElements = [
+            { name: 'Admin-Header', selector: '.admin-header, header, .header' },
+            { name: 'Navigation', selector: '.nav, .navigation, .sidebar, .nav-wheel' },
+            { name: 'Hauptinhalt', selector: '.content, .main-content, .admin-content' },
+            { name: 'Footer', selector: '.footer, .admin-footer' }
+        ];
+        
+        adminElements.forEach(element => {
+            const found = document.querySelector(element.selector);
+            if (found) {
+                testResults.push(`✅ ${element.name}: Vorhanden`);
+            } else {
+                testResults.push(`❌ ${element.name}: Fehlt`);
+            }
+        });
+    } catch (e) {
+        testResults.push(`❌ DOM-Struktur: ${e.message}`);
+    }
+    
+    // Test 2: CSRF-Token
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken && csrfToken.value) {
+            testResults.push('✅ CSRF-Token: Vorhanden');
+        } else {
+            testResults.push('❌ CSRF-Token: Fehlt');
+        }
+    } catch (e) {
+        testResults.push(`❌ CSRF-Token: ${e.message}`);
+    }
+    
+    // Test 3: Formulare
+    try {
+        const forms = document.querySelectorAll('form');
+        let validForms = 0;
+        forms.forEach(form => {
+            const requiredFields = form.querySelectorAll('[required]');
+            const hasAction = form.action || form.querySelector('[name="action"]');
+            if (hasAction) validForms++;
+        });
+        testResults.push(`✅ Formulare: ${validForms}/${forms.length} gültig`);
+    } catch (e) {
+        testResults.push(`❌ Formular-Test: ${e.message}`);
+    }
+    
+    // Test 4: Links und Navigation
+    try {
+        const links = document.querySelectorAll('a[href]');
+        let internalLinks = 0;
+        let externalLinks = 0;
+        let brokenLinks = 0;
+        
+        links.forEach(link => {
+            const href = link.href;
+            if (href.startsWith(window.location.origin) || href.startsWith('/')) {
+                internalLinks++;
+            } else if (href.startsWith('http')) {
+                externalLinks++;
+            } else if (href === '#' || href === 'javascript:void(0)') {
+                brokenLinks++;
+            }
+        });
+        
+        testResults.push(`✅ Links: ${internalLinks} intern, ${externalLinks} extern, ${brokenLinks} problematisch`);
+    } catch (e) {
+        testResults.push(`❌ Link-Test: ${e.message}`);
+    }
+    
+    // Test 5: JavaScript-Funktionen
+    try {
+        const jsFunctions = [
+            'openInIframeModal',
+            'initializePageFeatures',
+            'setupGlobalClickListeners'
+        ];
+        
+        let availableFunctions = 0;
+        jsFunctions.forEach(funcName => {
+            if (typeof window[funcName] === 'function') {
+                availableFunctions++;
+            }
+        });
+        
+        testResults.push(`✅ JavaScript-Funktionen: ${availableFunctions}/${jsFunctions.length} verfügbar`);
+    } catch (e) {
+        testResults.push(`❌ JavaScript-Test: ${e.message}`);
+    }
+    
+    // Test 6: API-Endpoints testen
+    const apiEndpoints = [
+        { url: '/admin/api/familylink/add/', expectedStatus: 405, name: 'FamilyLink API' },
+        { url: '/admin/api/user/', expectedStatus: 200, name: 'User API' },
+        { url: '/admin/api/memorialpage/', expectedStatus: 200, name: 'MemorialPage API' }
+    ];
+    
+    let apiTestsCompleted = 0;
+    const totalApiTests = apiEndpoints.length;
+    
+    apiEndpoints.forEach(endpoint => {
+        fetch(endpoint.url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            apiTestsCompleted++;
+            if (response.status === endpoint.expectedStatus) {
+                testResults.push(`✅ ${endpoint.name}: Status ${response.status} (erwartet)`);
+            } else {
+                testResults.push(`⚠️ ${endpoint.name}: Status ${response.status} (erwartet: ${endpoint.expectedStatus})`);
+            }
+            
+            if (apiTestsCompleted === totalApiTests) {
+                finalizeTests();
+            }
+        })
+        .catch(e => {
+            apiTestsCompleted++;
+            testResults.push(`❌ ${endpoint.name}: ${e.message}`);
+            
+            if (apiTestsCompleted === totalApiTests) {
+                finalizeTests();
+            }
+        });
+    });
+    
+    // Test 7: Local Storage und Session
+    try {
+        const hasLocalStorage = typeof(Storage) !== "undefined";
+        const hasSessionStorage = typeof(sessionStorage) !== "undefined";
+        const hasCookies = document.cookie.length > 0;
+        
+        testResults.push(`✅ Storage: LocalStorage ${hasLocalStorage ? 'OK' : 'N/A'}, SessionStorage ${hasSessionStorage ? 'OK' : 'N/A'}, Cookies ${hasCookies ? 'OK' : 'N/A'}`);
+    } catch (e) {
+        testResults.push(`❌ Storage-Test: ${e.message}`);
+    }
+    
+    // Test 8: Responsive Design
+    try {
+        const viewport = {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            devicePixelRatio: window.devicePixelRatio || 1
+        };
+        
+        const isMobile = viewport.width < 768;
+        const isTablet = viewport.width >= 768 && viewport.width < 1024;
+        const isDesktop = viewport.width >= 1024;
+        
+        testResults.push(`✅ Viewport: ${viewport.width}x${viewport.height} (${isMobile ? 'Mobile' : isTablet ? 'Tablet' : 'Desktop'})`);
+    } catch (e) {
+        testResults.push(`❌ Viewport-Test: ${e.message}`);
+    }
+    
+    // Test 9: Performance-Metriken
+    try {
+        const performance = window.performance;
+        if (performance && performance.timing) {
+            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+            const domReady = performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart;
+            
+            testResults.push(`✅ Performance: Load ${loadTime}ms, DOM Ready ${domReady}ms`);
+        } else {
+            testResults.push('ℹ️ Performance: Metriken nicht verfügbar');
+        }
+    } catch (e) {
+        testResults.push(`❌ Performance-Test: ${e.message}`);
+    }
+    
+    // Test 10: Spezifische Admin-Features
+    try {
+        const adminFeatures = [
+            { name: 'Side Dock', selector: '#side-dock-container' },
+            { name: 'Navigation Wheel', selector: '.nav-wheel' },
+            { name: 'Search Modal', selector: '#global-search-modal' },
+            { name: 'Calendar Modal', selector: '#calendar-modal' },
+            { name: 'IFrame Modal', selector: '#iframe-modal' }
+        ];
+        
+        let availableFeatures = 0;
+        adminFeatures.forEach(feature => {
+            const found = document.querySelector(feature.selector);
+            if (found) {
+                availableFeatures++;
+                testResults.push(`✅ ${feature.name}: Verfügbar`);
+            } else {
+                testResults.push(`❌ ${feature.name}: Fehlt`);
+            }
+        });
+        
+        testResults.push(`✅ Admin-Features: ${availableFeatures}/${adminFeatures.length} verfügbar`);
+    } catch (e) {
+        testResults.push(`❌ Admin-Features: ${e.message}`);
+    }
+    
+    // Finalisierung der Tests
+    function finalizeTests() {
+        const endTime = new Date();
+        const duration = endTime - startTime;
+        
+        // Ergebnisse zusammenstellen
+        const results = [
+            `🧪 UMFASSENDE ANWENDUNGS-TESTS ABGESCHLOSSEN`,
+            `⏱️ Dauer: ${duration}ms`,
+            `📅 Zeit: ${endTime.toLocaleString()}`,
+            `🌐 URL: ${window.location.href}`,
+            ``,
+            ...testResults,
+            ``,
+            `📋 System-Informationen:`,
+            `- User-Agent: ${navigator.userAgent}`,
+            `- Browser: ${navigator.appName} ${navigator.appVersion}`,
+            `- Platform: ${navigator.platform}`,
+            `- Language: ${navigator.language}`,
+            `- Online: ${navigator.onLine ? 'Ja' : 'Nein'}`,
+            `- Cookies: ${document.cookie ? 'Vorhanden' : 'Keine'}`,
+            `- LocalStorage: ${typeof(Storage) !== "undefined" ? 'Verfügbar' : 'Nicht verfügbar'}`,
+            `- SessionStorage: ${typeof(sessionStorage) !== "undefined" ? 'Verfügbar' : 'Nicht verfügbar'}`,
+            `- IndexedDB: ${typeof(window.indexedDB) !== "undefined" ? 'Verfügbar' : 'Nicht verfügbar'}`,
+            `- WebGL: ${document.createElement('canvas').getContext('webgl') ? 'Verfügbar' : 'Nicht verfügbar'}`,
+            `- Touch: ${('ontouchstart' in window) ? 'Unterstützt' : 'Nicht unterstützt'}`,
+            `- Service Worker: ${navigator.serviceWorker ? 'Verfügbar' : 'Nicht verfügbar'}`
+        ].join('\n');
+        
+        // In Konsole ausgeben
+        console.log(results);
+        
+        // Alert anzeigen
+        alert(results);
+        
+        // Detailliertes Log in separatem Fenster
+        const logWindow = window.open('', '_blank', 'width=1000,height=700,scrollbars=yes');
+        logWindow.document.write(`
+            <html>
+                <head>
+                    <title>🧪 Anwendungs-Test-Log - ${new Date().toLocaleString()}</title>
+                    <style>
+                        body { font-family: 'Consolas', 'Monaco', monospace; padding: 20px; background: #f5f5f5; }
+                        pre { background: white; padding: 15px; border-radius: 5px; border: 1px solid #ddd; white-space: pre-wrap; }
+                        .summary { background: #e8f5e8; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+                        .error { color: #d32f2f; }
+                        .warning { color: #f57c00; }
+                        .success { color: #388e3c; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🧪 Umfassendes Anwendungs-Test-Log</h1>
+                    <div class="summary">
+                        <strong>Test-Zusammenfassung:</strong><br>
+                        - ${testResults.filter(r => r.includes('✅')).length} erfolgreiche Tests<br>
+                        - ${testResults.filter(r => r.includes('❌')).length} fehlgeschlagene Tests<br>
+                        - ${testResults.filter(r => r.includes('⚠️')).length} Warnungen<br>
+                        - ${testResults.filter(r => r.includes('ℹ️')).length} Informationen
+                    </div>
+                    <pre>${results}</pre>
+                    <button onclick="window.close()" style="padding: 10px 20px; background: #007cba; color: white; border: none; border-radius: 5px; cursor: pointer;">Schließen</button>
+                </body>
+            </html>
+        `);
+    }
+    
+    // Falls keine API-Tests vorhanden sind, sofort finalisieren
+    if (totalApiTests === 0) {
+        finalizeTests();
+    }
+}

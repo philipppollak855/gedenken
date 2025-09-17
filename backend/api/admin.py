@@ -415,7 +415,8 @@ class UserAdminForm(forms.ModelForm):
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
-    form = UserAdminForm
+    # Temporär deaktiviert für Debugging
+    # form = UserAdminForm
     resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')

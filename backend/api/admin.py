@@ -356,67 +356,10 @@ class UserAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # E-Mail-Feld als nicht erforderlich markieren
         self.fields['email'].required = False
-        # E-Mail-Validierung für Verstorbene deaktivieren
-        if self.instance and self.instance.role == 'verstorbener':
-            self.fields['email'].validators = []
-    
-    def clean_email(self):
-        try:
-            email = self.cleaned_data.get('email')
-            role = self.cleaned_data.get('role')
-            
-            print(f"=== DEBUG: UserAdminForm.clean_email ===")
-            print(f"Email: {email}")
-            print(f"Role: {role}")
-            print(f"Instance ID: {self.instance.id if self.instance else 'None'}")
-            
-            # Für Verstorbene: E-Mail automatisch generieren falls leer
-            if role == 'verstorbener':
-                if not email:
-                    user_id = self.instance.id if self.instance.id else uuid.uuid4()
-                    email = f"{user_id}@verstorben.local"
-                    print(f"DEBUG: E-Mail für Verstorbenen generiert: {email}")
-            
-            print(f"DEBUG: Finale E-Mail: {email}")
-            return email
-            
-        except Exception as e:
-            print(f"DEBUG: Fehler in clean_email: {e}")
-            import traceback
-            traceback.print_exc()
-            raise
-    
-    def clean(self):
-        try:
-            print(f"=== DEBUG: UserAdminForm.clean ===")
-            cleaned_data = super().clean()
-            role = cleaned_data.get('role')
-            email = cleaned_data.get('email')
-            
-            print(f"Role: {role}")
-            print(f"Email: {email}")
-            print(f"Instance: {self.instance}")
-            
-            # Für Verstorbene: E-Mail-Validierung komplett überspringen
-            if role == 'verstorbener':
-                if not email:
-                    user_id = self.instance.id if self.instance.id else uuid.uuid4()
-                    cleaned_data['email'] = f"{user_id}@verstorben.local"
-                    print(f"DEBUG: E-Mail in clean() gesetzt: {cleaned_data['email']}")
-            
-            print(f"DEBUG: Finale cleaned_data: {cleaned_data}")
-            return cleaned_data
-            
-        except Exception as e:
-            print(f"DEBUG: Fehler in clean(): {e}")
-            import traceback
-            traceback.print_exc()
-            raise
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
-    # Temporär deaktiviert für Debugging
-    # form = UserAdminForm
+    form = UserAdminForm
     resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')

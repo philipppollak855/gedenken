@@ -354,7 +354,7 @@ class UserAdminForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # E-Mail-Feld als nicht erforderlich markieren (wird in clean_email() validiert)
+        # E-Mail-Feld als nicht erforderlich markieren
         self.fields['email'].required = False
     
     def clean_email(self):
@@ -366,11 +366,7 @@ class UserAdminForm(forms.ModelForm):
             if not email:
                 user_id = self.instance.id if self.instance.id else uuid.uuid4()
                 email = f"{user_id}@verstorben.local"
-            return email
         
-        # Für alle anderen Rollen: E-Mail ist erforderlich
-        if not email:
-            raise forms.ValidationError('Eine E-Mail-Adresse ist für diese Benutzerrolle erforderlich.')
         return email
 
 @admin.register(User)

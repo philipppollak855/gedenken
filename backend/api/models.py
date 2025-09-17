@@ -83,10 +83,6 @@ class UserManager(BaseUserManager):
             email = f"{user_id}@verstorben.local"
             extra_fields['id'] = user_id
         
-        # Für alle anderen Rollen: E-Mail ist erforderlich
-        if not email and extra_fields.get('role') != User.Role.VERSTORBENER:
-            raise ValueError('Eine E-Mail-Adresse ist erforderlich (außer für die Rolle "Verstorbener").')
-        
         # E-Mail normalisieren falls vorhanden
         if email:
             email = self.normalize_email(email)
@@ -137,10 +133,6 @@ class User(AbstractBaseUser, PermissionsMixin):
             if not self.id:  # Nur wenn noch keine ID vorhanden (neuer User)
                 self.id = uuid.uuid4()
             self.email = f"{self.id}@verstorben.local"
-        
-        # Für alle anderen Rollen: E-Mail ist erforderlich
-        if self.role != self.Role.VERSTORBENER and not self.email:
-            raise ValidationError({'email': 'Eine E-Mail-Adresse ist für diese Benutzerrolle erforderlich.'})
 
     def save(self, *args, **kwargs):
         # E-Mail für Verstorbene setzen falls noch nicht gesetzt

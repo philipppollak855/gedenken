@@ -18,6 +18,7 @@ from django.urls import path, reverse
 from django.shortcuts import render
 from django.db.models import Q, Count, ForeignKey
 from django.utils.safestring import mark_safe
+from django import forms
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem,
     ContractItem, Document, LastWishes, MemorialPage, Condolence,
@@ -346,8 +347,31 @@ class FamilyLinkAsRelativeInline(admin.TabularInline):
     fields = ('deceased_user', 'relationship', 'is_main_contact', 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data')
     readonly_fields = ('link_id',)
 
+class UserAdminForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = '__all__'
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        role = self.cleaned_data.get('role')
+        
+        # Für Verstorbene: E-Mail-Validierung überspringen
+        if role == 'verstorbener':
+            # E-Mail automatisch generieren falls leer
+            if not email:
+                user_id = self.instance.id if self.instance.id else uuid.uuid4()
+                email = f"{user_id}@verstorben.local"
+            return email
+        
+        # Für alle anderen Rollen: normale E-Mail-Validierung
+        if not email:
+            raise forms.ValidationError('Eine E-Mail-Adresse ist für diese Benutzerrolle erforderlich.')
+        return email
+
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
+    form = UserAdminForm
     resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')

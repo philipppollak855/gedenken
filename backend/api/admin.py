@@ -359,7 +359,8 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
-    inlines = [FamilyLinkInline, FamilyLinkAsRelativeInline]
+    # Inlines deaktiviert - verursachen 500-Fehler
+    # inlines = [FamilyLinkInline, FamilyLinkAsRelativeInline]
     
     def save_model(self, request, obj, form, change):
         try:
@@ -1295,6 +1296,11 @@ def family_link_management_view(request):
     """
     Komfortable FamilyLink-Verwaltung
     """
+    # Berechtigung prüfen
+    if not request.user.is_authenticated or not request.user.is_staff:
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
+    
     try:
         from .models import User, FamilyLink
         from django.template.loader import render_to_string

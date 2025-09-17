@@ -596,8 +596,8 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="memorial_page_search">Gedenkseite *</label>
-                            <input type="text" id="memorial_page_search" placeholder="Vor- oder Nachname eingeben..." autocomplete="off">
+                            <label for="memorial_page_search">Verstorbener *</label>
+                            <input type="text" id="memorial_page_search" placeholder="Vor- oder Nachname des Verstorbenen eingeben..." autocomplete="off">
                             <input type="hidden" id="memorial_page" name="memorial_page" required>
                             <select id="memorial_page_select" style="display: none;">
                                 <option value="">Bitte wählen...</option>
@@ -1065,10 +1065,14 @@
             
             // Debug: Zeige alle verfügbaren Optionen
             const allOptions = Array.from(selectElement.options).slice(1);
+            console.log(`=== DEBUG GEDENKSEITEN-SUCHE ===`);
             console.log(`Gedenkseiten-Suche: ${allOptions.length} Optionen verfügbar`);
-            allOptions.forEach(option => {
-                console.log(`Option: ${option.dataset.name} (Value: ${option.value})`);
+            console.log(`Select-Element:`, selectElement);
+            console.log(`Alle Optionen:`, allOptions);
+            allOptions.forEach((option, index) => {
+                console.log(`Option ${index}: "${option.dataset.name}" (Value: ${option.value})`);
             });
+            console.log(`=== ENDE DEBUG ===`);
             
             searchInput.addEventListener('input', function() {
                 const query = this.value.toLowerCase().trim();

@@ -1037,11 +1037,23 @@ def trauerdruck_entwurf_form_view(request):
                 # TrauerdruckEntwurf erstellen
                 from .models import TrauerdruckEntwurf, TrauerdruckType, MemorialPage, User
                 
+                # memorial_page_id ist jetzt die User-ID des Verstorbenen
+                # Wir müssen eine MemorialPage für diesen User finden oder erstellen
+                deceased_user = User.objects.get(id=memorial_page_id)
+                memorial_page, created = MemorialPage.objects.get_or_create(
+                    user=deceased_user,
+                    defaults={
+                        'first_name': deceased_user.first_name,
+                        'last_name': deceased_user.last_name,
+                        'status': MemorialPage.Status.ACTIVE
+                    }
+                )
+                
                 entwurf = TrauerdruckEntwurf.objects.create(
                     title=title,
                     description=description,
                     trauerdruck_type_id=trauerdruck_type_id,
-                    memorial_page_id=memorial_page_id,
+                    memorial_page=memorial_page,
                     priority=priority,
                     created_by=request.user,
                     status='draft',
@@ -1150,33 +1162,45 @@ def trauerdruck_entwurf_form_view(request):
             traceback.print_exc()
         
         try:
-            # Alle MemorialPages laden (nicht nur aktive)
-            memorial_pages = MemorialPage.objects.select_related('user').all()[:50]
+            # Verstorbene Benutzer laden (statt MemorialPages)
+            from .models import User
+            deceased_users = User.objects.filter(role=User.Role.VERSTORBENER).select_related().all()[:50]
             memorial_pages_data = []
             
-            print(f"Gefundene MemorialPages: {memorial_pages.count()}")
+            print(f"=== DEBUG: Gefundene Verstorbene: {deceased_users.count()} ===")
             
-            for page in memorial_pages:
-                if page.user:  # Nur Gedenkseiten mit gültigen Benutzern
-                    # Fallback für leere Namen - verwende Benutzerdaten
-                    first_name = page.first_name or page.user.first_name or ''
-                    last_name = page.last_name or page.user.last_name or ''
-                    full_name = f"{first_name} {last_name}".strip() or f"Gedenkseite {page.id}"
-                    
-                    # display_name für das Template hinzufügen
-                    page.display_name = full_name
-                    
-                    memorial_pages_data.append({
-                        'id': page.id,
-                        'user_id': page.user.id,
-                        'first_name': first_name,
-                        'last_name': last_name,
-                        'full_name': full_name,
-                        'status': page.status
-                    })
-                    print(f"MemorialPage geladen: {full_name} (Status: {page.status})")
+            for user in deceased_users:
+                print(f"DEBUG: Verstorbener ID {user.id}: first_name='{user.first_name}', last_name='{user.last_name}'")
+                
+                # Namen zusammenstellen
+                first_name = user.first_name or ''
+                last_name = user.last_name or ''
+                full_name = f"{first_name} {last_name}".strip() or f"Verstorbener {user.id}"
+                
+                # display_name für das Template hinzufügen (als MemorialPage-Objekt simulieren)
+                class MockMemorialPage:
+                    def __init__(self, user, display_name):
+                        self.id = user.id
+                        self.display_name = display_name
+                        self.user = user
+                
+                mock_page = MockMemorialPage(user, full_name)
+                
+                memorial_pages_data.append({
+                    'id': user.id,
+                    'user_id': user.id,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'full_name': full_name,
+                    'status': 'active'  # Verstorbene sind immer "aktiv"
+                })
+                print(f"DEBUG: Verstorbener geladen: {full_name}")
             
-            print(f"MemorialPages für Frontend: {len(memorial_pages_data)}")
+            # MemorialPages-Liste für das Template erstellen
+            memorial_pages = [MockMemorialPage(user, f"{user.first_name or ''} {user.last_name or ''}".strip() or f"Verstorbener {user.id}") for user in deceased_users]
+            
+            print(f"=== DEBUG: Verstorbene für Frontend: {len(memorial_pages_data)} ===")
+            print(f"=== DEBUG: MemorialPages Objekte: {len(memorial_pages)} ===")
             
         except Exception as e:
             memorial_pages = []

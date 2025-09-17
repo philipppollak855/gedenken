@@ -361,29 +361,57 @@ class UserAdminForm(forms.ModelForm):
             self.fields['email'].validators = []
     
     def clean_email(self):
-        email = self.cleaned_data.get('email')
-        role = self.cleaned_data.get('role')
-        
-        # Für Verstorbene: E-Mail automatisch generieren falls leer
-        if role == 'verstorbener':
-            if not email:
-                user_id = self.instance.id if self.instance.id else uuid.uuid4()
-                email = f"{user_id}@verstorben.local"
-        
-        return email
+        try:
+            email = self.cleaned_data.get('email')
+            role = self.cleaned_data.get('role')
+            
+            print(f"=== DEBUG: UserAdminForm.clean_email ===")
+            print(f"Email: {email}")
+            print(f"Role: {role}")
+            print(f"Instance ID: {self.instance.id if self.instance else 'None'}")
+            
+            # Für Verstorbene: E-Mail automatisch generieren falls leer
+            if role == 'verstorbener':
+                if not email:
+                    user_id = self.instance.id if self.instance.id else uuid.uuid4()
+                    email = f"{user_id}@verstorben.local"
+                    print(f"DEBUG: E-Mail für Verstorbenen generiert: {email}")
+            
+            print(f"DEBUG: Finale E-Mail: {email}")
+            return email
+            
+        except Exception as e:
+            print(f"DEBUG: Fehler in clean_email: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
     
     def clean(self):
-        cleaned_data = super().clean()
-        role = cleaned_data.get('role')
-        email = cleaned_data.get('email')
-        
-        # Für Verstorbene: E-Mail-Validierung komplett überspringen
-        if role == 'verstorbener':
-            if not email:
-                user_id = self.instance.id if self.instance.id else uuid.uuid4()
-                cleaned_data['email'] = f"{user_id}@verstorben.local"
-        
-        return cleaned_data
+        try:
+            print(f"=== DEBUG: UserAdminForm.clean ===")
+            cleaned_data = super().clean()
+            role = cleaned_data.get('role')
+            email = cleaned_data.get('email')
+            
+            print(f"Role: {role}")
+            print(f"Email: {email}")
+            print(f"Instance: {self.instance}")
+            
+            # Für Verstorbene: E-Mail-Validierung komplett überspringen
+            if role == 'verstorbener':
+                if not email:
+                    user_id = self.instance.id if self.instance.id else uuid.uuid4()
+                    cleaned_data['email'] = f"{user_id}@verstorben.local"
+                    print(f"DEBUG: E-Mail in clean() gesetzt: {cleaned_data['email']}")
+            
+            print(f"DEBUG: Finale cleaned_data: {cleaned_data}")
+            return cleaned_data
+            
+        except Exception as e:
+            print(f"DEBUG: Fehler in clean(): {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):
@@ -394,13 +422,30 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     inlines = [FamilyLinkInline, FamilyLinkAsRelativeInline]
     
     def save_model(self, request, obj, form, change):
-        # Für Verstorbene: E-Mail automatisch setzen falls leer
-        if obj.role == 'verstorbener' and not obj.email:
-            from uuid import uuid4
-            if not obj.id:
-                obj.id = uuid4()
-            obj.email = f"{obj.id}@verstorben.local"
-        super().save_model(request, obj, form, change)
+        try:
+            print(f"=== DEBUG: UserAdmin.save_model ===")
+            print(f"User ID: {obj.id}")
+            print(f"User Role: {obj.role}")
+            print(f"User Email: {obj.email}")
+            print(f"Is Change: {change}")
+            
+            # Für Verstorbene: E-Mail automatisch setzen falls leer
+            if obj.role == 'verstorbener' and not obj.email:
+                from uuid import uuid4
+                if not obj.id:
+                    obj.id = uuid4()
+                obj.email = f"{obj.id}@verstorben.local"
+                print(f"DEBUG: E-Mail für Verstorbenen gesetzt: {obj.email}")
+            
+            print(f"DEBUG: Speichere User...")
+            super().save_model(request, obj, form, change)
+            print(f"DEBUG: User erfolgreich gespeichert")
+            
+        except Exception as e:
+            print(f"DEBUG: Fehler beim Speichern des Users: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
     
     readonly_fields = (
         'id', 'created_at', 'updated_at',

@@ -111,7 +111,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ADMINISTRATOR = 'administrator', 'Administrator'
 
     id = models.UUIDField("ID", primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField("E-Mail-Adresse", unique=True, blank=True, null=True)
+    email = models.CharField("E-Mail-Adresse", max_length=254, unique=True, blank=True, null=True)
     first_name = models.CharField("Vorname", max_length=100, blank=True)
     last_name = models.CharField("Nachname", max_length=100, blank=True)
     role = models.CharField("Rolle", max_length=20, choices=Role.choices, default=Role.VORSORGENDER)

@@ -356,6 +356,9 @@ class UserAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # E-Mail-Feld als nicht erforderlich markieren
         self.fields['email'].required = False
+        # E-Mail-Validierung für Verstorbene deaktivieren
+        if self.instance and self.instance.role == 'verstorbener':
+            self.fields['email'].validators = []
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -368,6 +371,19 @@ class UserAdminForm(forms.ModelForm):
                 email = f"{user_id}@verstorben.local"
         
         return email
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get('role')
+        email = cleaned_data.get('email')
+        
+        # Für Verstorbene: E-Mail-Validierung komplett überspringen
+        if role == 'verstorbener':
+            if not email:
+                user_id = self.instance.id if self.instance.id else uuid.uuid4()
+                cleaned_data['email'] = f"{user_id}@verstorben.local"
+        
+        return cleaned_data
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin, ModelAdmin):

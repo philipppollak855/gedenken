@@ -1150,8 +1150,12 @@ def trauerdruck_entwurf_form_view(request):
             traceback.print_exc()
         
         try:
-            memorial_pages = MemorialPage.objects.select_related('user').filter(status='active')[:50]
+            # Alle MemorialPages laden (nicht nur aktive)
+            memorial_pages = MemorialPage.objects.select_related('user').all()[:50]
             memorial_pages_data = []
+            
+            print(f"Gefundene MemorialPages: {memorial_pages.count()}")
+            
             for page in memorial_pages:
                 if page.user:  # Nur Gedenkseiten mit gültigen Benutzern
                     memorial_pages_data.append({
@@ -1159,12 +1163,19 @@ def trauerdruck_entwurf_form_view(request):
                         'user_id': page.user.id,
                         'first_name': page.first_name or '',
                         'last_name': page.last_name or '',
-                        'full_name': f"{page.first_name or ''} {page.last_name or ''}".strip() or f"Gedenkseite {page.id}"
+                        'full_name': f"{page.first_name or ''} {page.last_name or ''}".strip() or f"Gedenkseite {page.id}",
+                        'status': page.status
                     })
+                    print(f"MemorialPage geladen: {page.first_name} {page.last_name} (Status: {page.status})")
+            
+            print(f"MemorialPages für Frontend: {len(memorial_pages_data)}")
+            
         except Exception as e:
             memorial_pages = []
             memorial_pages_data = []
             print(f"Fehler beim Laden der Gedenkseiten: {e}")
+            import traceback
+            traceback.print_exc()
         
         try:
             trauerdruck_types = TrauerdruckType.objects.filter(is_active=True)

@@ -1063,8 +1063,16 @@
             const selectElement = document.getElementById('memorial_page_select');
             const hiddenInput = document.getElementById('memorial_page');
             
+            // Debug: Zeige alle verfügbaren Optionen
+            const allOptions = Array.from(selectElement.options).slice(1);
+            console.log(`Gedenkseiten-Suche: ${allOptions.length} Optionen verfügbar`);
+            allOptions.forEach(option => {
+                console.log(`Option: ${option.dataset.name} (Value: ${option.value})`);
+            });
+            
             searchInput.addEventListener('input', function() {
                 const query = this.value.toLowerCase().trim();
+                console.log(`Gedenkseiten-Suche nach: "${query}"`);
                 
                 if (query.length < 2) {
                     resultsDiv.style.display = 'none';
@@ -1075,8 +1083,14 @@
                 const options = Array.from(selectElement.options).slice(1); // Erste Option (placeholder) überspringen
                 const matches = options.filter(option => {
                     const name = option.dataset.name.toLowerCase();
-                    return name.includes(query);
+                    const matches = name.includes(query);
+                    if (matches) {
+                        console.log(`Match gefunden: ${option.dataset.name}`);
+                    }
+                    return matches;
                 });
+                
+                console.log(`${matches.length} Matches für "${query}"`);
                 
                 if (matches.length > 0) {
                     resultsDiv.innerHTML = '';
@@ -1109,6 +1123,7 @@
                     resultsDiv.style.display = 'block';
                 } else {
                     resultsDiv.style.display = 'none';
+                    console.log(`Keine Matches für "${query}"`);
                 }
             });
             
@@ -1132,18 +1147,28 @@
             // Populate deceased select with memorial pages
             try {
                 const memorialPages = {{ memorial_pages_json|safe }};
+                console.log('MemorialPages für Quick-Add:', memorialPages);
+                
                 if (memorialPages && Array.isArray(memorialPages)) {
+                    console.log(`Lade ${memorialPages.length} MemorialPages in Quick-Add-Dropdown`);
+                    
                     memorialPages.forEach(page => {
                         if (page && page.user_id) {
                             const option = document.createElement('option');
                             option.value = page.user_id;
-                            option.textContent = `${page.first_name || ''} ${page.last_name || ''}`.trim() || 'Unbekannt';
+                            const displayName = `${page.first_name || ''} ${page.last_name || ''}`.trim() || 'Unbekannt';
+                            option.textContent = `${displayName} (${page.status || 'unbekannt'})`;
                             quickDeceasedSelect.appendChild(option);
+                            console.log(`Quick-Add Option hinzugefügt: ${displayName} (User ID: ${page.user_id})`);
                         }
                     });
+                    
+                    console.log(`Quick-Add Dropdown hat jetzt ${quickDeceasedSelect.options.length} Optionen`);
+                } else {
+                    console.warn('Keine MemorialPages-Daten verfügbar für Quick-Add');
                 }
             } catch (error) {
-                console.error('Fehler beim Laden der Gedenkseiten:', error);
+                console.error('Fehler beim Laden der Gedenkseiten für Quick-Add:', error);
             }
             
             // Populate relative select with users (excluding deceased)

@@ -1249,6 +1249,13 @@ def quick_family_link_add_view(request):
     """
     API-Endpoint für das schnelle Hinzufügen von FamilyLink-Einträgen
     """
+    # Debug-Informationen
+    print(f"=== FamilyLink Add Request ===")
+    print(f"Method: {request.method}")
+    print(f"Content-Type: {request.content_type}")
+    print(f"Headers: {dict(request.headers)}")
+    print(f"Body: {request.body}")
+    
     if request.method == 'POST':
         try:
             from .models import FamilyLink
@@ -1306,6 +1313,24 @@ def quick_family_link_add_view(request):
             return JsonResponse({'error': 'Ungültige JSON-Daten'}, status=400)
         except Exception as e:
             return JsonResponse({'error': f'Fehler beim Erstellen der Verknüpfung: {str(e)}'}, status=500)
+    
+    # Für GET-Requests eine hilfreiche Antwort zurückgeben
+    if request.method == 'GET':
+        return JsonResponse({
+            'error': 'Dieser Endpunkt akzeptiert nur POST-Requests',
+            'message': 'Verwenden Sie die Trauerdruck-Entwurf-Form, um FamilyLinks zu erstellen',
+            'method': 'POST',
+            'content_type': 'application/json',
+            'required_fields': [
+                'deceased_user',
+                'relative_user', 
+                'relationship',
+                'is_main_contact',
+                'can_edit_memorial_page',
+                'can_view_precaution_data',
+                'can_edit_precaution_data'
+            ]
+        }, status=405)
     
     return JsonResponse({'error': 'Nur POST-Requests erlaubt'}, status=405)
 

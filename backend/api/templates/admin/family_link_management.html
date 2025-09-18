@@ -225,26 +225,33 @@
                         <input type="text" name="relationship" id="relationship" placeholder="z.B. Sohn, Ehefrau, Guter Freund">
                     </div>
                     
+                    <div class="form-group">
+                        <label for="role">Rolle</label>
+                        <select name="role" id="role" required>
+                            <option value="family_member">Familienmitglied</option>
+                            <option value="main_contact">Hauptansprechpartner</option>
+                            <option value="executor">Testamentsvollstrecker</option>
+                            <option value="guardian">Vormund/Betreuer</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="permission_level">Berechtigungsstufe</label>
+                        <select name="permission_level" id="permission_level" required>
+                            <option value="view_only">Nur anzeigen</option>
+                            <option value="edit_memorial" selected>Gedenkseite bearbeiten</option>
+                            <option value="manage_all">Vollzugriff (Vorsorge + Gedenkseite)</option>
+                        </select>
+                    </div>
+                    
                     <div class="checkbox-group">
                         <div class="checkbox-item">
-                            <input type="checkbox" name="is_main_contact" id="is_main_contact">
-                            <label for="is_main_contact">Hauptansprechpartner</label>
+                            <input type="checkbox" name="is_active" id="is_active" checked>
+                            <label for="is_active">Aktiv</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" name="can_edit_memorial_page" id="can_edit_memorial_page" checked>
-                            <label for="can_edit_memorial_page">Gedenkseite bearbeiten</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" name="can_view_precaution_data" id="can_view_precaution_data">
-                            <label for="can_view_precaution_data">Vorsorge einsehen</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" name="can_edit_precaution_data" id="can_edit_precaution_data">
-                            <label for="can_edit_precaution_data">Vorsorge bearbeiten</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" name="can_manage_proofs" id="can_manage_proofs">
-                            <label for="can_manage_proofs">Beweise verwalten</label>
+                            <input type="checkbox" name="is_validated_by_admin" id="is_validated_by_admin">
+                            <label for="is_validated_by_admin">Vom Admin validiert</label>
                         </div>
                     </div>
                     
@@ -282,10 +289,9 @@
                                     </td>
                                     <td>{{ link.relationship|default:"—" }}</td>
                                     <td>
-                                        {% if link.is_main_contact %}<span class="badge badge-primary">Hauptansprechpartner</span>{% endif %}
-                                        {% if link.can_edit_memorial_page %}<span class="badge badge-success">Gedenkseite</span>{% endif %}
-                                        {% if link.can_view_precaution_data %}<span class="badge badge-warning">Vorsorge einsehen</span>{% endif %}
-                                        {% if link.can_edit_precaution_data %}<span class="badge badge-warning">Vorsorge bearbeiten</span>{% endif %}
+                                        <span class="badge badge-primary">{{ link.get_role_display }}</span><br>
+                                        <span class="badge badge-info">{{ link.get_permission_level_display }}</span>
+                                        {% if not link.is_active %}<span class="badge badge-danger">INAKTIV</span>{% endif %}
                                     </td>
                                     <td>
                                         {% if link.is_validated_by_admin %}

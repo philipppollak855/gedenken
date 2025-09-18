@@ -31,7 +31,7 @@ from .serializers import (
     GalleryItemSerializer, ReleaseRequestSerializer,
     MemorialPageListSerializer, SiteSettingsSerializer, CondolenceTemplateSerializer,
     CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer,
-    MemorialEventSerializer, MeinBereichDataSerializer,
+    MemorialEventSerializer, MeinBereichDataSerializer, FamilyLinkSerializer,
     TrauerdruckTypeSerializer, TrauerdruckEntwurfSerializer, TrauerdruckDesignSerializer, TrauerdruckKommentarSerializer,
     TrauerdruckFreigabeSerializer, TrauerdruckDesignFreigabeSerializer, TrauerdruckBenachrichtigungSerializer, TrauerdruckTemplateSerializer
 )
@@ -476,6 +476,67 @@ class CreateMemorialPageView(APIView):
         )
         serializer = MemorialPageSerializer(page, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class FamilyLinkViewSet(viewsets.ModelViewSet):
+    """ViewSet für FamilyLink-Verwaltung"""
+    queryset = FamilyLink.objects.all()
+    serializer_class = FamilyLinkSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        queryset = FamilyLink.objects.select_related(
+            'deceased_user', 'relative_user', 'created_by', 'validated_by'
+        )
+        
+        # Admins können alle FamilyLinks sehen
+        if user.is_staff:
+            return queryset
+        
+        # Normale Benutzer können nur ihre eigenen FamilyLinks sehen
+        return queryset.filter(
+            Q(relative_user=user) | Q(deceased_user=user)
+        )
+    
+    def perform_create(self, serializer):
+        # Setze created_by auf den aktuellen Benutzer
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=True, methods=['post'])
+    def validate(self, request, pk=None):
+        """FamilyLink validieren (nur für Admins)"""
+        if not request.user.is_staff:
+            return Response({'error': 'Nur Admins können FamilyLinks validieren'}, status=status.HTTP_403_FORBIDDEN)
+        
+        family_link = self.get_object()
+        family_link.is_validated_by_admin = True
+        family_link.validated_by = request.user
+        family_link.validated_at = timezone.now()
+        family_link.save()
+        
+        serializer = self.get_serializer(family_link)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        """FamilyLink deaktivieren"""
+        family_link = self.get_object()
+        family_link.is_active = False
+        family_link.save()
+        
+        serializer = self.get_serializer(family_link)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        """FamilyLink aktivieren"""
+        family_link = self.get_object()
+        family_link.is_active = True
+        family_link.save()
+        
+        serializer = self.get_serializer(family_link)
+        return Response(serializer.data)
 
 
 # ===== TRAUERDRUCK VIEWS =====

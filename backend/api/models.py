@@ -142,10 +142,21 @@ class User(AbstractBaseUser, PermissionsMixin):
             self.email = f"{self.id}@verstorben.local"
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def get_full_name(self):
+        """Gibt den vollständigen Namen des Benutzers zurück"""
         if self.first_name and self.last_name:
-            return f"{self.first_name} {self.last_name}"
-        return self.email or f"Benutzer {self.id}"
+            return f"{self.first_name} {self.last_name}".strip()
+        elif self.first_name:
+            return self.first_name.strip()
+        elif self.last_name:
+            return self.last_name.strip()
+        elif self.email:
+            return self.email
+        else:
+            return f"Benutzer {self.id}"
+
+    def __str__(self):
+        return self.get_full_name()
 
 class MemorialPage(models.Model):
     class Meta:
@@ -628,27 +639,154 @@ class ReleaseRequest(models.Model):
     created_at = models.DateTimeField("Eingegangen am", auto_now_add=True)
 
 class FamilyLink(models.Model):
+    """
+    Vereinfachtes FamilyLink-Model für Angehörigen-Verknüpfungen
+    Admin-basierte Verknüpfung ohne Einladungscodes
+    """
+    
+    class FamilyRole(models.TextChoices):
+        FAMILY_MEMBER = 'family_member', 'Familienmitglied'
+        MAIN_CONTACT = 'main_contact', 'Hauptansprechpartner'
+        EXECUTOR = 'executor', 'Testamentsvollstrecker'
+        GUARDIAN = 'guardian', 'Vormund/Betreuer'
+    
+    class PermissionLevel(models.TextChoices):
+        VIEW_ONLY = 'view_only', 'Nur anzeigen'
+        EDIT_MEMORIAL = 'edit_memorial', 'Gedenkseite bearbeiten'
+        MANAGE_ALL = 'manage_all', 'Vollzugriff (Vorsorge + Gedenkseite)'
+    
     class Meta:
         verbose_name = "Angehörigen-Verknüpfung"
         verbose_name_plural = "Angehörigen-Verknüpfungen"
         unique_together = ('deceased_user', 'relative_user')
+        ordering = ['-created_at']
         
-    link_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    deceased_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_deceased', verbose_name="Verstorbener")
-    relative_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_links_as_relative', verbose_name="Angehöriger")
-    relationship = models.CharField("Verwandtschaftsbezeichnung", max_length=100, blank=True, help_text="z.B. Sohn, Ehefrau, Guter Freund")
-    is_main_contact = models.BooleanField("Hauptansprechpartner", default=False)
+    # Grundlegende Verknüpfung
+    deceased_user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='family_links_as_deceased', 
+        verbose_name="Verstorbener",
+        limit_choices_to={'role': User.Role.VERSTORBENER}
+    )
+    relative_user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='family_links_as_relative', 
+        verbose_name="Angehöriger",
+        limit_choices_to={'role__in': [User.Role.VORSORGENDER, User.Role.ANGEHOERIGER]}
+    )
     
-    can_edit_memorial_page = models.BooleanField("Gedenkseite bearbeiten", default=False)
-    can_view_precaution_data = models.BooleanField("Vorsorge einsehen", default=False)
-    can_edit_precaution_data = models.BooleanField("Vorsorge bearbeiten", default=False)
-    can_manage_proofs = models.BooleanField("Beweise verwalten", default=False)
+    # Vereinfachte Rollen und Berechtigungen
+    role = models.CharField(
+        "Rolle", 
+        max_length=20, 
+        choices=FamilyRole.choices, 
+        default=FamilyRole.FAMILY_MEMBER,
+        help_text="Rolle des Angehörigen"
+    )
+    permission_level = models.CharField(
+        "Berechtigungsstufe", 
+        max_length=20, 
+        choices=PermissionLevel.choices, 
+        default=PermissionLevel.VIEW_ONLY,
+        help_text="Was darf der Angehörige tun?"
+    )
     
-    power_of_attorney = models.FileField("Vollmacht (PDF, JPG, PNG)", upload_to='power_of_attorney/%Y/%m/', blank=True, null=True)
-    is_validated_by_admin = models.BooleanField("Vom Admin validiert", default=False, help_text="Admin bestätigt die Berechtigung (auch ohne Vollmacht-Upload).")
+    # Verwandtschaftsbezeichnung (optional)
+    relationship = models.CharField(
+        "Verwandtschaftsbezeichnung", 
+        max_length=100, 
+        blank=True, 
+        help_text="z.B. Sohn, Ehefrau, Guter Freund"
+    )
+    
+    # Status und Validierung
+    is_active = models.BooleanField(
+        "Aktiv", 
+        default=True, 
+        help_text="Aktive Verknüpfung"
+    )
+    is_validated_by_admin = models.BooleanField(
+        "Vom Admin validiert", 
+        default=False,
+        help_text="Admin hat die Verknüpfung bestätigt"
+    )
+    validated_at = models.DateTimeField(
+        "Validiert am", 
+        null=True, 
+        blank=True
+    )
+    validated_by = models.ForeignKey(
+        User, 
+        null=True, 
+        blank=True, 
+        related_name='validated_family_links',
+        verbose_name="Validiert von",
+        on_delete=models.SET_NULL
+    )
+    
+    # Zeitstempel
+    created_at = models.DateTimeField("Erstellt am", default=timezone.now)
+    updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
+    
+    # Metadaten
+    created_by = models.ForeignKey(
+        User, 
+        related_name='created_family_links', 
+        verbose_name="Erstellt von",
+        help_text="Admin der die Verknüpfung erstellt hat",
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    notes = models.TextField(
+        "Interne Notizen", 
+        blank=True, 
+        help_text="Interne Notizen für Admins"
+    )
 
     def __str__(self):
-        return f"{self.relative_user} ist Angehöriger von {self.deceased_user}"
+        return f"{self.relative_user.get_full_name()} → {self.deceased_user.get_full_name()} ({self.get_role_display()})"
+    
+    def clean(self):
+        """Validierung der FamilyLink-Daten"""
+        super().clean()
+        
+        # Verhindert Selbstverknüpfung
+        if self.deceased_user == self.relative_user:
+            raise ValidationError("Ein Benutzer kann nicht mit sich selbst verknüpft werden.")
+        
+        # Verhindert doppelte Verknüpfungen
+        if self.pk is None:  # Nur bei neuen Objekten prüfen
+            if FamilyLink.objects.filter(
+                deceased_user=self.deceased_user, 
+                relative_user=self.relative_user
+            ).exists():
+                raise ValidationError("Diese Verknüpfung existiert bereits.")
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+    
+    @property
+    def can_edit_memorial_page(self):
+        """Kompatibilität: Gedenkseite bearbeiten basierend auf permission_level"""
+        return self.permission_level in [self.PermissionLevel.EDIT_MEMORIAL, self.PermissionLevel.MANAGE_ALL]
+    
+    @property
+    def can_view_precaution_data(self):
+        """Kompatibilität: Vorsorge einsehen basierend auf permission_level"""
+        return self.permission_level == self.PermissionLevel.MANAGE_ALL
+    
+    @property
+    def can_edit_precaution_data(self):
+        """Kompatibilität: Vorsorge bearbeiten basierend auf permission_level"""
+        return self.permission_level == self.PermissionLevel.MANAGE_ALL
+    
+    @property
+    def is_main_contact(self):
+        """Kompatibilität: Hauptansprechpartner basierend auf role"""
+        return self.role == self.FamilyRole.MAIN_CONTACT
 
 class MemorialEvent(models.Model):
     class Meta:

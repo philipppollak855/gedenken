@@ -311,19 +311,24 @@ class SiteSettingsAdmin(ModelAdmin):
 
 @admin.register(FamilyLink)
 class FamilyLinkAdmin(ModelAdmin):
-    list_display = ('deceased_user', 'relative_user', 'relationship', 'is_main_contact', 'can_edit_memorial_page', 'is_validated_by_admin')
-    list_filter = ('is_main_contact', 'can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data', 'is_validated_by_admin')
-    search_fields = ('deceased_user__first_name', 'deceased_user__last_name', 'relative_user__first_name', 'relative_user__last_name', 'relationship')
-    autocomplete_fields = ('deceased_user', 'relative_user')
+    list_display = ('deceased_user', 'relative_user', 'relationship', 'role', 'permission_level', 'is_active', 'is_validated_by_admin', 'created_at')
+    list_filter = ('role', 'permission_level', 'is_active', 'is_validated_by_admin', 'created_at')
+    search_fields = ('deceased_user__first_name', 'deceased_user__last_name', 'relative_user__first_name', 'relative_user__last_name', 'relationship', 'notes')
+    autocomplete_fields = ('deceased_user', 'relative_user', 'created_by', 'validated_by')
+    readonly_fields = ('created_at', 'updated_at', 'validated_at')
     fieldsets = (
-        (None, {
-            'fields': ('deceased_user', 'relative_user', 'relationship', 'is_main_contact')
+        ('Grunddaten', {
+            'fields': ('deceased_user', 'relative_user', 'relationship')
         }),
-        ('Berechtigungen', {
-            'fields': ('can_edit_memorial_page', 'can_view_precaution_data', 'can_edit_precaution_data')
+        ('Rolle & Berechtigungen', {
+            'fields': ('role', 'permission_level', 'is_active')
         }),
         ('Validierung', {
-            'fields': ('power_of_attorney', 'is_validated_by_admin')
+            'fields': ('is_validated_by_admin', 'validated_by', 'validated_at')
+        }),
+        ('Metadaten', {
+            'fields': ('created_by', 'notes', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
         }),
     )
 
@@ -333,7 +338,7 @@ class FamilyLinkInline(admin.TabularInline):
     extra = 1
     verbose_name = "Angehöriger"
     verbose_name_plural = "Angehörige"
-    fields = ('relative_user', 'relationship', 'is_main_contact')
+    fields = ('relative_user', 'relationship', 'role', 'permission_level', 'is_active')
 
 class FamilyLinkAsRelativeInline(admin.TabularInline):
     model = FamilyLink
@@ -341,7 +346,7 @@ class FamilyLinkAsRelativeInline(admin.TabularInline):
     extra = 1
     verbose_name = "Verstorbener (für den ich Angehöriger bin)"
     verbose_name_plural = "Verstorbene (für die ich Angehöriger bin)"
-    fields = ('deceased_user', 'relationship', 'is_main_contact')
+    fields = ('deceased_user', 'relationship', 'role', 'permission_level', 'is_active')
 
 class UserAdminForm(forms.ModelForm):
     class Meta:
@@ -547,9 +552,12 @@ class MemorialPageAdmin(ModelAdmin):
             for link in links:
                 relative = link.relative_user
                 url = reverse('admin:api_user_change', args=(relative.pk,))
-                main_contact_str = " (Hauptansprechpartner)" if link.is_main_contact else ""
+                role_str = f" ({link.get_role_display()})" if link.role else ""
+                permission_str = f" - {link.get_permission_level_display()}" if link.permission_level else ""
                 relationship_str = f" - {link.relationship}" if link.relationship else ""
-                html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative.get_full_name()} ansehen">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{main_contact_str}</li>'
+                status_str = " [INAKTIV]" if not link.is_active else ""
+                validated_str = " [VALIDIERT]" if link.is_validated_by_admin else " [NICHT VALIDIERT]"
+                html_list += f'<li><a href="{url}" data-modal-title="Benutzer {relative.get_full_name()} ansehen">{relative.get_full_name()}</a> ({relative.email}){relationship_str}{role_str}{permission_str}{status_str}{validated_str}</li>'
         html_list += "</ul>"
         manage_url = reverse('admin:api_user_change', args=(user.pk,)) + '#familylink_set-group'
         html_button = f'<div style="margin-top: 1rem;"><a href="{manage_url}" class="button manage-button" data-modal-title="Angehörige für {user.get_full_name()} verwalten">Angehörige verwalten</a></div>'
@@ -1311,21 +1319,19 @@ def family_link_management_view(request):
             deceased_user_id = request.POST.get('deceased_user')
             relative_user_id = request.POST.get('relative_user')
             relationship = request.POST.get('relationship', '')
-            is_main_contact = request.POST.get('is_main_contact') == 'on'
-            can_edit_memorial_page = request.POST.get('can_edit_memorial_page') == 'on'
-            can_view_precaution_data = request.POST.get('can_view_precaution_data') == 'on'
-            can_edit_precaution_data = request.POST.get('can_edit_precaution_data') == 'on'
-            can_manage_proofs = request.POST.get('can_manage_proofs') == 'on'
+            role = request.POST.get('role', FamilyLink.FamilyRole.FAMILY_MEMBER)
+            permission_level = request.POST.get('permission_level', FamilyLink.PermissionLevel.VIEW_ONLY)
+            is_active = request.POST.get('is_active') == 'on'
+            is_validated_by_admin = request.POST.get('is_validated_by_admin') == 'on'
             
             print(f"=== DEBUG: Verarbeitete Daten ===")
             print(f"deceased_user_id: {deceased_user_id}")
             print(f"relative_user_id: {relative_user_id}")
             print(f"relationship: {relationship}")
-            print(f"is_main_contact: {is_main_contact}")
-            print(f"can_edit_memorial_page: {can_edit_memorial_page}")
-            print(f"can_view_precaution_data: {can_view_precaution_data}")
-            print(f"can_edit_precaution_data: {can_edit_precaution_data}")
-            print(f"can_manage_proofs: {can_manage_proofs}")
+            print(f"role: {role}")
+            print(f"permission_level: {permission_level}")
+            print(f"is_active: {is_active}")
+            print(f"is_validated_by_admin: {is_validated_by_admin}")
             
             if not deceased_user_id or not relative_user_id:
                 messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
@@ -1342,11 +1348,11 @@ def family_link_management_view(request):
                         deceased_user=deceased_user,
                         relative_user=relative_user,
                         relationship=relationship,
-                        is_main_contact=is_main_contact,
-                        can_edit_memorial_page=can_edit_memorial_page,
-                        can_view_precaution_data=can_view_precaution_data,
-                        can_edit_precaution_data=can_edit_precaution_data,
-                        can_manage_proofs=can_manage_proofs
+                        role=request.POST.get('role', FamilyLink.FamilyRole.FAMILY_MEMBER),
+                        permission_level=request.POST.get('permission_level', FamilyLink.PermissionLevel.VIEW_ONLY),
+                        is_active=request.POST.get('is_active') == 'on',
+                        is_validated_by_admin=request.POST.get('is_validated_by_admin') == 'on',
+                        created_by=request.user
                     )
                     messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
             
@@ -1392,10 +1398,10 @@ def quick_family_link_add_view(request):
             deceased_user_id = data.get('deceased_user')
             relative_user_id = data.get('relative_user')
             relationship = data.get('relationship', '')
-            is_main_contact = data.get('is_main_contact', False)
-            can_edit_memorial_page = data.get('can_edit_memorial_page', True)
-            can_view_precaution_data = data.get('can_view_precaution_data', False)
-            can_edit_precaution_data = data.get('can_edit_precaution_data', False)
+            role = data.get('role', FamilyLink.FamilyRole.FAMILY_MEMBER)
+            permission_level = data.get('permission_level', FamilyLink.PermissionLevel.VIEW_ONLY)
+            is_active = data.get('is_active', True)
+            is_validated_by_admin = data.get('is_validated_by_admin', False)
             
             # Benutzer validieren
             if not deceased_user_id or not relative_user_id:
@@ -1437,10 +1443,11 @@ def quick_family_link_add_view(request):
                 deceased_user=deceased_user,
                 relative_user=relative_user,
                 relationship=relationship,
-                is_main_contact=is_main_contact,
-                can_edit_memorial_page=can_edit_memorial_page,
-                can_view_precaution_data=can_view_precaution_data,
-                can_edit_precaution_data=can_edit_precaution_data
+                role=role,
+                permission_level=permission_level,
+                is_active=is_active,
+                is_validated_by_admin=is_validated_by_admin,
+                created_by=request.user
             )
             print(f"DEBUG: FamilyLink erstellt mit ID: {family_link.link_id}")
             
@@ -1468,10 +1475,10 @@ def quick_family_link_add_view(request):
                 'deceased_user',
                 'relative_user', 
                 'relationship',
-                'is_main_contact',
-                'can_edit_memorial_page',
-                'can_view_precaution_data',
-                'can_edit_precaution_data'
+                'role',
+                'permission_level',
+                'is_active',
+                'is_validated_by_admin'
             ]
         }, status=405)
     

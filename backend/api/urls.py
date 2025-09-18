@@ -12,7 +12,7 @@ from .views import (
     GalleryItemViewSet, ReleaseRequestViewSet, SiteSettingsView, MyContributionsView,
     CondolenceTemplateViewSet, CandleImageViewSet, CandleMessageTemplateViewSet,
     SeedDatabaseView, EventAttendanceViewSet, MemorialEventViewSet, GlobalSearchView,
-    MeinBereichDataView, CreateMemorialPageView, # NEU
+    MeinBereichDataView, CreateMemorialPageView, FamilyLinkViewSet, # NEU
     TrauerdruckTypeViewSet, TrauerdruckEntwurfViewSet, TrauerdruckDesignViewSet, TrauerdruckKommentarViewSet,
     TrauerdruckFreigabeViewSet, TrauerdruckDesignFreigabeViewSet, TrauerdruckBenachrichtigungViewSet, TrauerdruckTemplateViewSet
 )
@@ -32,6 +32,7 @@ router.register(r'candles', MemorialCandleViewSet, basename='candle')
 router.register(r'condolence-templates', CondolenceTemplateViewSet, basename='condolencetemplate')
 router.register(r'candle-images', CandleImageViewSet, basename='candleimage')
 router.register(r'candle-message-templates', CandleMessageTemplateViewSet, basename='candle-message-template')
+router.register(r'family-links', FamilyLinkViewSet, basename='familylink')
 
 # Trauerdruck Router
 router.register(r'trauerdruck-types', TrauerdruckTypeViewSet, basename='trauerdrucktype')

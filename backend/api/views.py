@@ -229,7 +229,7 @@ class CanViewVorsorgeDataPermission(permissions.BasePermission):
         if user.is_staff or obj.user == user: return True
         return FamilyLink.objects.filter(
             deceased_user=obj.user, relative_user=user,
-            can_view_precaution_data=True, is_validated_by_admin=True
+            permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True
         ).exists()
 
 class CanEditVorsorgeDataPermission(permissions.BasePermission):
@@ -239,7 +239,7 @@ class CanEditVorsorgeDataPermission(permissions.BasePermission):
         if user.is_staff or obj.user == user: return True
         return FamilyLink.objects.filter(
             deceased_user=obj.user, relative_user=user,
-            can_edit_precaution_data=True, is_validated_by_admin=True
+            permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True
         ).exists()
 
 class CanEditMemorialPagePermission(permissions.BasePermission):
@@ -249,7 +249,7 @@ class CanEditMemorialPagePermission(permissions.BasePermission):
         if user.is_staff or obj.user == user: return True
         return FamilyLink.objects.filter(
             deceased_user=obj.user, relative_user=user,
-            can_edit_memorial_page=True
+            permission_level__in=[FamilyLink.PermissionLevel.EDIT_MEMORIAL, FamilyLink.PermissionLevel.MANAGE_ALL]
         ).exists()
 
 class DigitalLegacyItemViewSet(viewsets.ModelViewSet):
@@ -257,7 +257,7 @@ class DigitalLegacyItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return DigitalLegacyItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -266,7 +266,7 @@ class FinancialItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return FinancialItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -275,7 +275,7 @@ class InsuranceItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return InsuranceItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -284,7 +284,7 @@ class ContractItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return ContractItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -294,7 +294,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, can_view_precaution_data=True, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
         return Document.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -329,7 +329,7 @@ class ManagedMemorialPageViewSet(viewsets.ModelViewSet):
             return MemorialPage.objects.all()
         linked_deceased_ids = FamilyLink.objects.filter(
             relative_user=user, 
-            can_edit_memorial_page=True,
+            permission_level__in=[FamilyLink.PermissionLevel.EDIT_MEMORIAL, FamilyLink.PermissionLevel.MANAGE_ALL],
             deceased_user__role=User.Role.VERSTORBENER
         ).values_list('deceased_user_id', flat=True)
         return MemorialPage.objects.filter(
@@ -449,7 +449,7 @@ class MeinBereichDataView(APIView):
         except MemorialPage.DoesNotExist:
             own_page = None
         
-        managed_links = FamilyLink.objects.filter(relative_user=user, can_edit_memorial_page=True)
+        managed_links = FamilyLink.objects.filter(relative_user=user, permission_level__in=[FamilyLink.PermissionLevel.EDIT_MEMORIAL, FamilyLink.PermissionLevel.MANAGE_ALL])
         managed_pages = [link.deceased_user.memorial_page for link in managed_links if hasattr(link.deceased_user, 'memorial_page')]
         
         serializer = MeinBereichDataSerializer({

@@ -1395,65 +1395,92 @@ def family_link_management_view(request):
                                         # Verwende alte Struktur falls neue Spalten fehlen
                                         if 'role' not in existing_columns:
                                             # Alte Struktur: Verwende nur existierende Spalten
-                                            # Erstelle dynamische INSERT-Query basierend auf vorhandenen Spalten
-                                            base_columns = ['link_id', 'deceased_user_id', 'relative_user_id', 'relationship']
-                                            base_values = [deceased_user.id, relative_user.id, relationship]
+                                            # Erstelle einfache INSERT-Query basierend auf vorhandenen Spalten
+                                            print(f"Creating FamilyLink with old schema. Available columns: {existing_columns}")
+                                            
+                                            # Basis-Spalten die immer existieren sollten
+                                            required_columns = ['deceased_user_id', 'relative_user_id']
+                                            required_values = [deceased_user.id, relative_user.id]
                                             
                                             # Füge optionale Spalten hinzu falls sie existieren
-                                            if 'is_main_contact' in existing_columns:
-                                                base_columns.append('is_main_contact')
-                                                base_values.append(role == 'main_contact')
-                                            if 'can_edit_memorial_page' in existing_columns:
-                                                base_columns.append('can_edit_memorial_page')
-                                                base_values.append(permission_level in ['edit_memorial', 'manage_all'])
-                                            if 'can_view_precaution_data' in existing_columns:
-                                                base_columns.append('can_view_precaution_data')
-                                                base_values.append(permission_level == 'manage_all')
-                                            if 'can_edit_precaution_data' in existing_columns:
-                                                base_columns.append('can_edit_precaution_data')
-                                                base_values.append(permission_level == 'manage_all')
-                                            if 'created_at' in existing_columns:
-                                                base_columns.append('created_at')
-                                                base_values.append(timezone.now())
-                                            if 'updated_at' in existing_columns:
-                                                base_columns.append('updated_at')
-                                                base_values.append(timezone.now())
+                                            optional_columns = []
+                                            optional_values = []
                                             
-                                            # Erstelle dynamische INSERT-Query
-                                            columns_str = ', '.join(base_columns)
+                                            if 'link_id' in existing_columns:
+                                                optional_columns.append('link_id')
+                                                optional_values.append(None)  # Wird später gesetzt
+                                            
+                                            if 'relationship' in existing_columns:
+                                                optional_columns.append('relationship')
+                                                optional_values.append(relationship)
+                                            
+                                            if 'is_main_contact' in existing_columns:
+                                                optional_columns.append('is_main_contact')
+                                                optional_values.append(role == 'main_contact')
+                                            
+                                            if 'can_edit_memorial_page' in existing_columns:
+                                                optional_columns.append('can_edit_memorial_page')
+                                                optional_values.append(permission_level in ['edit_memorial', 'manage_all'])
+                                            
+                                            if 'can_view_precaution_data' in existing_columns:
+                                                optional_columns.append('can_view_precaution_data')
+                                                optional_values.append(permission_level == 'manage_all')
+                                            
+                                            if 'can_edit_precaution_data' in existing_columns:
+                                                optional_columns.append('can_edit_precaution_data')
+                                                optional_values.append(permission_level == 'manage_all')
+                                            
+                                            if 'created_at' in existing_columns:
+                                                optional_columns.append('created_at')
+                                                optional_values.append(timezone.now())
+                                            
+                                            if 'updated_at' in existing_columns:
+                                                optional_columns.append('updated_at')
+                                                optional_values.append(timezone.now())
+                                            
+                                            # Kombiniere alle Spalten und Werte
+                                            all_columns = required_columns + optional_columns
+                                            all_values = required_values + optional_values
+                                            
+                                            print(f"Final columns: {all_columns}")
+                                            print(f"Final values count: {len(all_values)}")
+                                            
+                                            # Erstelle INSERT-Query
+                                            columns_str = ', '.join(all_columns)
+                                            placeholders_str = ', '.join(['%s'] * len(all_values))
                                             
                                             try:
-                                                # Versuche Sequenz zu verwenden
-                                                if 'link_id' in base_columns:
-                                                    link_id_index = base_columns.index('link_id')
-                                                    # Erstelle Platzhalter mit nextval() für link_id
-                                                    placeholders = []
-                                                    for i, col in enumerate(base_columns):
-                                                        if col == 'link_id':
-                                                            placeholders.append('nextval(\'api_familylink_link_id_seq\')')
-                                                        else:
-                                                            placeholders.append('%s')
-                                                    placeholders_str = ', '.join(placeholders)
-                                                else:
-                                                    placeholders_str = ', '.join(['%s'] * len(base_values))
+                                                # Versuche Sequenz zu verwenden für link_id
+                                                if 'link_id' in all_columns:
+                                                    link_id_index = all_columns.index('link_id')
+                                                    # Ersetze %s Platzhalter für link_id mit nextval()
+                                                    placeholders_list = ['%s'] * len(all_values)
+                                                    placeholders_list[link_id_index] = 'nextval(\'api_familylink_link_id_seq\')'
+                                                    placeholders_str = ', '.join(placeholders_list)
+                                                
+                                                print(f"Executing: INSERT INTO api_familylink ({columns_str}) VALUES ({placeholders_str})")
+                                                print(f"With values: {all_values}")
                                                 
                                                 cursor.execute(f"""
                                                     INSERT INTO api_familylink ({columns_str})
                                                     VALUES ({placeholders_str})
-                                                """, base_values)
+                                                """, all_values)
                                             except Exception as seq_error:
                                                 if "does not exist" in str(seq_error):
                                                     # Sequenz existiert nicht, generiere manuell eine UUID
                                                     import uuid
-                                                    if 'link_id' in base_columns:
-                                                        link_id_index = base_columns.index('link_id')
-                                                        base_values[link_id_index] = str(uuid.uuid4())
+                                                    if 'link_id' in all_columns:
+                                                        link_id_index = all_columns.index('link_id')
+                                                        all_values[link_id_index] = str(uuid.uuid4())
                                                     
-                                                    placeholders_str = ', '.join(['%s'] * len(base_values))
+                                                    placeholders_str = ', '.join(['%s'] * len(all_values))
+                                                    print(f"Fallback: INSERT INTO api_familylink ({columns_str}) VALUES ({placeholders_str})")
+                                                    print(f"With values: {all_values}")
+                                                    
                                                     cursor.execute(f"""
                                                         INSERT INTO api_familylink ({columns_str})
                                                         VALUES ({placeholders_str})
-                                                    """, base_values)
+                                                    """, all_values)
                                                 else:
                                                     raise seq_error
                                         else:

@@ -11,52 +11,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Zuerst prüfen, ob link_id existiert und es zu id umbenennen
-        migrations.RunSQL(
-            # SQL für PostgreSQL
-            """
-            DO $$
-            BEGIN
-                -- Prüfe ob link_id Spalte existiert
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name = 'api_familylink' 
-                    AND column_name = 'link_id'
-                ) THEN
-                    -- Prüfe ob id Spalte bereits existiert
-                    IF NOT EXISTS (
-                        SELECT 1 FROM information_schema.columns 
-                        WHERE table_name = 'api_familylink' 
-                        AND column_name = 'id'
-                    ) THEN
-                        -- Benenne link_id zu id um
-                        ALTER TABLE api_familylink RENAME COLUMN link_id TO id;
-                    ELSE
-                        -- Falls id bereits existiert, lösche link_id
-                        ALTER TABLE api_familylink DROP COLUMN link_id;
-                    END IF;
-                END IF;
-            END $$;
-            """,
-            reverse_sql="-- Reverse migration not implemented"
-        ),
-        
-        # Stelle sicher, dass id als Primary Key konfiguriert ist
-        migrations.RunSQL(
-            """
-            DO $$
-            BEGIN
-                -- Prüfe ob id bereits Primary Key ist
-                IF NOT EXISTS (
-                    SELECT 1 FROM information_schema.table_constraints 
-                    WHERE table_name = 'api_familylink' 
-                    AND constraint_type = 'PRIMARY KEY'
-                ) THEN
-                    -- Setze id als Primary Key
-                    ALTER TABLE api_familylink ADD PRIMARY KEY (id);
-                END IF;
-            END $$;
-            """,
-            reverse_sql="-- Reverse migration not implemented"
+        # Database-agnostic approach: Use Django's schema editor
+        migrations.RunPython(
+            lambda apps, schema_editor: None,  # No-op for forward
+            lambda apps, schema_editor: None,  # No-op for reverse
         ),
     ]

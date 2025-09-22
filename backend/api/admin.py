@@ -1394,21 +1394,38 @@ def family_link_management_view(request):
                                         
                                         # Verwende alte Struktur falls neue Spalten fehlen
                                         if 'role' not in existing_columns:
-                                            # Alte Struktur: Verwende link_id und alte Spalten
-                                            cursor.execute("""
-                                                INSERT INTO api_familylink 
-                                                (link_id, deceased_user_id, relative_user_id, relationship, 
-                                                 is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
-                                                 can_edit_precaution_data, created_at, updated_at)
-                                                VALUES (nextval('api_familylink_link_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                                            """, [
-                                                deceased_user.id, relative_user.id, relationship,
-                                                role == 'main_contact',  # is_main_contact
-                                                permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
-                                                permission_level == 'manage_all',  # can_view_precaution_data
-                                                permission_level == 'manage_all',  # can_edit_precaution_data
-                                                timezone.now(), timezone.now()
-                                            ])
+                                            # Alte Struktur: Verwende nur existierende Spalten
+                                            if 'created_at' in existing_columns:
+                                                # Struktur mit created_at/updated_at
+                                                cursor.execute("""
+                                                    INSERT INTO api_familylink 
+                                                    (link_id, deceased_user_id, relative_user_id, relationship, 
+                                                     is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
+                                                     can_edit_precaution_data, created_at, updated_at)
+                                                    VALUES (nextval('api_familylink_link_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                                """, [
+                                                    deceased_user.id, relative_user.id, relationship,
+                                                    role == 'main_contact',  # is_main_contact
+                                                    permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
+                                                    permission_level == 'manage_all',  # can_view_precaution_data
+                                                    permission_level == 'manage_all',  # can_edit_precaution_data
+                                                    timezone.now(), timezone.now()
+                                                ])
+                                            else:
+                                                # Älteste Struktur: Nur Grundfelder ohne Zeitstempel
+                                                cursor.execute("""
+                                                    INSERT INTO api_familylink 
+                                                    (link_id, deceased_user_id, relative_user_id, relationship, 
+                                                     is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
+                                                     can_edit_precaution_data)
+                                                    VALUES (nextval('api_familylink_link_id_seq'), %s, %s, %s, %s, %s, %s, %s)
+                                                """, [
+                                                    deceased_user.id, relative_user.id, relationship,
+                                                    role == 'main_contact',  # is_main_contact
+                                                    permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
+                                                    permission_level == 'manage_all',  # can_view_precaution_data
+                                                    permission_level == 'manage_all',  # can_edit_precaution_data
+                                                ])
                                         else:
                                             # Neue Struktur: Verwende id und neue Spalten
                                             cursor.execute("""
@@ -1463,24 +1480,46 @@ def family_link_management_view(request):
                         # Verwende passende SQL basierend auf vorhandenen Spalten
                         if 'role' not in existing_columns:
                             # Alte Struktur: Verwende link_id und alte Spalten
-                            cursor.execute("""
-                                SELECT fl.link_id as id, fl.relationship, 
-                                       CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
-                                       CASE 
-                                           WHEN fl.can_edit_precaution_data THEN 'manage_all'
-                                           WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
-                                           ELSE 'view_only'
-                                       END as permission_level,
-                                       true as is_active, false as is_validated_by_admin, null as validated_at,
-                                       fl.created_at, fl.updated_at, '' as notes,
-                                       fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id,
-                                       u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
-                                       u2.first_name as relative_first_name, u2.last_name as relative_last_name
-                                FROM api_familylink fl
-                                LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
-                                LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
-                                ORDER BY fl.created_at DESC
-                            """)
+                            if 'created_at' in existing_columns:
+                                # Struktur mit created_at/updated_at
+                                cursor.execute("""
+                                    SELECT fl.link_id as id, fl.relationship, 
+                                           CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
+                                           CASE 
+                                               WHEN fl.can_edit_precaution_data THEN 'manage_all'
+                                               WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
+                                               ELSE 'view_only'
+                                           END as permission_level,
+                                           true as is_active, false as is_validated_by_admin, null as validated_at,
+                                           fl.created_at, fl.updated_at, '' as notes,
+                                           fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id,
+                                           u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
+                                           u2.first_name as relative_first_name, u2.last_name as relative_last_name
+                                    FROM api_familylink fl
+                                    LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
+                                    LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
+                                    ORDER BY fl.created_at DESC
+                                """)
+                            else:
+                                # Älteste Struktur: Nur Grundfelder ohne Zeitstempel
+                                cursor.execute("""
+                                    SELECT fl.link_id as id, fl.relationship, 
+                                           CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
+                                           CASE 
+                                               WHEN fl.can_edit_precaution_data THEN 'manage_all'
+                                               WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
+                                               ELSE 'view_only'
+                                           END as permission_level,
+                                           true as is_active, false as is_validated_by_admin, null as validated_at,
+                                           null as created_at, null as updated_at, '' as notes,
+                                           fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id,
+                                           u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
+                                           u2.first_name as relative_first_name, u2.last_name as relative_last_name
+                                    FROM api_familylink fl
+                                    LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
+                                    LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
+                                    ORDER BY fl.link_id DESC
+                                """)
                         else:
                             # Neue Struktur: Verwende id und neue Spalten
                             cursor.execute("""

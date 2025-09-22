@@ -1421,17 +1421,25 @@ def family_link_management_view(request):
                                             
                                             # Erstelle dynamische INSERT-Query
                                             columns_str = ', '.join(base_columns)
-                                            placeholders = ', '.join(['%s'] * len(base_values))
                                             
                                             try:
                                                 # Versuche Sequenz zu verwenden
                                                 if 'link_id' in base_columns:
                                                     link_id_index = base_columns.index('link_id')
-                                                    base_values[link_id_index] = 'nextval(\'api_familylink_link_id_seq\')'
+                                                    # Erstelle Platzhalter mit nextval() für link_id
+                                                    placeholders = []
+                                                    for i, col in enumerate(base_columns):
+                                                        if col == 'link_id':
+                                                            placeholders.append('nextval(\'api_familylink_link_id_seq\')')
+                                                        else:
+                                                            placeholders.append('%s')
+                                                    placeholders_str = ', '.join(placeholders)
+                                                else:
+                                                    placeholders_str = ', '.join(['%s'] * len(base_values))
                                                 
                                                 cursor.execute(f"""
                                                     INSERT INTO api_familylink ({columns_str})
-                                                    VALUES ({placeholders})
+                                                    VALUES ({placeholders_str})
                                                 """, base_values)
                                             except Exception as seq_error:
                                                 if "does not exist" in str(seq_error):
@@ -1441,9 +1449,10 @@ def family_link_management_view(request):
                                                         link_id_index = base_columns.index('link_id')
                                                         base_values[link_id_index] = str(uuid.uuid4())
                                                     
+                                                    placeholders_str = ', '.join(['%s'] * len(base_values))
                                                     cursor.execute(f"""
                                                         INSERT INTO api_familylink ({columns_str})
-                                                        VALUES ({placeholders})
+                                                        VALUES ({placeholders_str})
                                                     """, base_values)
                                                 else:
                                                     raise seq_error

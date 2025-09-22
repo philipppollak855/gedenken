@@ -1307,74 +1307,87 @@ def family_link_management_view(request):
     from .models import User, FamilyLink
     from django.contrib import messages
     from django.shortcuts import render
+    from django.http import HttpResponse
     
-    if request.method == 'POST':
-        try:
-            # Debug: POST-Daten ausgeben
-            print(f"=== DEBUG: POST-Daten ===")
-            for key, value in request.POST.items():
-                print(f"{key}: {value}")
-            
-            # FamilyLink erstellen
-            deceased_user_id = request.POST.get('deceased_user')
-            relative_user_id = request.POST.get('relative_user')
-            relationship = request.POST.get('relationship', '')
-            role = request.POST.get('role', FamilyLink.FamilyRole.FAMILY_MEMBER)
-            permission_level = request.POST.get('permission_level', FamilyLink.PermissionLevel.VIEW_ONLY)
-            is_active = request.POST.get('is_active') == 'on'
-            is_validated_by_admin = request.POST.get('is_validated_by_admin') == 'on'
-            
-            print(f"=== DEBUG: Verarbeitete Daten ===")
-            print(f"deceased_user_id: {deceased_user_id}")
-            print(f"relative_user_id: {relative_user_id}")
-            print(f"relationship: {relationship}")
-            print(f"role: {role}")
-            print(f"permission_level: {permission_level}")
-            print(f"is_active: {is_active}")
-            print(f"is_validated_by_admin: {is_validated_by_admin}")
-            
-            if not deceased_user_id or not relative_user_id:
-                messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
-            else:
-                deceased_user = User.objects.get(id=deceased_user_id)
-                relative_user = User.objects.get(id=relative_user_id)
+    try:
+        if request.method == 'POST':
+            try:
+                # Debug: POST-Daten ausgeben
+                print(f"=== DEBUG: POST-Daten ===")
+                for key, value in request.POST.items():
+                    print(f"{key}: {value}")
                 
-                # Prüfen ob Verknüpfung bereits existiert
-                if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
-                    messages.warning(request, 'Diese Verknüpfung existiert bereits.')
+                # FamilyLink erstellen
+                deceased_user_id = request.POST.get('deceased_user')
+                relative_user_id = request.POST.get('relative_user')
+                relationship = request.POST.get('relationship', '')
+                role = request.POST.get('role', FamilyLink.FamilyRole.FAMILY_MEMBER)
+                permission_level = request.POST.get('permission_level', FamilyLink.PermissionLevel.VIEW_ONLY)
+                is_active = request.POST.get('is_active') == 'on'
+                is_validated_by_admin = request.POST.get('is_validated_by_admin') == 'on'
+                
+                print(f"=== DEBUG: Verarbeitete Daten ===")
+                print(f"deceased_user_id: {deceased_user_id}")
+                print(f"relative_user_id: {relative_user_id}")
+                print(f"relationship: {relationship}")
+                print(f"role: {role}")
+                print(f"permission_level: {permission_level}")
+                print(f"is_active: {is_active}")
+                print(f"is_validated_by_admin: {is_validated_by_admin}")
+                
+                if not deceased_user_id or not relative_user_id:
+                    messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
                 else:
-                    # FamilyLink erstellen
-                    family_link = FamilyLink.objects.create(
-                        deceased_user=deceased_user,
-                        relative_user=relative_user,
-                        relationship=relationship,
-                        role=role,
-                        permission_level=permission_level,
-                        is_active=is_active,
-                        is_validated_by_admin=is_validated_by_admin,
-                        created_by=request.user
-                    )
-                    messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
-            
-        except Exception as e:
-            messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
-    
-    # Daten für die Form laden
-    deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
-    relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
-    
-    # Bestehende FamilyLinks laden
-    family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at')
-    
-    context = {
-        **admin.site.each_context(request),
-        'deceased_users': deceased_users,
-        'relative_users': relative_users,
-        'family_links': family_links,
-        'title': 'FamilyLink-Verwaltung',
-    }
-    
-    return render(request, 'admin/family_link_management.html', context)
+                    deceased_user = User.objects.get(id=deceased_user_id)
+                    relative_user = User.objects.get(id=relative_user_id)
+                    
+                    # Prüfen ob Verknüpfung bereits existiert
+                    if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
+                        messages.warning(request, 'Diese Verknüpfung existiert bereits.')
+                    else:
+                        # FamilyLink erstellen
+                        family_link = FamilyLink.objects.create(
+                            deceased_user=deceased_user,
+                            relative_user=relative_user,
+                            relationship=relationship,
+                            role=role,
+                            permission_level=permission_level,
+                            is_active=is_active,
+                            is_validated_by_admin=is_validated_by_admin,
+                            created_by=request.user
+                        )
+                        messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                
+            except Exception as e:
+                messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
+        
+        # Daten für die Form laden
+        deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
+        relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
+        
+        # Bestehende FamilyLinks laden
+        family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at')
+        
+        context = {
+            **admin.site.each_context(request),
+            'deceased_users': deceased_users,
+            'relative_users': relative_users,
+            'family_links': family_links,
+            'title': 'FamilyLink-Verwaltung',
+        }
+        
+        return render(request, 'admin/family_link_management.html', context)
+        
+    except Exception as e:
+        # Debug-Informationen für 500-Fehler
+        import traceback
+        error_msg = f"FamilyLink Management Error: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        print(f"=== CRITICAL ERROR ===")
+        print(error_msg)
+        print(f"=====================")
+        
+        # Einfache Fehlerseite zurückgeben
+        return HttpResponse(f"<h1>FamilyLink Management Error</h1><p>Error: {str(e)}</p><pre>{traceback.format_exc()}</pre>", status=500)
 
 def quick_family_link_add_view(request):
     """

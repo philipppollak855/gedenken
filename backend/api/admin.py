@@ -1379,20 +1379,47 @@ def family_link_management_view(request):
                             print(f"Error: {str(create_error)}")
                             
                             # Fallback: Verwende Raw SQL für Erstellung
-                            if "column api_familylink.id does not exist" in str(create_error):
+                            if "column api_familylink.id does not exist" in str(create_error) or "column" in str(create_error) and "does not exist" in str(create_error):
                                 try:
                                     from django.db import connection
                                     from django.utils import timezone
                                     with connection.cursor() as cursor:
+                                        # Prüfe welche Spalten existieren
                                         cursor.execute("""
-                                            INSERT INTO api_familylink 
-                                            (deceased_user_id, relative_user_id, relationship, role, permission_level, 
-                                             is_active, is_validated_by_admin, created_at, updated_at, created_by_id)
-                                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                                        """, [
-                                            deceased_user.id, relative_user.id, relationship, role, permission_level,
-                                            is_active, is_validated_by_admin, timezone.now(), timezone.now(), request.user.id
-                                        ])
+                                            SELECT column_name FROM information_schema.columns 
+                                            WHERE table_name = 'api_familylink' AND table_schema = 'public'
+                                        """)
+                                        existing_columns = [row[0] for row in cursor.fetchall()]
+                                        print(f"Existing columns in api_familylink: {existing_columns}")
+                                        
+                                        # Verwende alte Struktur falls neue Spalten fehlen
+                                        if 'role' not in existing_columns:
+                                            # Alte Struktur: Verwende link_id und alte Spalten
+                                            cursor.execute("""
+                                                INSERT INTO api_familylink 
+                                                (link_id, deceased_user_id, relative_user_id, relationship, 
+                                                 is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
+                                                 can_edit_precaution_data, created_at, updated_at)
+                                                VALUES (nextval('api_familylink_link_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                            """, [
+                                                deceased_user.id, relative_user.id, relationship,
+                                                role == 'main_contact',  # is_main_contact
+                                                permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
+                                                permission_level == 'manage_all',  # can_view_precaution_data
+                                                permission_level == 'manage_all',  # can_edit_precaution_data
+                                                timezone.now(), timezone.now()
+                                            ])
+                                        else:
+                                            # Neue Struktur: Verwende id und neue Spalten
+                                            cursor.execute("""
+                                                INSERT INTO api_familylink 
+                                                (deceased_user_id, relative_user_id, relationship, role, permission_level, 
+                                                 is_active, is_validated_by_admin, created_at, updated_at, created_by_id)
+                                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                            """, [
+                                                deceased_user.id, relative_user.id, relationship, role, permission_level,
+                                                is_active, is_validated_by_admin, timezone.now(), timezone.now(), request.user.id
+                                            ])
                                     messages.success(request, f'Verknüpfung erfolgreich erstellt (Raw SQL): {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
                                 except Exception as raw_error:
                                     print(f"Raw SQL creation failed: {str(raw_error)}")
@@ -1422,21 +1449,52 @@ def family_link_management_view(request):
             if "column api_familylink.id does not exist" in str(e):
                 print(f"Detected: Database has link_id instead of id")
                 try:
-                    # Verwende Raw SQL mit link_id
+                    # Verwende Raw SQL mit intelligenter Spalten-Erkennung
                     from django.db import connection
                     with connection.cursor() as cursor:
+                        # Prüfe welche Spalten existieren
                         cursor.execute("""
-                            SELECT fl.link_id as id, fl.relationship, fl.role, fl.permission_level, 
-                                   fl.is_active, fl.is_validated_by_admin, fl.validated_at,
-                                   fl.created_at, fl.updated_at, fl.notes,
-                                   fl.deceased_user_id, fl.relative_user_id, fl.validated_by_id, fl.created_by_id,
-                                   u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
-                                   u2.first_name as relative_first_name, u2.last_name as relative_last_name
-                            FROM api_familylink fl
-                            LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
-                            LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
-                            ORDER BY fl.created_at DESC
+                            SELECT column_name FROM information_schema.columns 
+                            WHERE table_name = 'api_familylink' AND table_schema = 'public'
                         """)
+                        existing_columns = [row[0] for row in cursor.fetchall()]
+                        print(f"Existing columns in api_familylink: {existing_columns}")
+                        
+                        # Verwende passende SQL basierend auf vorhandenen Spalten
+                        if 'role' not in existing_columns:
+                            # Alte Struktur: Verwende link_id und alte Spalten
+                            cursor.execute("""
+                                SELECT fl.link_id as id, fl.relationship, 
+                                       CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
+                                       CASE 
+                                           WHEN fl.can_edit_precaution_data THEN 'manage_all'
+                                           WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
+                                           ELSE 'view_only'
+                                       END as permission_level,
+                                       true as is_active, false as is_validated_by_admin, null as validated_at,
+                                       fl.created_at, fl.updated_at, '' as notes,
+                                       fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id,
+                                       u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
+                                       u2.first_name as relative_first_name, u2.last_name as relative_last_name
+                                FROM api_familylink fl
+                                LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
+                                LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
+                                ORDER BY fl.created_at DESC
+                            """)
+                        else:
+                            # Neue Struktur: Verwende id und neue Spalten
+                            cursor.execute("""
+                                SELECT fl.id, fl.relationship, fl.role, fl.permission_level, 
+                                       fl.is_active, fl.is_validated_by_admin, fl.validated_at,
+                                       fl.created_at, fl.updated_at, fl.notes,
+                                       fl.deceased_user_id, fl.relative_user_id, fl.validated_by_id, fl.created_by_id,
+                                       u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
+                                       u2.first_name as relative_first_name, u2.last_name as relative_last_name
+                                FROM api_familylink fl
+                                LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
+                                LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
+                                ORDER BY fl.created_at DESC
+                            """)
                         
                         # Erstelle Mock-Objekte für das Template
                         class MockFamilyLink:

@@ -1348,10 +1348,10 @@ def family_link_management_view(request):
                         deceased_user=deceased_user,
                         relative_user=relative_user,
                         relationship=relationship,
-                        role=request.POST.get('role', FamilyLink.FamilyRole.FAMILY_MEMBER),
-                        permission_level=request.POST.get('permission_level', FamilyLink.PermissionLevel.VIEW_ONLY),
-                        is_active=request.POST.get('is_active') == 'on',
-                        is_validated_by_admin=request.POST.get('is_validated_by_admin') == 'on',
+                        role=role,
+                        permission_level=permission_level,
+                        is_active=is_active,
+                        is_validated_by_admin=is_validated_by_admin,
                         created_by=request.user
                     )
                     messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
@@ -1364,7 +1364,7 @@ def family_link_management_view(request):
     relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
     
     # Bestehende FamilyLinks laden
-    family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('link_id')
+    family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at')
     
     context = {
         **admin.site.each_context(request),
@@ -1449,12 +1449,12 @@ def quick_family_link_add_view(request):
                 is_validated_by_admin=is_validated_by_admin,
                 created_by=request.user
             )
-            print(f"DEBUG: FamilyLink erstellt mit ID: {family_link.link_id}")
+            print(f"DEBUG: FamilyLink erstellt mit ID: {family_link.id}")
             
             return JsonResponse({
                 'success': True,
                 'message': f'Angehörigen-Verknüpfung erfolgreich erstellt: {relative_user.get_full_name() or relative_user.email} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name() or deceased_user.email}',
-                'family_link_id': str(family_link.link_id),
+                'family_link_id': str(family_link.id),
                 'deceased_name': deceased_user.get_full_name() or deceased_user.email,
                 'relative_name': relative_user.get_full_name() or relative_user.email
             })

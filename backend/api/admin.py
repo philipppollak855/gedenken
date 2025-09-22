@@ -1457,14 +1457,24 @@ def family_link_management_view(request):
                                                     placeholders_list = ['%s'] * len(all_values)
                                                     placeholders_list[link_id_index] = 'nextval(\'api_familylink_link_id_seq\')'
                                                     placeholders_str = ', '.join(placeholders_list)
+                                                    
+                                                    # Entferne den link_id Wert aus der Parameter-Liste
+                                                    # da nextval() keinen Parameter benötigt
+                                                    param_values = all_values.copy()
+                                                    param_values.pop(link_id_index)
+                                                else:
+                                                    placeholders_str = ', '.join(['%s'] * len(all_values))
+                                                    param_values = all_values
                                                 
                                                 print(f"Executing: INSERT INTO api_familylink ({columns_str}) VALUES ({placeholders_str})")
-                                                print(f"With values: {all_values}")
+                                                print(f"With values: {param_values}")
+                                                print(f"Parameter count: {len(param_values)}")
+                                                print(f"Placeholder count: {placeholders_str.count('%s')}")
                                                 
                                                 cursor.execute(f"""
                                                     INSERT INTO api_familylink ({columns_str})
                                                     VALUES ({placeholders_str})
-                                                """, all_values)
+                                                """, param_values)
                                             except Exception as seq_error:
                                                 if "does not exist" in str(seq_error):
                                                     # Sequenz existiert nicht, generiere manuell eine UUID

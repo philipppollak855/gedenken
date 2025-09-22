@@ -1384,13 +1384,17 @@ def family_link_management_view(request):
                                     from django.db import connection
                                     from django.utils import timezone
                                     with connection.cursor() as cursor:
-                                        # Prüfe welche Spalten existieren
+                                        # Prüfe welche Spalten existieren und welche NOT NULL sind
                                         cursor.execute("""
-                                            SELECT column_name FROM information_schema.columns 
+                                            SELECT column_name, is_nullable, column_default 
+                                            FROM information_schema.columns 
                                             WHERE table_name = 'api_familylink' AND table_schema = 'public'
                                         """)
-                                        existing_columns = [row[0] for row in cursor.fetchall()]
+                                        column_info = cursor.fetchall()
+                                        existing_columns = [row[0] for row in column_info]
+                                        not_null_columns = [row[0] for row in column_info if row[1] == 'NO']
                                         print(f"Existing columns in api_familylink: {existing_columns}")
+                                        print(f"NOT NULL columns: {not_null_columns}")
                                         
                                         # Verwende alte Struktur falls neue Spalten fehlen
                                         if 'role' not in existing_columns:
@@ -1437,6 +1441,27 @@ def family_link_management_view(request):
                                             if 'updated_at' in existing_columns:
                                                 optional_columns.append('updated_at')
                                                 optional_values.append(timezone.now())
+                                            
+                                            # Füge NOT NULL Spalten hinzu die noch nicht abgedeckt sind
+                                            for col in not_null_columns:
+                                                if col not in required_columns and col not in optional_columns:
+                                                    optional_columns.append(col)
+                                                    # Setze Standardwerte für NOT NULL Spalten
+                                                    if col == 'is_validated_by_admin':
+                                                        optional_values.append(False)
+                                                    elif col == 'is_active':
+                                                        optional_values.append(True)
+                                                    elif col == 'validated_at':
+                                                        optional_values.append(None)  # Kann NULL sein
+                                                    elif col == 'validated_by_id':
+                                                        optional_values.append(None)  # Kann NULL sein
+                                                    elif col == 'created_by_id':
+                                                        optional_values.append(request.user.id)
+                                                    elif col == 'notes':
+                                                        optional_values.append('')
+                                                    else:
+                                                        # Fallback: Setze leeren String oder False
+                                                        optional_values.append('')
                                             
                                             # Kombiniere alle Spalten und Werte
                                             all_columns = required_columns + optional_columns

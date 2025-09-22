@@ -1384,17 +1384,19 @@ def family_link_management_view(request):
                                     from django.db import connection
                                     from django.utils import timezone
                                     with connection.cursor() as cursor:
-                                        # Prüfe welche Spalten existieren und welche NOT NULL sind
+                                        # Prüfe welche Spalten existieren, welche NOT NULL sind und ihre Typen
                                         cursor.execute("""
-                                            SELECT column_name, is_nullable, column_default 
+                                            SELECT column_name, is_nullable, column_default, data_type 
                                             FROM information_schema.columns 
                                             WHERE table_name = 'api_familylink' AND table_schema = 'public'
                                         """)
                                         column_info = cursor.fetchall()
                                         existing_columns = [row[0] for row in column_info]
                                         not_null_columns = [row[0] for row in column_info if row[1] == 'NO']
+                                        column_types = {row[0]: row[3] for row in column_info}
                                         print(f"Existing columns in api_familylink: {existing_columns}")
                                         print(f"NOT NULL columns: {not_null_columns}")
+                                        print(f"Column types: {column_types}")
                                         
                                         # Verwende alte Struktur falls neue Spalten fehlen
                                         if 'role' not in existing_columns:
@@ -1446,7 +1448,9 @@ def family_link_management_view(request):
                                             for col in not_null_columns:
                                                 if col not in required_columns and col not in optional_columns:
                                                     optional_columns.append(col)
-                                                    # Setze Standardwerte für NOT NULL Spalten
+                                                    # Setze typgerechte Standardwerte für NOT NULL Spalten
+                                                    col_type = column_types.get(col, 'character varying')
+                                                    
                                                     if col == 'is_validated_by_admin':
                                                         optional_values.append(False)
                                                     elif col == 'is_active':
@@ -1459,9 +1463,20 @@ def family_link_management_view(request):
                                                         optional_values.append(request.user.id)
                                                     elif col == 'notes':
                                                         optional_values.append('')
+                                                    elif col_type == 'boolean':
+                                                        optional_values.append(False)  # Boolean: False
+                                                    elif col_type in ['character varying', 'text']:
+                                                        optional_values.append('')  # String: leerer String
+                                                    elif col_type in ['integer', 'bigint']:
+                                                        optional_values.append(0)  # Integer: 0
+                                                    elif col_type == 'uuid':
+                                                        import uuid
+                                                        optional_values.append(str(uuid.uuid4()))  # UUID: neue UUID
+                                                    elif col_type in ['timestamp with time zone', 'timestamp without time zone']:
+                                                        optional_values.append(timezone.now())  # Timestamp: jetzt
                                                     else:
-                                                        # Fallback: Setze leeren String oder False
-                                                        optional_values.append('')
+                                                        # Fallback: Setze None (kann zu Constraint-Fehlern führen)
+                                                        optional_values.append(None)
                                             
                                             # Kombiniere alle Spalten und Werte
                                             all_columns = required_columns + optional_columns

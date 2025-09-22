@@ -1410,8 +1410,10 @@ def family_link_management_view(request):
         # Bestehende FamilyLinks laden - mit intelligenter Datenbank-Erkennung
         family_links = []
         try:
-            # Versuche normale Django-Query
-            family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at')
+            # Versuche normale Django-Query und konvertiere sofort zu Liste
+            family_links_queryset = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at')
+            family_links = list(family_links_queryset)  # Sofort zu Liste konvertieren
+            print(f"Successfully loaded {len(family_links)} FamilyLinks using Django ORM")
         except Exception as e:
             print(f"=== DATABASE STRUCTURE DETECTION ===")
             print(f"Error: {str(e)}")
@@ -1455,14 +1457,16 @@ def family_link_management_view(request):
                                     'id': row[10],
                                     'first_name': row[14] or '',
                                     'last_name': row[15] or '',
-                                    'get_full_name': lambda: f"{row[14] or ''} {row[15] or ''}".strip()
+                                    'get_full_name': lambda: f"{row[14] or ''} {row[15] or ''}".strip(),
+                                    'email': f"user{row[10]}@example.com"  # Fallback email
                                 })()
                                 
                                 self.relative_user = type('User', (), {
                                     'id': row[11],
                                     'first_name': row[16] or '',
                                     'last_name': row[17] or '',
-                                    'get_full_name': lambda: f"{row[16] or ''} {row[17] or ''}".strip()
+                                    'get_full_name': lambda: f"{row[16] or ''} {row[17] or ''}".strip(),
+                                    'email': f"user{row[11]}@example.com"  # Fallback email
                                 })()
                             
                             def get_role_display(self):

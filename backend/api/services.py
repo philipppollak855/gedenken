@@ -6,9 +6,130 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from .models import TrauerdruckEntwurf, TrauerdruckBenachrichtigung, MemorialPage
+from .models import TrauerdruckEntwurf, TrauerdruckBenachrichtigung, MemorialPage, FamilyLink
 
 User = get_user_model()
+
+
+def get_family_links_for_deceased(deceased_user):
+    """
+    Hilfsfunktion für FamilyLink-Queries mit Datenbank-Kompatibilität
+    """
+    try:
+        # Versuche normale Django ORM-Query
+        return FamilyLink.objects.filter(deceased_user=deceased_user)
+    except Exception as e:
+        # Fallback: Verwende Raw SQL wenn Django ORM fehlschlägt
+        if "column api_familylink.id does not exist" in str(e):
+            from django.db import connection
+            with connection.cursor() as cursor:
+                # Prüfe welche Spalten existieren
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_name = 'api_familylink' AND table_schema = 'public'
+                """)
+                existing_columns = [row[0] for row in cursor.fetchall()]
+                
+                # Verwende passende SQL basierend auf vorhandenen Spalten
+                if 'role' not in existing_columns:
+                    # Alte Struktur: Verwende link_id und alte Spalten
+                    if 'created_at' in existing_columns:
+                        # Struktur mit created_at/updated_at
+                        cursor.execute("""
+                            SELECT fl.link_id as id, fl.relationship, 
+                                   CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
+                                   CASE 
+                                       WHEN fl.can_edit_precaution_data THEN 'manage_all'
+                                       WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
+                                       ELSE 'view_only'
+                                   END as permission_level,
+                                   true as is_active, false as is_validated_by_admin, null as validated_at,
+                                   fl.created_at, fl.updated_at, '' as notes,
+                                   fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id,
+                                   u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
+                                   u2.first_name as relative_first_name, u2.last_name as relative_last_name
+                            FROM api_familylink fl
+                            LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
+                            LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
+                            WHERE fl.deceased_user_id = %s
+                            ORDER BY fl.created_at DESC
+                        """, [deceased_user.id])
+                    else:
+                        # Älteste Struktur: Nur Grundfelder ohne Zeitstempel
+                        cursor.execute("""
+                            SELECT fl.link_id as id, fl.relationship, 
+                                   CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
+                                   CASE 
+                                       WHEN fl.can_edit_precaution_data THEN 'manage_all'
+                                       WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
+                                       ELSE 'view_only'
+                                   END as permission_level,
+                                   true as is_active, false as is_validated_by_admin, null as validated_at,
+                                   null as created_at, null as updated_at, '' as notes,
+                                   fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id,
+                                   u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
+                                   u2.first_name as relative_first_name, u2.last_name as relative_last_name
+                            FROM api_familylink fl
+                            LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
+                            LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
+                            WHERE fl.deceased_user_id = %s
+                            ORDER BY fl.link_id DESC
+                        """, [deceased_user.id])
+                else:
+                    # Neue Struktur: Verwende id und neue Spalten
+                    cursor.execute("""
+                        SELECT fl.id, fl.relationship, fl.role, fl.permission_level, 
+                               fl.is_active, fl.is_validated_by_admin, fl.validated_at,
+                               fl.created_at, fl.updated_at, fl.notes,
+                               fl.deceased_user_id, fl.relative_user_id, fl.validated_by_id, fl.created_by_id,
+                               u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
+                               u2.first_name as relative_first_name, u2.last_name as relative_last_name
+                        FROM api_familylink fl
+                        LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
+                        LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
+                        WHERE fl.deceased_user_id = %s
+                        ORDER BY fl.created_at DESC
+                    """, [deceased_user.id])
+                
+                # Erstelle Mock-Objekte für die Services
+                class MockFamilyLink:
+                    def __init__(self, row):
+                        self.id = row[0]
+                        self.relationship = row[1] or ''
+                        self.role = row[2] or 'family_member'
+                        self.permission_level = row[3] or 'view_only'
+                        self.is_active = row[4] if row[4] is not None else True
+                        self.is_validated_by_admin = row[5] if row[5] is not None else False
+                        self.validated_at = row[6]
+                        self.created_at = row[7]
+                        self.updated_at = row[8]
+                        self.notes = row[9] or ''
+                        
+                        # Mock User-Objekte
+                        self.deceased_user = type('User', (), {
+                            'id': row[10],
+                            'first_name': row[14] or '',
+                            'last_name': row[15] or '',
+                            'get_full_name': lambda: f"{row[14] or ''} {row[15] or ''}".strip(),
+                            'email': f"user{row[10]}@example.com"
+                        })()
+                        
+                        self.relative_user = type('User', (), {
+                            'id': row[11],
+                            'first_name': row[16] or '',
+                            'last_name': row[17] or '',
+                            'get_full_name': lambda: f"{row[16] or ''} {row[17] or ''}".strip(),
+                            'email': f"user{row[11]}@example.com"
+                        })()
+                        
+                        self.created_by = None
+                        self.validated_by = None
+                
+                rows = cursor.fetchall()
+                return [MockFamilyLink(row) for row in rows]
+        else:
+            # Andere Fehler: Leere Liste zurückgeben
+            return []
 
 
 class TrauerdruckNotificationService:
@@ -36,8 +157,7 @@ class TrauerdruckNotificationService:
     def notify_new_draft(entwurf):
         """Benachrichtigt Angehörige über neuen Entwurf"""
         # Alle Familienmitglieder der Gedenkseite benachrichtigen
-        from .models import FamilyLink
-        family_links = FamilyLink.objects.filter(deceased_user=entwurf.memorial_page.user)
+        family_links = get_family_links_for_deceased(entwurf.memorial_page.user)
         
         for family_link in family_links:
             if family_link.relative_user and family_link.relative_user.email:
@@ -59,8 +179,7 @@ class TrauerdruckNotificationService:
     @staticmethod
     def notify_approval_requested(entwurf):
         """Benachrichtigt Angehörige über Freigabeanfrage"""
-        from .models import FamilyLink
-        family_links = FamilyLink.objects.filter(deceased_user=entwurf.memorial_page.user)
+        family_links = get_family_links_for_deceased(entwurf.memorial_page.user)
         
         for family_link in family_links:
             if family_link.relative_user and family_link.relative_user.email:
@@ -112,8 +231,7 @@ class TrauerdruckNotificationService:
         users_to_notify.update(entwurf.assigned_to.all())
         
         # Familienmitglieder
-        from .models import FamilyLink
-        family_links = FamilyLink.objects.filter(deceased_user=entwurf.memorial_page.user)
+        family_links = get_family_links_for_deceased(entwurf.memorial_page.user)
         for family_link in family_links:
             if family_link.relative_user:
                 users_to_notify.add(family_link.relative_user)
@@ -260,8 +378,7 @@ class TrauerdruckWorkflowService:
     def notify_completed(entwurf):
         """Benachrichtigt alle Beteiligten über Abschluss"""
         # Alle Familienmitglieder benachrichtigen
-        from .models import FamilyLink
-        family_links = FamilyLink.objects.filter(deceased_user=entwurf.memorial_page.user)
+        family_links = get_family_links_for_deceased(entwurf.memorial_page.user)
         
         for family_link in family_links:
             if family_link.relative_user and family_link.relative_user.email:

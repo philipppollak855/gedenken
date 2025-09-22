@@ -1341,27 +1341,64 @@ def family_link_management_view(request):
                     deceased_user = User.objects.get(id=deceased_user_id)
                     relative_user = User.objects.get(id=relative_user_id)
                     
-                    # Prüfen ob Verknüpfung bereits existiert
-                    if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
-                        messages.warning(request, 'Diese Verknüpfung existiert bereits.')
-                    else:
-                        # FamilyLink erstellen - mit Fallback für alte Datenbank-Struktur
-                        try:
-                            family_link = FamilyLink.objects.create(
-                                deceased_user=deceased_user,
-                                relative_user=relative_user,
-                                relationship=relationship,
-                                role=role,
-                                permission_level=permission_level,
-                                is_active=is_active,
-                                is_validated_by_admin=is_validated_by_admin,
-                                created_by=request.user
-                            )
-                            messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
-                        except Exception as create_error:
-                            print(f"=== FamilyLink Creation Error ===")
-                            print(f"Error: {str(create_error)}")
-                            messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(create_error)}')
+                            # Prüfen ob Verknüpfung bereits existiert - mit Fallback für alte DB-Struktur
+                            link_exists = False
+                            try:
+                                link_exists = FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists()
+                            except Exception as e:
+                                if "column api_familylink.id does not exist" in str(e):
+                                    # Verwende Raw SQL für Existenz-Prüfung
+                                    from django.db import connection
+                                    with connection.cursor() as cursor:
+                                        cursor.execute("""
+                                            SELECT COUNT(*) FROM api_familylink 
+                                            WHERE deceased_user_id = %s AND relative_user_id = %s
+                                        """, [deceased_user.id, relative_user.id])
+                                        link_exists = cursor.fetchone()[0] > 0
+                                else:
+                                    raise e
+                            
+                            if link_exists:
+                                messages.warning(request, 'Diese Verknüpfung existiert bereits.')
+                            else:
+                                # FamilyLink erstellen - mit Fallback für alte Datenbank-Struktur
+                                try:
+                                    family_link = FamilyLink.objects.create(
+                                        deceased_user=deceased_user,
+                                        relative_user=relative_user,
+                                        relationship=relationship,
+                                        role=role,
+                                        permission_level=permission_level,
+                                        is_active=is_active,
+                                        is_validated_by_admin=is_validated_by_admin,
+                                        created_by=request.user
+                                    )
+                                    messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                                except Exception as create_error:
+                                    print(f"=== FamilyLink Creation Error ===")
+                                    print(f"Error: {str(create_error)}")
+                                    
+                                    # Fallback: Verwende Raw SQL für Erstellung
+                                    if "column api_familylink.id does not exist" in str(create_error):
+                                        try:
+                                            from django.db import connection
+                                            from django.utils import timezone
+                                            with connection.cursor() as cursor:
+                                                cursor.execute("""
+                                                    INSERT INTO api_familylink 
+                                                    (deceased_user_id, relative_user_id, relationship, role, permission_level, 
+                                                     is_active, is_validated_by_admin, created_at, updated_at, created_by_id)
+                                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                                """, [
+                                                    deceased_user.id, relative_user.id, relationship, role, permission_level,
+                                                    is_active, is_validated_by_admin, timezone.now(), timezone.now(), request.user.id
+                                                ])
+                                            messages.success(request, f'Verknüpfung erfolgreich erstellt (Raw SQL): {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                                        except Exception as raw_error:
+                                            print(f"Raw SQL creation failed: {str(raw_error)}")
+                                            messages.error(request, f'Fehler beim Erstellen der Verknüpfung (Raw SQL): {str(raw_error)}')
+                                    else:
+                                        messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(create_error)}')
                 
             except Exception as e:
                 messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
@@ -1370,16 +1407,91 @@ def family_link_management_view(request):
         deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
         relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
         
-        # Bestehende FamilyLinks laden - mit direkter SQL-Abfrage umgehen
+        # Bestehende FamilyLinks laden - mit intelligenter Datenbank-Erkennung
+        family_links = []
         try:
+            # Versuche normale Django-Query
             family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at')
         except Exception as e:
-            print(f"=== FALLBACK: FamilyLink Query Error ===")
+            print(f"=== DATABASE STRUCTURE DETECTION ===")
             print(f"Error: {str(e)}")
-            print(f"Using empty list as fallback...")
             
-            # Fallback: Leere Liste verwenden
-            family_links = []
+            # Prüfe ob es ein link_id vs id Problem ist
+            if "column api_familylink.id does not exist" in str(e):
+                print(f"Detected: Database has link_id instead of id")
+                try:
+                    # Verwende Raw SQL mit link_id
+                    from django.db import connection
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT fl.link_id as id, fl.relationship, fl.role, fl.permission_level, 
+                                   fl.is_active, fl.is_validated_by_admin, fl.validated_at,
+                                   fl.created_at, fl.updated_at, fl.notes,
+                                   fl.deceased_user_id, fl.relative_user_id, fl.validated_by_id, fl.created_by_id,
+                                   u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
+                                   u2.first_name as relative_first_name, u2.last_name as relative_last_name
+                            FROM api_familylink fl
+                            LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
+                            LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
+                            ORDER BY fl.created_at DESC
+                        """)
+                        
+                        # Erstelle Mock-Objekte für das Template
+                        class MockFamilyLink:
+                            def __init__(self, row):
+                                self.id = row[0]
+                                self.relationship = row[1] or ''
+                                self.role = row[2] or 'family_member'
+                                self.permission_level = row[3] or 'view_only'
+                                self.is_active = row[4] if row[4] is not None else True
+                                self.is_validated_by_admin = row[5] if row[5] is not None else False
+                                self.validated_at = row[6]
+                                self.created_at = row[7]
+                                self.updated_at = row[8]
+                                self.notes = row[9] or ''
+                                
+                                # Mock User-Objekte
+                                self.deceased_user = type('User', (), {
+                                    'id': row[10],
+                                    'first_name': row[14] or '',
+                                    'last_name': row[15] or '',
+                                    'get_full_name': lambda: f"{row[14] or ''} {row[15] or ''}".strip()
+                                })()
+                                
+                                self.relative_user = type('User', (), {
+                                    'id': row[11],
+                                    'first_name': row[16] or '',
+                                    'last_name': row[17] or '',
+                                    'get_full_name': lambda: f"{row[16] or ''} {row[17] or ''}".strip()
+                                })()
+                            
+                            def get_role_display(self):
+                                role_map = {
+                                    'family_member': 'Familienmitglied',
+                                    'main_contact': 'Hauptansprechpartner',
+                                    'executor': 'Testamentsvollstrecker',
+                                    'guardian': 'Vormund/Betreuer'
+                                }
+                                return role_map.get(self.role, self.role)
+                            
+                            def get_permission_level_display(self):
+                                permission_map = {
+                                    'view_only': 'Nur anzeigen',
+                                    'edit_memorial': 'Gedenkseite bearbeiten',
+                                    'manage_all': 'Vollzugriff (Vorsorge + Gedenkseite)'
+                                }
+                                return permission_map.get(self.permission_level, self.permission_level)
+                        
+                        rows = cursor.fetchall()
+                        family_links = [MockFamilyLink(row) for row in rows]
+                        print(f"Successfully loaded {len(family_links)} FamilyLinks using raw SQL")
+                        
+                except Exception as e2:
+                    print(f"Raw SQL fallback failed: {str(e2)}")
+                    family_links = []
+            else:
+                print(f"Unknown error, using empty list")
+                family_links = []
         
         context = {
             **admin.site.each_context(request),

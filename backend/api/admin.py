@@ -1341,64 +1341,64 @@ def family_link_management_view(request):
                     deceased_user = User.objects.get(id=deceased_user_id)
                     relative_user = User.objects.get(id=relative_user_id)
                     
-                            # Prüfen ob Verknüpfung bereits existiert - mit Fallback für alte DB-Struktur
-                            link_exists = False
-                            try:
-                                link_exists = FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists()
-                            except Exception as e:
-                                if "column api_familylink.id does not exist" in str(e):
-                                    # Verwende Raw SQL für Existenz-Prüfung
+                    # Prüfen ob Verknüpfung bereits existiert - mit Fallback für alte DB-Struktur
+                    link_exists = False
+                    try:
+                        link_exists = FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists()
+                    except Exception as e:
+                        if "column api_familylink.id does not exist" in str(e):
+                            # Verwende Raw SQL für Existenz-Prüfung
+                            from django.db import connection
+                            with connection.cursor() as cursor:
+                                cursor.execute("""
+                                    SELECT COUNT(*) FROM api_familylink 
+                                    WHERE deceased_user_id = %s AND relative_user_id = %s
+                                """, [deceased_user.id, relative_user.id])
+                                link_exists = cursor.fetchone()[0] > 0
+                        else:
+                            raise e
+                    
+                    if link_exists:
+                        messages.warning(request, 'Diese Verknüpfung existiert bereits.')
+                    else:
+                        # FamilyLink erstellen - mit Fallback für alte Datenbank-Struktur
+                        try:
+                            family_link = FamilyLink.objects.create(
+                                deceased_user=deceased_user,
+                                relative_user=relative_user,
+                                relationship=relationship,
+                                role=role,
+                                permission_level=permission_level,
+                                is_active=is_active,
+                                is_validated_by_admin=is_validated_by_admin,
+                                created_by=request.user
+                            )
+                            messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                        except Exception as create_error:
+                            print(f"=== FamilyLink Creation Error ===")
+                            print(f"Error: {str(create_error)}")
+                            
+                            # Fallback: Verwende Raw SQL für Erstellung
+                            if "column api_familylink.id does not exist" in str(create_error):
+                                try:
                                     from django.db import connection
+                                    from django.utils import timezone
                                     with connection.cursor() as cursor:
                                         cursor.execute("""
-                                            SELECT COUNT(*) FROM api_familylink 
-                                            WHERE deceased_user_id = %s AND relative_user_id = %s
-                                        """, [deceased_user.id, relative_user.id])
-                                        link_exists = cursor.fetchone()[0] > 0
-                                else:
-                                    raise e
-                            
-                            if link_exists:
-                                messages.warning(request, 'Diese Verknüpfung existiert bereits.')
+                                            INSERT INTO api_familylink 
+                                            (deceased_user_id, relative_user_id, relationship, role, permission_level, 
+                                             is_active, is_validated_by_admin, created_at, updated_at, created_by_id)
+                                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                        """, [
+                                            deceased_user.id, relative_user.id, relationship, role, permission_level,
+                                            is_active, is_validated_by_admin, timezone.now(), timezone.now(), request.user.id
+                                        ])
+                                    messages.success(request, f'Verknüpfung erfolgreich erstellt (Raw SQL): {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                                except Exception as raw_error:
+                                    print(f"Raw SQL creation failed: {str(raw_error)}")
+                                    messages.error(request, f'Fehler beim Erstellen der Verknüpfung (Raw SQL): {str(raw_error)}')
                             else:
-                                # FamilyLink erstellen - mit Fallback für alte Datenbank-Struktur
-                                try:
-                                    family_link = FamilyLink.objects.create(
-                                        deceased_user=deceased_user,
-                                        relative_user=relative_user,
-                                        relationship=relationship,
-                                        role=role,
-                                        permission_level=permission_level,
-                                        is_active=is_active,
-                                        is_validated_by_admin=is_validated_by_admin,
-                                        created_by=request.user
-                                    )
-                                    messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
-                                except Exception as create_error:
-                                    print(f"=== FamilyLink Creation Error ===")
-                                    print(f"Error: {str(create_error)}")
-                                    
-                                    # Fallback: Verwende Raw SQL für Erstellung
-                                    if "column api_familylink.id does not exist" in str(create_error):
-                                        try:
-                                            from django.db import connection
-                                            from django.utils import timezone
-                                            with connection.cursor() as cursor:
-                                                cursor.execute("""
-                                                    INSERT INTO api_familylink 
-                                                    (deceased_user_id, relative_user_id, relationship, role, permission_level, 
-                                                     is_active, is_validated_by_admin, created_at, updated_at, created_by_id)
-                                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                                                """, [
-                                                    deceased_user.id, relative_user.id, relationship, role, permission_level,
-                                                    is_active, is_validated_by_admin, timezone.now(), timezone.now(), request.user.id
-                                                ])
-                                            messages.success(request, f'Verknüpfung erfolgreich erstellt (Raw SQL): {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
-                                        except Exception as raw_error:
-                                            print(f"Raw SQL creation failed: {str(raw_error)}")
-                                            messages.error(request, f'Fehler beim Erstellen der Verknüpfung (Raw SQL): {str(raw_error)}')
-                                    else:
-                                        messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(create_error)}')
+                                messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(create_error)}')
                 
             except Exception as e:
                 messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')

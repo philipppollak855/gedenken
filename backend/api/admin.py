@@ -1397,35 +1397,79 @@ def family_link_management_view(request):
                                             # Alte Struktur: Verwende nur existierende Spalten
                                             if 'created_at' in existing_columns:
                                                 # Struktur mit created_at/updated_at
-                                                cursor.execute("""
-                                                    INSERT INTO api_familylink 
-                                                    (link_id, deceased_user_id, relative_user_id, relationship, 
-                                                     is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
-                                                     can_edit_precaution_data, created_at, updated_at)
-                                                    VALUES (nextval('api_familylink_link_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                                                """, [
-                                                    deceased_user.id, relative_user.id, relationship,
-                                                    role == 'main_contact',  # is_main_contact
-                                                    permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
-                                                    permission_level == 'manage_all',  # can_view_precaution_data
-                                                    permission_level == 'manage_all',  # can_edit_precaution_data
-                                                    timezone.now(), timezone.now()
-                                                ])
+                                                try:
+                                                    cursor.execute("""
+                                                        INSERT INTO api_familylink 
+                                                        (link_id, deceased_user_id, relative_user_id, relationship, 
+                                                         is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
+                                                         can_edit_precaution_data, created_at, updated_at)
+                                                        VALUES (nextval('api_familylink_link_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                                    """, [
+                                                        deceased_user.id, relative_user.id, relationship,
+                                                        role == 'main_contact',  # is_main_contact
+                                                        permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
+                                                        permission_level == 'manage_all',  # can_view_precaution_data
+                                                        permission_level == 'manage_all',  # can_edit_precaution_data
+                                                        timezone.now(), timezone.now()
+                                                    ])
+                                                except Exception as seq_error:
+                                                    if "does not exist" in str(seq_error):
+                                                        # Sequenz existiert nicht, generiere manuell eine ID
+                                                        cursor.execute("SELECT COALESCE(MAX(link_id), 0) + 1 FROM api_familylink")
+                                                        next_id = cursor.fetchone()[0]
+                                                        cursor.execute("""
+                                                            INSERT INTO api_familylink 
+                                                            (link_id, deceased_user_id, relative_user_id, relationship, 
+                                                             is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
+                                                             can_edit_precaution_data, created_at, updated_at)
+                                                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                                        """, [
+                                                            next_id, deceased_user.id, relative_user.id, relationship,
+                                                            role == 'main_contact',  # is_main_contact
+                                                            permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
+                                                            permission_level == 'manage_all',  # can_view_precaution_data
+                                                            permission_level == 'manage_all',  # can_edit_precaution_data
+                                                            timezone.now(), timezone.now()
+                                                        ])
+                                                    else:
+                                                        raise seq_error
                                             else:
                                                 # Älteste Struktur: Nur Grundfelder ohne Zeitstempel
-                                                cursor.execute("""
-                                                    INSERT INTO api_familylink 
-                                                    (link_id, deceased_user_id, relative_user_id, relationship, 
-                                                     is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
-                                                     can_edit_precaution_data)
-                                                    VALUES (nextval('api_familylink_link_id_seq'), %s, %s, %s, %s, %s, %s, %s)
-                                                """, [
-                                                    deceased_user.id, relative_user.id, relationship,
-                                                    role == 'main_contact',  # is_main_contact
-                                                    permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
-                                                    permission_level == 'manage_all',  # can_view_precaution_data
-                                                    permission_level == 'manage_all',  # can_edit_precaution_data
-                                                ])
+                                                # Generiere manuell eine ID falls Sequenz nicht existiert
+                                                try:
+                                                    cursor.execute("""
+                                                        INSERT INTO api_familylink 
+                                                        (link_id, deceased_user_id, relative_user_id, relationship, 
+                                                         is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
+                                                         can_edit_precaution_data)
+                                                        VALUES (nextval('api_familylink_link_id_seq'), %s, %s, %s, %s, %s, %s, %s)
+                                                    """, [
+                                                        deceased_user.id, relative_user.id, relationship,
+                                                        role == 'main_contact',  # is_main_contact
+                                                        permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
+                                                        permission_level == 'manage_all',  # can_view_precaution_data
+                                                        permission_level == 'manage_all',  # can_edit_precaution_data
+                                                    ])
+                                                except Exception as seq_error:
+                                                    if "does not exist" in str(seq_error):
+                                                        # Sequenz existiert nicht, generiere manuell eine ID
+                                                        cursor.execute("SELECT COALESCE(MAX(link_id), 0) + 1 FROM api_familylink")
+                                                        next_id = cursor.fetchone()[0]
+                                                        cursor.execute("""
+                                                            INSERT INTO api_familylink 
+                                                            (link_id, deceased_user_id, relative_user_id, relationship, 
+                                                             is_main_contact, can_edit_memorial_page, can_view_precaution_data, 
+                                                             can_edit_precaution_data)
+                                                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                                        """, [
+                                                            next_id, deceased_user.id, relative_user.id, relationship,
+                                                            role == 'main_contact',  # is_main_contact
+                                                            permission_level in ['edit_memorial', 'manage_all'],  # can_edit_memorial_page
+                                                            permission_level == 'manage_all',  # can_view_precaution_data
+                                                            permission_level == 'manage_all',  # can_edit_precaution_data
+                                                        ])
+                                                    else:
+                                                        raise seq_error
                                         else:
                                             # Neue Struktur: Verwende id und neue Spalten
                                             cursor.execute("""

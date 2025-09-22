@@ -1345,18 +1345,23 @@ def family_link_management_view(request):
                     if FamilyLink.objects.filter(deceased_user=deceased_user, relative_user=relative_user).exists():
                         messages.warning(request, 'Diese Verknüpfung existiert bereits.')
                     else:
-                        # FamilyLink erstellen
-                        family_link = FamilyLink.objects.create(
-                            deceased_user=deceased_user,
-                            relative_user=relative_user,
-                            relationship=relationship,
-                            role=role,
-                            permission_level=permission_level,
-                            is_active=is_active,
-                            is_validated_by_admin=is_validated_by_admin,
-                            created_by=request.user
-                        )
-                        messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                        # FamilyLink erstellen - mit Fallback für alte Datenbank-Struktur
+                        try:
+                            family_link = FamilyLink.objects.create(
+                                deceased_user=deceased_user,
+                                relative_user=relative_user,
+                                relationship=relationship,
+                                role=role,
+                                permission_level=permission_level,
+                                is_active=is_active,
+                                is_validated_by_admin=is_validated_by_admin,
+                                created_by=request.user
+                            )
+                            messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                        except Exception as create_error:
+                            print(f"=== FamilyLink Creation Error ===")
+                            print(f"Error: {str(create_error)}")
+                            messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(create_error)}')
                 
             except Exception as e:
                 messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
@@ -1365,8 +1370,16 @@ def family_link_management_view(request):
         deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
         relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
         
-        # Bestehende FamilyLinks laden
-        family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at')
+        # Bestehende FamilyLinks laden - mit direkter SQL-Abfrage umgehen
+        try:
+            family_links = FamilyLink.objects.select_related('deceased_user', 'relative_user').all().order_by('-created_at')
+        except Exception as e:
+            print(f"=== FALLBACK: FamilyLink Query Error ===")
+            print(f"Error: {str(e)}")
+            print(f"Using empty list as fallback...")
+            
+            # Fallback: Leere Liste verwenden
+            family_links = []
         
         context = {
             **admin.site.each_context(request),

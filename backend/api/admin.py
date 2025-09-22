@@ -1414,9 +1414,9 @@ def family_link_management_view(request):
                                                     ])
                                                 except Exception as seq_error:
                                                     if "does not exist" in str(seq_error):
-                                                        # Sequenz existiert nicht, generiere manuell eine ID
-                                                        cursor.execute("SELECT COALESCE(MAX(link_id), 0) + 1 FROM api_familylink")
-                                                        next_id = cursor.fetchone()[0]
+                                                        # Sequenz existiert nicht, generiere manuell eine UUID
+                                                        import uuid
+                                                        next_id = str(uuid.uuid4())
                                                         cursor.execute("""
                                                             INSERT INTO api_familylink 
                                                             (link_id, deceased_user_id, relative_user_id, relationship, 
@@ -1452,9 +1452,9 @@ def family_link_management_view(request):
                                                     ])
                                                 except Exception as seq_error:
                                                     if "does not exist" in str(seq_error):
-                                                        # Sequenz existiert nicht, generiere manuell eine ID
-                                                        cursor.execute("SELECT COALESCE(MAX(link_id), 0) + 1 FROM api_familylink")
-                                                        next_id = cursor.fetchone()[0]
+                                                        # Sequenz existiert nicht, generiere manuell eine UUID
+                                                        import uuid
+                                                        next_id = str(uuid.uuid4())
                                                         cursor.execute("""
                                                             INSERT INTO api_familylink 
                                                             (link_id, deceased_user_id, relative_user_id, relationship, 

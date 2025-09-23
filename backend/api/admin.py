@@ -600,7 +600,21 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
-    inlines = [FamilyLinkInline, FamilyLinkAsRelativeInline]
+    
+    def get_inlines(self, request, obj):
+        """Dynamische Inlines basierend auf Datenbank-Schema"""
+        try:
+            # Teste ob neue Datenbank-Struktur vorhanden ist
+            FamilyLink.objects.filter(id__isnull=False).exists()
+            # Wenn erfolgreich, verwende Inlines
+            return [FamilyLinkInline, FamilyLinkAsRelativeInline]
+        except Exception as e:
+            if "column api_familylink.id does not exist" in str(e):
+                # Alte Datenbank-Struktur - keine Inlines
+                return []
+            else:
+                # Andere Fehler - keine Inlines
+                return []
     
     def save_model(self, request, obj, form, change):
         try:

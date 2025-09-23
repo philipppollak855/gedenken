@@ -595,9 +595,11 @@ class UserAdminForm(forms.ModelForm):
         self.fields['email'].required = False
 
 @admin.register(User)
-class UserAdmin(ImportExportModelAdmin, ModelAdmin):
+class UserAdmin(ModelAdmin):
+    # Temporär ImportExportModelAdmin deaktiviert wegen 500-Fehler
+    # class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     form = UserAdminForm
-    resource_classes = [resources.ModelResource]
+    # resource_classes = [resources.ModelResource]  # Nur für ImportExportModelAdmin
     list_display = ('get_full_name', 'email', 'role', 'created_at')
     # Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
     # list_display = ('get_full_name', 'email', 'role', 'display_managed_memorial_pages', 'created_at')
@@ -626,6 +628,26 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
                 print(f"DEBUG: Anderer Fehler, keine Inlines")
                 # Andere Fehler - keine Inlines
                 return []
+    
+    def get_form(self, request, obj=None, **kwargs):
+        """Override get_form um sicherzustellen dass keine Inline-Probleme auftreten"""
+        try:
+            print(f"=== DEBUG: UserAdmin.get_form ===")
+            print(f"Request: {request}")
+            print(f"Object: {obj}")
+            print(f"Kwargs: {kwargs}")
+            
+            # Versuche normale get_form
+            form = super().get_form(request, obj, **kwargs)
+            print(f"DEBUG: get_form SUCCESS")
+            return form
+        except Exception as e:
+            print(f"=== DEBUG: UserAdmin.get_form ERROR ===")
+            print(f"Error: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            raise e
     
     def change_view(self, request, object_id, form_url='', extra_context=None):
         """Override change_view mit Debug-Logging"""

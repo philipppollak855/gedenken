@@ -827,7 +827,7 @@ class MemorialPageAdmin(ModelAdmin):
     def display_family_links(self, obj):
         user = obj.user
         try:
-        links = FamilyLink.objects.filter(deceased_user=user)
+            links = FamilyLink.objects.filter(deceased_user=user)
         except Exception as e:
             if "column api_familylink.id does not exist" in str(e):
                 # Fallback: Verwende Raw SQL
@@ -1643,37 +1643,37 @@ def family_link_management_view(request):
     from django.http import HttpResponse
     
     try:
-    if request.method == 'POST':
-        try:
-            # Debug: POST-Daten ausgeben
-            print(f"=== DEBUG: POST-Daten ===")
-            for key, value in request.POST.items():
-                print(f"{key}: {value}")
-            
-            # FamilyLink erstellen
-            deceased_user_id = request.POST.get('deceased_user')
-            relative_user_id = request.POST.get('relative_user')
-            relationship = request.POST.get('relationship', '')
+        if request.method == 'POST':
+            try:
+                # Debug: POST-Daten ausgeben
+                print(f"=== DEBUG: POST-Daten ===")
+                for key, value in request.POST.items():
+                    print(f"{key}: {value}")
+                
+                # FamilyLink erstellen
+                deceased_user_id = request.POST.get('deceased_user')
+                relative_user_id = request.POST.get('relative_user')
+                relationship = request.POST.get('relationship', '')
                 role = request.POST.get('role', FamilyLink.FamilyRole.FAMILY_MEMBER)
                 permission_level = request.POST.get('permission_level', FamilyLink.PermissionLevel.VIEW_ONLY)
                 is_active = request.POST.get('is_active') == 'on'
                 is_validated_by_admin = request.POST.get('is_validated_by_admin') == 'on'
-            
-            print(f"=== DEBUG: Verarbeitete Daten ===")
-            print(f"deceased_user_id: {deceased_user_id}")
-            print(f"relative_user_id: {relative_user_id}")
-            print(f"relationship: {relationship}")
+                
+                print(f"=== DEBUG: Verarbeitete Daten ===")
+                print(f"deceased_user_id: {deceased_user_id}")
+                print(f"relative_user_id: {relative_user_id}")
+                print(f"relationship: {relationship}")
                 print(f"role: {role}")
                 print(f"permission_level: {permission_level}")
                 print(f"is_active: {is_active}")
                 print(f"is_validated_by_admin: {is_validated_by_admin}")
-            
-            if not deceased_user_id or not relative_user_id:
-                messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
-            else:
-                deceased_user = User.objects.get(id=deceased_user_id)
-                relative_user = User.objects.get(id=relative_user_id)
                 
+                if not deceased_user_id or not relative_user_id:
+                    messages.error(request, 'Bitte wählen Sie sowohl einen Verstorbenen als auch einen Angehörigen aus.')
+                else:
+                    deceased_user = User.objects.get(id=deceased_user_id)
+                    relative_user = User.objects.get(id=relative_user_id)
+                    
                     # Prüfen ob Verknüpfung bereits existiert - mit Fallback für alte DB-Struktur
                     link_exists = False
                     try:
@@ -1692,21 +1692,21 @@ def family_link_management_view(request):
                             raise e
                     
                     if link_exists:
-                    messages.warning(request, 'Diese Verknüpfung existiert bereits.')
-                else:
+                        messages.warning(request, 'Diese Verknüpfung existiert bereits.')
+                    else:
                         # FamilyLink erstellen - mit Fallback für alte Datenbank-Struktur
                         try:
-                    family_link = FamilyLink.objects.create(
-                        deceased_user=deceased_user,
-                        relative_user=relative_user,
-                        relationship=relationship,
+                            family_link = FamilyLink.objects.create(
+                                deceased_user=deceased_user,
+                                relative_user=relative_user,
+                                relationship=relationship,
                                 role=role,
                                 permission_level=permission_level,
                                 is_active=is_active,
                                 is_validated_by_admin=is_validated_by_admin,
                                 created_by=request.user
-                    )
-                    messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
+                            )
+                            messages.success(request, f'Verknüpfung erfolgreich erstellt: {relative_user.get_full_name()} ist {relationship or "Angehöriger"} von {deceased_user.get_full_name()}')
                         except Exception as create_error:
                             print(f"=== FamilyLink Creation Error ===")
                             print(f"Error: {str(create_error)}")
@@ -1884,13 +1884,13 @@ def family_link_management_view(request):
                             else:
                                 messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(create_error)}')
             
-        except Exception as e:
-            messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
+            except Exception as e:
+                messages.error(request, f'Fehler beim Erstellen der Verknüpfung: {str(e)}')
     
-    # Daten für die Form laden
-    deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
-    relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
-    
+        # Daten für die Form laden
+        deceased_users = User.objects.filter(role=User.Role.VERSTORBENER, is_active=True).order_by('first_name', 'last_name')
+        relative_users = User.objects.exclude(role=User.Role.VERSTORBENER).filter(is_active=True).order_by('first_name', 'last_name')
+        
         # Bestehende FamilyLinks laden - mit intelligenter Datenbank-Erkennung
         family_links = []
         try:
@@ -1922,34 +1922,34 @@ def family_link_management_view(request):
                     cursor.execute(get_consistent_familylink_sql(
                         "LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id"
                     ))
-                        
-                        # Erstelle Mock-Objekte für das Template
-                        class MockFamilyLink:
-                            def __init__(self, row):
-                                self.id = row[0]
-                                self.relationship = row[1] or ''
-                                self.role = row[2] or 'family_member'
-                                self.permission_level = row[3] or 'view_only'
-                                self.is_active = row[4] if row[4] is not None else True
-                                self.is_validated_by_admin = row[5] if row[5] is not None else False
-                                self.validated_at = row[6]
-                                self.created_at = row[7]
-                                self.updated_at = row[8]
-                                self.notes = row[9] or ''
-                                
-                                # Mock User-Objekte
-                                self.deceased_user = type('User', (), {
-                                    'id': row[10],
-                                    'first_name': row[14] or '',
-                                    'last_name': row[15] or '',
-                                    'get_full_name': lambda: f"{row[14] or ''} {row[15] or ''}".strip(),
-                                    'email': f"user{row[10]}@example.com"  # Fallback email
-                                })()
-                                
-                                self.relative_user = type('User', (), {
-                                    'id': row[11],
-                                    'first_name': row[16] or '',
-                                    'last_name': row[17] or '',
+                    
+                    # Erstelle Mock-Objekte für das Template
+                    class MockFamilyLink:
+                        def __init__(self, row):
+                            self.id = row[0]
+                            self.relationship = row[1] or ''
+                            self.role = row[2] or 'family_member'
+                            self.permission_level = row[3] or 'view_only'
+                            self.is_active = row[4] if row[4] is not None else True
+                            self.is_validated_by_admin = row[5] if row[5] is not None else False
+                            self.validated_at = row[6]
+                            self.created_at = row[7]
+                            self.updated_at = row[8]
+                            self.notes = row[9] or ''
+                            
+                            # Mock User-Objekte
+                            self.deceased_user = type('User', (), {
+                                'id': row[10],
+                                'first_name': row[14] or '',
+                                'last_name': row[15] or '',
+                                'get_full_name': lambda: f"{row[14] or ''} {row[15] or ''}".strip(),
+                                'email': f"user{row[10]}@example.com"  # Fallback email
+                            })()
+                            
+                            self.relative_user = type('User', (), {
+                                'id': row[11],
+                                'first_name': row[16] or '',
+                                'last_name': row[17] or '',
                                     'get_full_name': lambda: f"{row[16] or ''} {row[17] or ''}".strip(),
                                     'email': f"user{row[11]}@example.com"  # Fallback email
                                 })()
@@ -1981,16 +1981,16 @@ def family_link_management_view(request):
             else:
                 print(f"Unknown error, using empty list")
                 family_links = []
-    
-    context = {
-        **admin.site.each_context(request),
-        'deceased_users': deceased_users,
-        'relative_users': relative_users,
-        'family_links': family_links,
-        'title': 'FamilyLink-Verwaltung',
-    }
-    
-    return render(request, 'admin/family_link_management.html', context)
+        
+        context = {
+            **admin.site.each_context(request),
+            'deceased_users': deceased_users,
+            'relative_users': relative_users,
+            'family_links': family_links,
+            'title': 'FamilyLink-Verwaltung',
+        }
+        
+        return render(request, 'admin/family_link_management.html', context)
         
     except Exception as e:
         # Debug-Informationen für 500-Fehler

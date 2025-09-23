@@ -632,12 +632,16 @@ class UserAdmin(ModelAdmin):
         'id', 'created_at', 'updated_at',
         'manage_last_wishes', 'manage_documents', 'manage_contracts',
         'manage_insurances', 'manage_financials', 'manage_digital_legacy',
-        'display_own_memorial_page', 'display_managed_memorial_pages'
+        'display_own_memorial_page'
+        # Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+        # 'display_managed_memorial_pages'
     )
     fieldsets = (
         (None, {'fields': ('email', 'first_name', 'last_name', 'role')}),
         ('Gedenkseiten-Verwaltung', {
-            'fields': ('display_own_memorial_page', 'display_managed_memorial_pages'),
+            'fields': ('display_own_memorial_page',),
+            # Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+            # 'display_managed_memorial_pages'
         }),
         ('Vorsorge-Verwaltung (Pop-ups)', {
             'fields': (
@@ -906,9 +910,10 @@ class MemorialPageAdmin(ModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('user', 'status')}),
-        ('Angehörige & Berechtigungen', {
-            'fields': ('display_family_links',),
-        }),
+        # Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+        # ('Angehörige & Berechtigungen', {
+        #     'fields': ('display_family_links',),
+        # }),
         ('Personenbezogene Daten & URL', {'fields': ('first_name', 'last_name', 'birth_name_type', 'birth_name_or_title', 'slug', 'date_of_birth', 'date_of_death', 'cemetery', 'obituary')}),
         ('Inhaltsverwaltung (Pop-ups)', {
             'fields': ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events'),

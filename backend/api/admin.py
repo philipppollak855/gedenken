@@ -684,7 +684,7 @@ class UserAdmin(ModelAdmin):
     @admin.display(description='Verwaltete Gedenkseiten (als Angehöriger)')
     def display_managed_memorial_pages(self, obj):
         try:
-        links = FamilyLink.objects.filter(relative_user=obj)
+            links = FamilyLink.objects.filter(relative_user=obj)
         except Exception as e:
             if "column api_familylink.id does not exist" in str(e):
                 # Fallback: Verwende Raw SQL

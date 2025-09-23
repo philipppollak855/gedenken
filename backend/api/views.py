@@ -46,6 +46,27 @@ from .models import (
 from .services import TrauerdruckNotificationService, TrauerdruckWorkflowService
 
 
+def get_consistent_familylink_sql(where_clause="", order_by="COALESCE(fl.created_at, fl.link_id) DESC"):
+    """
+    Zentrale Hilfsfunktion für konsistente FamilyLink-SQL-Queries
+    """
+    return f"""
+        SELECT COALESCE(fl.id, fl.link_id) as id, 
+               COALESCE(fl.relationship, '') as relationship,
+               COALESCE(fl.role, 'family_member') as role,
+               COALESCE(fl.permission_level, 'view_only') as permission_level,
+               COALESCE(fl.is_active, true) as is_active, 
+               COALESCE(fl.is_validated_by_admin, false) as is_validated_by_admin, 
+               fl.validated_at,
+               fl.created_at, fl.updated_at, 
+               COALESCE(fl.notes, '') as notes,
+               fl.deceased_user_id, fl.relative_user_id, 
+               fl.validated_by_id, fl.created_by_id
+        FROM api_familylink fl
+        {where_clause}
+        ORDER BY {order_by}
+    """
+
 def get_family_links_for_user(user, permission_level=None, is_validated=None):
     """
     Hilfsfunktion für FamilyLink-Queries mit Datenbank-Kompatibilität
@@ -70,54 +91,8 @@ def get_family_links_for_user(user, permission_level=None, is_validated=None):
                 """)
                 existing_columns = [row[0] for row in cursor.fetchall()]
                 
-                # Verwende passende SQL basierend auf vorhandenen Spalten
-                if 'role' not in existing_columns:
-                    # Alte Struktur: Verwende link_id und alte Spalten
-                    if 'created_at' in existing_columns:
-                        # Struktur mit created_at/updated_at
-                        cursor.execute("""
-                            SELECT fl.link_id as id, fl.relationship, 
-                                   CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
-                                   CASE 
-                                       WHEN fl.can_edit_precaution_data THEN 'manage_all'
-                                       WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
-                                       ELSE 'view_only'
-                                   END as permission_level,
-                                   true as is_active, false as is_validated_by_admin, null as validated_at,
-                                   fl.created_at, fl.updated_at, '' as notes,
-                                   fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id
-                            FROM api_familylink fl
-                            WHERE fl.relative_user_id = %s
-                            ORDER BY fl.created_at DESC
-                        """, [user.id])
-                    else:
-                        # Älteste Struktur: Nur Grundfelder ohne Zeitstempel
-                        cursor.execute("""
-                            SELECT fl.link_id as id, fl.relationship, 
-                                   CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
-                                   CASE 
-                                       WHEN fl.can_edit_precaution_data THEN 'manage_all'
-                                       WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
-                                       ELSE 'view_only'
-                                   END as permission_level,
-                                   true as is_active, false as is_validated_by_admin, null as validated_at,
-                                   null as created_at, null as updated_at, '' as notes,
-                                   fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id
-                            FROM api_familylink fl
-                            WHERE fl.relative_user_id = %s
-                            ORDER BY fl.link_id DESC
-                        """, [user.id])
-                else:
-                    # Neue Struktur: Verwende id und neue Spalten
-                    cursor.execute("""
-                        SELECT fl.id, fl.relationship, fl.role, fl.permission_level, 
-                               fl.is_active, fl.is_validated_by_admin, fl.validated_at,
-                               fl.created_at, fl.updated_at, fl.notes,
-                               fl.deceased_user_id, fl.relative_user_id, fl.validated_by_id, fl.created_by_id
-                        FROM api_familylink fl
-                        WHERE fl.relative_user_id = %s
-                        ORDER BY fl.created_at DESC
-                    """, [user.id])
+                # Verwende zentrale Hilfsfunktion für konsistente SQL-Query
+                cursor.execute(get_consistent_familylink_sql("WHERE fl.relative_user_id = %s"), [user.id])
                 
                 # Erstelle Mock-Objekte für die Views
                 class MockFamilyLink:
@@ -594,24 +569,9 @@ class MeinBereichDataView(APIView):
                 # Fallback: Verwende Raw SQL
                 from django.db import connection
                 with connection.cursor() as cursor:
-                    cursor.execute("""
-                        SELECT fl.link_id as id, fl.relationship, 
-                               CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
-                               CASE 
-                                   WHEN fl.can_edit_precaution_data THEN 'manage_all'
-                                   WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
-                                   ELSE 'view_only'
-                               END as permission_level,
-                               true as is_active, false as is_validated_by_admin, null as validated_at,
-                               fl.created_at, fl.updated_at, '' as notes,
-                               fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id
-                        FROM api_familylink fl
-                        WHERE fl.relative_user_id = %s
-                        AND (
-                            fl.can_edit_memorial_page = true OR fl.can_edit_precaution_data = true
-                        )
-                        ORDER BY fl.created_at DESC
-                    """, [user.id])
+                    cursor.execute(get_consistent_familylink_sql(
+                        "WHERE fl.relative_user_id = %s AND COALESCE(fl.permission_level, 'view_only') IN ('edit_memorial', 'manage_all')"
+                    ), [user.id])
                     
                     class MockFamilyLink:
                         def __init__(self, row):
@@ -701,63 +661,10 @@ class FamilyLinkViewSet(viewsets.ModelViewSet):
                     """)
                     existing_columns = [row[0] for row in cursor.fetchall()]
                     
-                    # Verwende passende SQL basierend auf vorhandenen Spalten
-                    if 'role' not in existing_columns:
-                        # Alte Struktur: Verwende link_id und alte Spalten
-                        if 'created_at' in existing_columns:
-                            # Struktur mit created_at/updated_at
-                            cursor.execute("""
-                                SELECT fl.link_id as id, fl.relationship, 
-                                       CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
-                                       CASE 
-                                           WHEN fl.can_edit_precaution_data THEN 'manage_all'
-                                           WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
-                                           ELSE 'view_only'
-                                       END as permission_level,
-                                       true as is_active, false as is_validated_by_admin, null as validated_at,
-                                       fl.created_at, fl.updated_at, '' as notes,
-                                       fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id,
-                                       u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
-                                       u2.first_name as relative_first_name, u2.last_name as relative_last_name
-                                FROM api_familylink fl
-                                LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
-                                LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
-                                ORDER BY fl.created_at DESC
-                            """)
-                        else:
-                            # Älteste Struktur: Nur Grundfelder ohne Zeitstempel
-                            cursor.execute("""
-                                SELECT fl.link_id as id, fl.relationship, 
-                                       CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
-                                       CASE 
-                                           WHEN fl.can_edit_precaution_data THEN 'manage_all'
-                                           WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
-                                           ELSE 'view_only'
-                                       END as permission_level,
-                                       true as is_active, false as is_validated_by_admin, null as validated_at,
-                                       null as created_at, null as updated_at, '' as notes,
-                                       fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id,
-                                       u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
-                                       u2.first_name as relative_first_name, u2.last_name as relative_last_name
-                                FROM api_familylink fl
-                                LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
-                                LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
-                                ORDER BY fl.link_id DESC
-                            """)
-                    else:
-                        # Neue Struktur: Verwende id und neue Spalten
-                        cursor.execute("""
-                            SELECT fl.id, fl.relationship, fl.role, fl.permission_level, 
-                                   fl.is_active, fl.is_validated_by_admin, fl.validated_at,
-                                   fl.created_at, fl.updated_at, fl.notes,
-                                   fl.deceased_user_id, fl.relative_user_id, fl.validated_by_id, fl.created_by_id,
-                                   u1.first_name as deceased_first_name, u1.last_name as deceased_last_name,
-                                   u2.first_name as relative_first_name, u2.last_name as relative_last_name
-                            FROM api_familylink fl
-                            LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id
-                            LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id
-                            ORDER BY fl.created_at DESC
-                        """)
+                    # Verwende zentrale Hilfsfunktion für konsistente SQL-Query
+                    cursor.execute(get_consistent_familylink_sql(
+                        "LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id"
+                    ))
                     
                     # Erstelle Mock-Objekte für das API
                     class MockFamilyLink:

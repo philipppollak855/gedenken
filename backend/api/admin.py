@@ -599,6 +599,8 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     form = UserAdminForm
     resource_classes = [resources.ModelResource]
     list_display = ('get_full_name', 'email', 'role', 'created_at')
+    # Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+    # list_display = ('get_full_name', 'email', 'role', 'display_managed_memorial_pages', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
     
     def get_inlines(self, request, obj):
@@ -795,12 +797,16 @@ class MemorialEventInline(admin.TabularInline):
 class MemorialPageAdmin(ModelAdmin):
     search_fields = ('first_name', 'last_name', 'user__email', 'slug')
     list_display = ('__str__', 'get_user_id', 'status', 'condolence_moderation')
+    # Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+    # list_display = ('__str__', 'get_user_id', 'status', 'condolence_moderation', 'display_family_links')
     actions = ['clone_memorial_page']
     
     autocomplete_fields = ['user']
     raw_id_fields = ('main_photo', 'hero_background_image', 'farewell_background_image', 'obituary_card_image', 'memorial_picture', 'memorial_picture_back', 'acknowledgement_image')
     
-    readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
+    readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events')
+    # Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+    # readonly_fields = ('manage_timeline', 'manage_gallery', 'manage_condolences', 'manage_candles', 'manage_events', 'display_family_links')
 
     def get_readonly_fields(self, request, obj=None): 
         if obj: 

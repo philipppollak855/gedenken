@@ -309,8 +309,9 @@ class SiteSettingsAdmin(ModelAdmin):
         ]
         return [url for url in custom_urls if url.name != 'api_sitesettings_add' and url.name != 'api_sitesettings_delete'] + urls
 
-@admin.register(FamilyLink)
-class FamilyLinkAdmin(ModelAdmin):
+# Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+# @admin.register(FamilyLink)
+# class FamilyLinkAdmin(ModelAdmin):
     list_display = ('deceased_user', 'relative_user', 'relationship', 'role', 'permission_level', 'is_active', 'is_validated_by_admin', 'created_at')
     list_filter = ('role', 'permission_level', 'is_active', 'is_validated_by_admin', 'created_at')
     search_fields = ('deceased_user__first_name', 'deceased_user__last_name', 'relative_user__first_name', 'relative_user__last_name', 'relationship', 'notes')
@@ -332,7 +333,8 @@ class FamilyLinkAdmin(ModelAdmin):
         }),
     )
 
-class FamilyLinkInline(admin.TabularInline):
+# Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+# class FamilyLinkInline(admin.TabularInline):
     model = FamilyLink
     fk_name = 'deceased_user'
     extra = 1
@@ -458,7 +460,8 @@ class FamilyLinkInline(admin.TabularInline):
                 # Andere Fehler: Leere QuerySet zurückgeben
                 return FamilyLink.objects.none()
 
-class FamilyLinkAsRelativeInline(admin.TabularInline):
+# Temporär deaktiviert wegen 500-Fehler mit alter DB-Struktur
+# class FamilyLinkAsRelativeInline(admin.TabularInline):
     model = FamilyLink
     fk_name = 'relative_user'
     extra = 1

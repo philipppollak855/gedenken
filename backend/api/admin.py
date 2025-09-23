@@ -607,76 +607,88 @@ class UserAdmin(ModelAdmin):
     
     def get_inlines(self, request, obj):
         """Dynamische Inlines basierend auf Datenbank-Schema"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         try:
-            print(f"=== DEBUG: UserAdmin.get_inlines ===")
-            print(f"Request: {request}")
-            print(f"Object: {obj}")
+            logger.info("=== DEBUG: UserAdmin.get_inlines ===")
+            logger.info(f"Request: {request}")
+            logger.info(f"Object: {obj}")
             # Teste ob neue Datenbank-Struktur vorhanden ist
             FamilyLink.objects.filter(id__isnull=False).exists()
-            print(f"DEBUG: Neue Datenbank-Struktur erkannt, verwende Inlines")
+            logger.info("DEBUG: Neue Datenbank-Struktur erkannt, verwende Inlines")
             # Wenn erfolgreich, verwende Inlines
             return [FamilyLinkInline, FamilyLinkAsRelativeInline]
         except Exception as e:
-            print(f"=== DEBUG: UserAdmin.get_inlines ERROR ===")
-            print(f"Error: {str(e)}")
-            print(f"Error type: {type(e)}")
+            logger.error("=== DEBUG: UserAdmin.get_inlines ERROR ===")
+            logger.error(f"Error: {str(e)}")
+            logger.error(f"Error type: {type(e)}")
             if "column api_familylink.id does not exist" in str(e):
-                print(f"DEBUG: Alte Datenbank-Struktur erkannt, keine Inlines")
+                logger.info("DEBUG: Alte Datenbank-Struktur erkannt, keine Inlines")
                 # Alte Datenbank-Struktur - keine Inlines
                 return []
             else:
-                print(f"DEBUG: Anderer Fehler, keine Inlines")
+                logger.info("DEBUG: Anderer Fehler, keine Inlines")
                 # Andere Fehler - keine Inlines
                 return []
     
     def get_form(self, request, obj=None, **kwargs):
         """Override get_form um sicherzustellen dass keine Inline-Probleme auftreten"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         try:
-            print(f"=== DEBUG: UserAdmin.get_form ===")
-            print(f"Request: {request}")
-            print(f"Object: {obj}")
-            print(f"Kwargs: {kwargs}")
+            logger.info("=== DEBUG: UserAdmin.get_form ===")
+            logger.info(f"Request: {request}")
+            logger.info(f"Object: {obj}")
+            logger.info(f"Kwargs: {kwargs}")
             
             # Versuche normale get_form
             form = super().get_form(request, obj, **kwargs)
-            print(f"DEBUG: get_form SUCCESS")
+            logger.info("DEBUG: get_form SUCCESS")
             return form
         except Exception as e:
-            print(f"=== DEBUG: UserAdmin.get_form ERROR ===")
-            print(f"Error: {str(e)}")
-            print(f"Error type: {type(e)}")
+            logger.error("=== DEBUG: UserAdmin.get_form ERROR ===")
+            logger.error(f"Error: {str(e)}")
+            logger.error(f"Error type: {type(e)}")
             import traceback
-            print(f"Traceback: {traceback.format_exc()}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             raise e
     
     def change_view(self, request, object_id, form_url='', extra_context=None):
         """Override change_view mit Debug-Logging"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         try:
-            print(f"=== DEBUG: UserAdmin.change_view START ===")
-            print(f"Request: {request}")
-            print(f"Object ID: {object_id}")
-            print(f"Form URL: {form_url}")
-            print(f"Extra Context: {extra_context}")
+            logger.info("=== DEBUG: UserAdmin.change_view START ===")
+            logger.info(f"Request: {request}")
+            logger.info(f"Object ID: {object_id}")
+            logger.info(f"Form URL: {form_url}")
+            logger.info(f"Extra Context: {extra_context}")
             
             # Versuche normale change_view
             result = super().change_view(request, object_id, form_url, extra_context)
-            print(f"=== DEBUG: UserAdmin.change_view SUCCESS ===")
+            logger.info("=== DEBUG: UserAdmin.change_view SUCCESS ===")
             return result
         except Exception as e:
-            print(f"=== DEBUG: UserAdmin.change_view ERROR ===")
-            print(f"Error: {str(e)}")
-            print(f"Error type: {type(e)}")
+            logger.error("=== DEBUG: UserAdmin.change_view ERROR ===")
+            logger.error(f"Error: {str(e)}")
+            logger.error(f"Error type: {type(e)}")
             import traceback
-            print(f"Traceback: {traceback.format_exc()}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             raise e
     
     def save_model(self, request, obj, form, change):
+        import logging
+        logger = logging.getLogger(__name__)
+        
         try:
-            print(f"=== DEBUG: UserAdmin.save_model ===")
-            print(f"User ID: {obj.id}")
-            print(f"User Role: {obj.role}")
-            print(f"User Email: {obj.email}")
-            print(f"Is Change: {change}")
+            logger.info("=== DEBUG: UserAdmin.save_model ===")
+            logger.info(f"User ID: {obj.id}")
+            logger.info(f"User Role: {obj.role}")
+            logger.info(f"User Email: {obj.email}")
+            logger.info(f"Is Change: {change}")
             
             # Für Verstorbene: E-Mail automatisch setzen falls leer
             if obj.role == 'verstorbener' and not obj.email:

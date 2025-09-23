@@ -605,6 +605,9 @@ class UserAdmin(ModelAdmin):
     # list_display = ('get_full_name', 'email', 'role', 'display_managed_memorial_pages', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
     
+    # Inlines komplett deaktiviert für alte Datenbank-Struktur
+    inlines = []
+    
     def get_inlines(self, request, obj):
         """Dynamische Inlines basierend auf Datenbank-Schema"""
         import logging

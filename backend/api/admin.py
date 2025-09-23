@@ -606,17 +606,47 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     def get_inlines(self, request, obj):
         """Dynamische Inlines basierend auf Datenbank-Schema"""
         try:
+            print(f"=== DEBUG: UserAdmin.get_inlines ===")
+            print(f"Request: {request}")
+            print(f"Object: {obj}")
             # Teste ob neue Datenbank-Struktur vorhanden ist
             FamilyLink.objects.filter(id__isnull=False).exists()
+            print(f"DEBUG: Neue Datenbank-Struktur erkannt, verwende Inlines")
             # Wenn erfolgreich, verwende Inlines
             return [FamilyLinkInline, FamilyLinkAsRelativeInline]
         except Exception as e:
+            print(f"=== DEBUG: UserAdmin.get_inlines ERROR ===")
+            print(f"Error: {str(e)}")
+            print(f"Error type: {type(e)}")
             if "column api_familylink.id does not exist" in str(e):
+                print(f"DEBUG: Alte Datenbank-Struktur erkannt, keine Inlines")
                 # Alte Datenbank-Struktur - keine Inlines
                 return []
             else:
+                print(f"DEBUG: Anderer Fehler, keine Inlines")
                 # Andere Fehler - keine Inlines
                 return []
+    
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        """Override change_view mit Debug-Logging"""
+        try:
+            print(f"=== DEBUG: UserAdmin.change_view START ===")
+            print(f"Request: {request}")
+            print(f"Object ID: {object_id}")
+            print(f"Form URL: {form_url}")
+            print(f"Extra Context: {extra_context}")
+            
+            # Versuche normale change_view
+            result = super().change_view(request, object_id, form_url, extra_context)
+            print(f"=== DEBUG: UserAdmin.change_view SUCCESS ===")
+            return result
+        except Exception as e:
+            print(f"=== DEBUG: UserAdmin.change_view ERROR ===")
+            print(f"Error: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            raise e
     
     def save_model(self, request, obj, form, change):
         try:

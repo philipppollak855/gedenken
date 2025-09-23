@@ -45,6 +45,144 @@ from .models import (
 )
 from .services import TrauerdruckNotificationService, TrauerdruckWorkflowService
 
+
+def get_family_links_for_user(user, permission_level=None, is_validated=None):
+    """
+    Hilfsfunktion für FamilyLink-Queries mit Datenbank-Kompatibilität
+    """
+    try:
+        # Versuche normale Django ORM-Query
+        queryset = FamilyLink.objects.filter(relative_user=user)
+        if permission_level:
+            queryset = queryset.filter(permission_level=permission_level)
+        if is_validated is not None:
+            queryset = queryset.filter(is_validated_by_admin=is_validated)
+        return queryset
+    except Exception as e:
+        # Fallback: Verwende Raw SQL wenn Django ORM fehlschlägt
+        if "column api_familylink.id does not exist" in str(e):
+            from django.db import connection
+            with connection.cursor() as cursor:
+                # Prüfe welche Spalten existieren
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_name = 'api_familylink' AND table_schema = 'public'
+                """)
+                existing_columns = [row[0] for row in cursor.fetchall()]
+                
+                # Verwende passende SQL basierend auf vorhandenen Spalten
+                if 'role' not in existing_columns:
+                    # Alte Struktur: Verwende link_id und alte Spalten
+                    if 'created_at' in existing_columns:
+                        # Struktur mit created_at/updated_at
+                        cursor.execute("""
+                            SELECT fl.link_id as id, fl.relationship, 
+                                   CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
+                                   CASE 
+                                       WHEN fl.can_edit_precaution_data THEN 'manage_all'
+                                       WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
+                                       ELSE 'view_only'
+                                   END as permission_level,
+                                   true as is_active, false as is_validated_by_admin, null as validated_at,
+                                   fl.created_at, fl.updated_at, '' as notes,
+                                   fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id
+                            FROM api_familylink fl
+                            WHERE fl.relative_user_id = %s
+                            ORDER BY fl.created_at DESC
+                        """, [user.id])
+                    else:
+                        # Älteste Struktur: Nur Grundfelder ohne Zeitstempel
+                        cursor.execute("""
+                            SELECT fl.link_id as id, fl.relationship, 
+                                   CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
+                                   CASE 
+                                       WHEN fl.can_edit_precaution_data THEN 'manage_all'
+                                       WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
+                                       ELSE 'view_only'
+                                   END as permission_level,
+                                   true as is_active, false as is_validated_by_admin, null as validated_at,
+                                   null as created_at, null as updated_at, '' as notes,
+                                   fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id
+                            FROM api_familylink fl
+                            WHERE fl.relative_user_id = %s
+                            ORDER BY fl.link_id DESC
+                        """, [user.id])
+                else:
+                    # Neue Struktur: Verwende id und neue Spalten
+                    cursor.execute("""
+                        SELECT fl.id, fl.relationship, fl.role, fl.permission_level, 
+                               fl.is_active, fl.is_validated_by_admin, fl.validated_at,
+                               fl.created_at, fl.updated_at, fl.notes,
+                               fl.deceased_user_id, fl.relative_user_id, fl.validated_by_id, fl.created_by_id
+                        FROM api_familylink fl
+                        WHERE fl.relative_user_id = %s
+                        ORDER BY fl.created_at DESC
+                    """, [user.id])
+                
+                # Erstelle Mock-Objekte für die Views
+                class MockFamilyLink:
+                    def __init__(self, row):
+                        self.id = row[0]
+                        self.relationship = row[1] or ''
+                        self.role = row[2] or 'family_member'
+                        self.permission_level = row[3] or 'view_only'
+                        self.is_active = row[4] if row[4] is not None else True
+                        self.is_validated_by_admin = row[5] if row[5] is not None else False
+                        self.validated_at = row[6]
+                        self.created_at = row[7]
+                        self.updated_at = row[8]
+                        self.notes = row[9] or ''
+                        
+                        # Mock User-Objekte
+                        self.deceased_user = type('User', (), {
+                            'id': row[10],
+                            'pk': row[10]
+                        })()
+                        
+                        self.relative_user = user
+                
+                rows = cursor.fetchall()
+                mock_objects = [MockFamilyLink(row) for row in rows]
+                
+                # Filtere basierend auf permission_level und is_validated
+                if permission_level:
+                    mock_objects = [obj for obj in mock_objects if obj.permission_level == permission_level]
+                if is_validated is not None:
+                    mock_objects = [obj for obj in mock_objects if obj.is_validated_by_admin == is_validated]
+                
+                # Erstelle eine Mock-QuerySet
+                class MockQuerySet:
+                    def __init__(self, objects):
+                        self.objects = objects
+                    
+                    def __iter__(self):
+                        return iter(self.objects)
+                    
+                    def __len__(self):
+                        return len(self.objects)
+                    
+                    def __getitem__(self, key):
+                        return self.objects[key]
+                    
+                    def count(self):
+                        return len(self.objects)
+                    
+                    def exists(self):
+                        return len(self.objects) > 0
+                    
+                    def values_list(self, field, flat=False):
+                        if field == 'deceased_user_id':
+                            return [obj.deceased_user.id for obj in self.objects]
+                        return []
+                    
+                    def none(self):
+                        return MockQuerySet([])
+                
+                return MockQuerySet(mock_objects)
+        else:
+            # Andere Fehler: Leere QuerySet zurückgeben
+            return FamilyLink.objects.none()
+
 class GlobalSearchView(APIView):
     authentication_classes = [SessionAuthentication]
     permission_classes = [permissions.IsAdminUser]
@@ -257,7 +395,7 @@ class DigitalLegacyItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
         return DigitalLegacyItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -266,7 +404,7 @@ class FinancialItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
         return FinancialItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -275,7 +413,7 @@ class InsuranceItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
         return InsuranceItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -284,7 +422,7 @@ class ContractItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
         return ContractItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -294,7 +432,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = FamilyLink.objects.filter(relative_user=user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True).values_list('deceased_user_id', flat=True)
+        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
         return Document.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -449,7 +587,57 @@ class MeinBereichDataView(APIView):
         except MemorialPage.DoesNotExist:
             own_page = None
         
-        managed_links = FamilyLink.objects.filter(relative_user=user, permission_level__in=[FamilyLink.PermissionLevel.EDIT_MEMORIAL, FamilyLink.PermissionLevel.MANAGE_ALL])
+        try:
+            managed_links = FamilyLink.objects.filter(relative_user=user, permission_level__in=[FamilyLink.PermissionLevel.EDIT_MEMORIAL, FamilyLink.PermissionLevel.MANAGE_ALL])
+        except Exception as e:
+            if "column api_familylink.id does not exist" in str(e):
+                # Fallback: Verwende Raw SQL
+                from django.db import connection
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT fl.link_id as id, fl.relationship, 
+                               CASE WHEN fl.is_main_contact THEN 'main_contact' ELSE 'family_member' END as role,
+                               CASE 
+                                   WHEN fl.can_edit_precaution_data THEN 'manage_all'
+                                   WHEN fl.can_edit_memorial_page THEN 'edit_memorial'
+                                   ELSE 'view_only'
+                               END as permission_level,
+                               true as is_active, false as is_validated_by_admin, null as validated_at,
+                               fl.created_at, fl.updated_at, '' as notes,
+                               fl.deceased_user_id, fl.relative_user_id, null as validated_by_id, null as created_by_id
+                        FROM api_familylink fl
+                        WHERE fl.relative_user_id = %s
+                        AND (
+                            fl.can_edit_memorial_page = true OR fl.can_edit_precaution_data = true
+                        )
+                        ORDER BY fl.created_at DESC
+                    """, [user.id])
+                    
+                    class MockFamilyLink:
+                        def __init__(self, row):
+                            self.id = row[0]
+                            self.relationship = row[1] or ''
+                            self.role = row[2] or 'family_member'
+                            self.permission_level = row[3] or 'view_only'
+                            self.is_active = row[4] if row[4] is not None else True
+                            self.is_validated_by_admin = row[5] if row[5] is not None else False
+                            self.validated_at = row[6]
+                            self.created_at = row[7]
+                            self.updated_at = row[8]
+                            self.notes = row[9] or ''
+                            
+                            # Mock User-Objekte
+                            self.deceased_user = type('User', (), {
+                                'id': row[10],
+                                'pk': row[10]
+                            })()
+                            
+                            self.relative_user = user
+                    
+                    rows = cursor.fetchall()
+                    managed_links = [MockFamilyLink(row) for row in rows]
+            else:
+                managed_links = []
         managed_pages = [link.deceased_user.memorial_page for link in managed_links if hasattr(link.deceased_user, 'memorial_page')]
         
         serializer = MeinBereichDataSerializer({

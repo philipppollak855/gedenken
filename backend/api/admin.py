@@ -527,23 +527,30 @@ class UserAdmin(ModelAdmin):
             logger.info("=== DEBUG: UserAdmin.get_inlines ===")
             logger.info(f"Request: {request}")
             logger.info(f"Object: {obj}")
-            # Teste ob neue Datenbank-Struktur vorhanden ist
-            FamilyLink.objects.filter(id__isnull=False).exists()
-            logger.info("DEBUG: Neue Datenbank-Struktur erkannt, verwende Inlines")
-            # Wenn erfolgreich, verwende Inlines
-            return [FamilyLinkInline, FamilyLinkAsRelativeInline]
+            
+            # Teste ob neue Datenbank-Struktur vorhanden ist - mit Raw SQL
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_name = 'api_familylink' AND table_schema = 'public' AND column_name = 'id'
+                """)
+                has_id_column = cursor.fetchone() is not None
+                
+                if has_id_column:
+                    logger.info("DEBUG: Neue Datenbank-Struktur erkannt (id-Spalte vorhanden), verwende Inlines")
+                    return [FamilyLinkInline, FamilyLinkAsRelativeInline]
+                else:
+                    logger.info("DEBUG: Alte Datenbank-Struktur erkannt (keine id-Spalte), keine Inlines")
+                    return []
+                    
         except Exception as e:
             logger.error("=== DEBUG: UserAdmin.get_inlines ERROR ===")
             logger.error(f"Error: {str(e)}")
             logger.error(f"Error type: {type(e)}")
-            if "column api_familylink.id does not exist" in str(e):
-                logger.info("DEBUG: Alte Datenbank-Struktur erkannt, keine Inlines")
-                # Alte Datenbank-Struktur - keine Inlines
-                return []
-            else:
-                logger.info("DEBUG: Anderer Fehler, keine Inlines")
-                # Andere Fehler - keine Inlines
-                return []
+            logger.info("DEBUG: Fehler bei Schema-Erkennung, keine Inlines")
+            # Bei Fehlern: keine Inlines
+            return []
     
     def get_form(self, request, obj=None, **kwargs):
         """Override get_form um sicherzustellen dass keine Inline-Probleme auftreten"""

@@ -88,7 +88,7 @@ function App() {
               </Route>
 
               {/* Vorsorge Portal */}
-              <Route path="vorsorge" element={<VorsorgeDashboard />}>
+              <Route path="vorsorge" element={<BestattungsvorsorgeDashboard />}>
                   <Route index element={<Navigate to="uebersicht" replace />} />
                   <Route path="uebersicht" element={<BestattungsvorsorgeDashboard />} />
                   <Route path="meine-gedenkseite" element={<MeineGedenkseite />} />

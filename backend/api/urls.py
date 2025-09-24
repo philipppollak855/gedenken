@@ -17,7 +17,8 @@ from .views import (
     TrauerdruckFreigabeViewSet, TrauerdruckDesignFreigabeViewSet, TrauerdruckBenachrichtigungViewSet, TrauerdruckTemplateViewSet,
     # Bestattungsvorsorge ViewSets
     BestattungsartViewSet, VerabschiedungsartViewSet, MusikKategorieViewSet, VereinsKategorieViewSet,
-    GrabartViewSet, DokumentKategorieViewSet, DigitalerNachlassKategorieViewSet, BestattungsvorsorgeViewSet
+    GrabartViewSet, DokumentKategorieViewSet, DigitalerNachlassKategorieViewSet, BestattungsvorsorgeViewSet,
+    InitializeBestattungsvorsorgeView
 )
 
 router = routers.DefaultRouter()
@@ -86,5 +87,8 @@ urlpatterns = [
     # NEUE URLS FÜR "MEIN BEREICH"
     path('mein-bereich-data/', MeinBereichDataView.as_view(), name='mein-bereich-data'),
     path('create-memorial-page/', CreateMemorialPageView.as_view(), name='create-memorial-page'),
+    
+    # BESTATTUNGSVORSORGE INITIALISIERUNG
+    path('init-bestattungsvorsorge/', InitializeBestattungsvorsorgeView.as_view(), name='init-bestattungsvorsorge'),
 ]
 

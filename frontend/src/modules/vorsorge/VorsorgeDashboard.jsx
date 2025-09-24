@@ -15,16 +15,34 @@ const VorsorgeDashboard = () => {
   const loadVorsorge = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // Prüfe zuerst, ob bereits eine Vorsorge im localStorage gespeichert ist
+      const savedVorsorge = localStorage.getItem('bestattungsvorsorge');
+      if (savedVorsorge) {
+        try {
+          const vorsorgeData = JSON.parse(savedVorsorge);
+          setVorsorge(vorsorgeData);
+          setHasVorsorge(true);
+          setLoading(false);
+          return;
+        } catch (parseError) {
+          console.log('Fehler beim Parsen der gespeicherten Vorsorge:', parseError);
+        }
+      }
+      
+      // Versuche Backend-API
       try {
         const response = await get('/api/bestattungsvorsorge/my_vorsorge/');
         if (response?.data) {
           setVorsorge(response.data);
           setHasVorsorge(true);
+          // Speichere auch im localStorage als Backup
+          localStorage.setItem('bestattungsvorsorge', JSON.stringify(response.data));
         } else {
           setHasVorsorge(false);
         }
       } catch (apiError) {
-        console.log('API nicht verfügbar oder keine Vorsorge vorhanden:', apiError);
+        console.log('API nicht verfügbar, verwende Fallback:', apiError);
         setHasVorsorge(false);
       }
     } catch (error) {
@@ -47,6 +65,8 @@ const VorsorgeDashboard = () => {
     setVorsorge(vorsorgeData);
     setHasVorsorge(true);
     setShowWizard(false);
+    // Speichere im localStorage als Backup
+    localStorage.setItem('bestattungsvorsorge', JSON.stringify(vorsorgeData));
   };
 
   const handleWizardCancel = () => {

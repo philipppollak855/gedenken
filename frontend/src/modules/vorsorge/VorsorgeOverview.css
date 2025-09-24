@@ -1,155 +1,156 @@
-/* Vorsorge Overview Styles */
+/* VorsorgeOverview.css - Übersicht der Bestattungsvorsorge */
 
 .vorsorge-overview {
   max-width: 1200px;
   margin: 0 auto;
-  background: white;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e9ecef;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .overview-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #f8f9fa;
 }
 
-.header-content h1 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+.overview-title h1 {
+  font-size: 2.5rem;
   font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
 }
 
-.header-subtitle {
-  opacity: 0.9;
-  font-size: 1.1rem;
+.overview-title p {
+  font-size: 1.2rem;
+  color: #6c757d;
+  margin: 0;
 }
 
-.header-actions {
+.overview-actions {
   display: flex;
   gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border: none;
+  border-radius: 10px;
   font-weight: 600;
-  display: inline-flex;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
   text-decoration: none;
 }
 
 .btn-primary {
-  background: #007bff;
+  background: linear-gradient(135deg, #d4af37, #ffd700);
   color: white;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
 }
 
 .btn-primary:hover {
-  background: #0056b3;
   transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 2px solid #e9ecef;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #e9ecef;
+  border-color: #adb5bd;
 }
 
-.overview-content {
-  padding: 2rem;
+.btn-outline {
+  background: transparent;
+  color: #d4af37;
+  border: 2px solid #d4af37;
 }
 
-/* Progress Section */
-.progress-section {
-  background: #f8f9fa;
+.btn-outline:hover {
+  background: #d4af37;
+  color: white;
+}
+
+.completion-status {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: white;
+  border: 2px solid #e9ecef;
   border-radius: 15px;
   padding: 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
-.progress-header {
+.completion-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #ffd700);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 1rem;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
-.progress-header h2 {
-  font-size: 1.5rem;
-  color: #333;
-  margin: 0;
+.completion-percentage {
+  font-size: 2rem;
+  line-height: 1;
 }
 
-.progress-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 600;
+.completion-label {
   font-size: 0.9rem;
+  opacity: 0.9;
 }
 
-.progress-badge.success {
-  background: #d4edda;
-  color: #155724;
+.completion-text h3 {
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
 }
 
-.progress-badge.warning {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.progress-badge.danger {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 10px;
-  background: #e9ecef;
-  border-radius: 5px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #007bff 0%, #28a745 100%);
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  color: #666;
-  font-style: italic;
+.completion-text p {
+  color: #6c757d;
   margin: 0;
+  line-height: 1.6;
 }
 
-/* Overview Sections */
+.overview-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
 .overview-section {
   background: white;
-  border: 1px solid #e9ecef;
+  border: 2px solid #e9ecef;
   border-radius: 15px;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  transition: box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .overview-section:hover {
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-color: #d4af37;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15);
 }
 
 .section-header {
@@ -157,211 +158,184 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #f8f9fa;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f8f9fa;
 }
 
 .section-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-  border-radius: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #ffd700);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  flex-shrink: 0;
 }
 
-.section-header h3 {
-  font-size: 1.3rem;
-  color: #333;
+.section-title {
+  flex: 1;
+}
+
+.section-title h3 {
+  color: #2c3e50;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.section-title p {
+  color: #6c757d;
   margin: 0;
+  font-size: 0.9rem;
+}
+
+.section-status {
+  flex-shrink: 0;
+}
+
+.status-completed {
+  background: #2ecc71;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-pending {
+  background: #f39c12;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .section-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-label {
-  font-weight: 600;
-  color: #666;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-value {
-  color: #333;
-  font-size: 1.1rem;
-  line-height: 1.5;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.tag {
-  background: #e9ecef;
-  color: #495057;
-  padding: 0.25rem 0.75rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-/* Documents List */
-.documents-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.document-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 10px;
-  border: 1px solid #e9ecef;
+  margin-top: 1rem;
 }
 
-.document-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.section-content p {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  line-height: 1.6;
 }
 
-.document-title {
-  font-weight: 600;
-  color: #333;
+.section-content p:last-child {
+  margin-bottom: 0;
 }
 
-.document-category {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.document-status {
-  display: flex;
-  align-items: center;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.status-badge.success {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status-badge.warning {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.status-badge.important {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-/* Digital Nachlass List */
-.digital-nachlass-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.nachlass-item {
+.overview-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 2rem;
   background: #f8f9fa;
-  border-radius: 10px;
+  border-radius: 15px;
   border: 1px solid #e9ecef;
 }
 
-.nachlass-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.footer-info {
+  flex: 1;
 }
 
-.nachlass-platform {
-  font-weight: 600;
-  color: #333;
-}
-
-.nachlass-category {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.nachlass-username {
-  font-size: 0.8rem;
-  color: #999;
-  font-style: italic;
-}
-
-.nachlass-status {
+.footer-info p {
+  margin: 0;
+  color: #6c757d;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+}
+
+.footer-info i {
+  color: #d4af37;
+}
+
+.footer-actions {
+  flex-shrink: 0;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .vorsorge-overview {
+    margin: 1rem;
+    padding: 1.5rem;
+    border-radius: 15px;
+  }
+  
   .overview-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    gap: 1.5rem;
+    text-align: center;
   }
   
-  .header-actions {
+  .overview-title h1 {
+    font-size: 2rem;
+  }
+  
+  .overview-actions {
+    flex-direction: column;
     width: 100%;
-    justify-content: flex-start;
   }
   
-  .overview-content {
-    padding: 1rem;
+  .btn {
+    width: 100%;
+    justify-content: center;
   }
   
-  .progress-section {
-    padding: 1.5rem;
+  .completion-status {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
   }
   
-  .overview-section {
-    padding: 1rem;
+  .overview-sections {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
   
   .section-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+    text-align: center;
+    gap: 0.75rem;
   }
   
-  .document-item,
-  .nachlass-item {
+  .overview-footer {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    gap: 1.5rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .overview-title h1 {
+    font-size: 1.8rem;
+  }
+  
+  .completion-circle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .completion-percentage {
+    font-size: 1.5rem;
+  }
+  
+  .section-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
   }
 }

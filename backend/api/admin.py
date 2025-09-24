@@ -1660,6 +1660,22 @@ def trauerdruck_entwurf_form_view(request):
                     </body>
                 </html>
             ''')
+    
+    except Exception as e:
+        # Fallback für kritische Fehler in der gesamten Funktion
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(f'''
+            <html>
+                <head><title>Kritischer Fehler</title></head>
+                <body>
+                    <h1>Kritischer Fehler beim Laden der Form</h1>
+                    <p>Fehler: {str(e)}</p>
+                    <pre>{traceback.format_exc()}</pre>
+                    <button onclick="window.close()">Schließen</button>
+                </body>
+            </html>
+        ''')
 
 def family_link_management_view(request):
     """

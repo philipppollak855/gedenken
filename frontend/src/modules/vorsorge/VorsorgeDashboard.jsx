@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import VorsorgeWizard from './VorsorgeWizard';
 import VorsorgeOverview from './VorsorgeOverview';
@@ -10,13 +10,9 @@ const VorsorgeDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
   
-  const { get, post } = useApi();
+  const { get } = useApi();
 
-  useEffect(() => {
-    loadVorsorge();
-  }, []);
-
-  const loadVorsorge = async () => {
+  const loadVorsorge = useCallback(async () => {
     try {
       setLoading(true);
       const response = await get('/api/bestattungsvorsorge/my_vorsorge/');
@@ -32,7 +28,11 @@ const VorsorgeDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [get]);
+
+  useEffect(() => {
+    loadVorsorge();
+  }, [loadVorsorge]);
 
   const handleStartVorsorge = () => {
     setShowWizard(true);

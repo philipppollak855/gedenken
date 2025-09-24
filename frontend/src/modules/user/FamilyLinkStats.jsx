@@ -1,7 +1,7 @@
 // frontend/src/modules/user/FamilyLinkStats.jsx
 // NEUE KOMPONENTE: FamilyLink-Statistiken für Admins
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import './FamilyLinkStats.css';
 
@@ -11,11 +11,7 @@ const FamilyLinkStats = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        loadStats();
-    }, []);
-
-    const loadStats = async () => {
+    const loadStats = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -33,7 +29,11 @@ const FamilyLinkStats = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiGet]);
+
+    useEffect(() => {
+        loadStats();
+    }, [loadStats]);
 
     if (loading) {
         return <div className="loading">Lade Statistiken...</div>;

@@ -23,14 +23,10 @@ import MemorialPage from './modules/gedenken/MemorialPage';
 import MeinBereich from './modules/user/MeinBereich'; // Fungiert jetzt als Haupt-Layout für den User-Bereich
 import PortalChoicePage from './modules/user/PortalChoicePage'; // NEUE Auswahlseite
 import GedenkenDashboard from './modules/user/GedenkenDashboard'; // NEUES Layout für Gedenken
-import VorsorgeDashboard from './modules/user/VorsorgeDashboard'; // NEUES Layout für Vorsorge
 import UnterlagenDashboard from './modules/user/UnterlagenDashboard'; // NEUES Layout für Unterlagen
 
 // Bestattungsvorsorge Module
 import BestattungsvorsorgeDashboard from './modules/vorsorge/VorsorgeDashboard';
-
-// Unterseiten, die jetzt in den Dashboards gerendert werden
-import MeineVorsorge from './modules/user/MeineVorsorge';
 import MeineGedenkseite from './modules/user/MeineGedenkseite';
 import MeineGedenkseiteErstellen from './modules/user/MeineGedenkseiteErstellen';
 import MeineDaten from './modules/user/MeineDaten';

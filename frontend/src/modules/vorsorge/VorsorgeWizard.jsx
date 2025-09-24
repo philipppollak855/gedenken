@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import BestattungsartStep from './steps/BestattungsartStep';
 import VerabschiedungStep from './steps/VerabschiedungStep';
@@ -43,13 +43,9 @@ const VorsorgeWizard = ({ onComplete, onCancel }) => {
     digitalerNachlassKategorien: []
   });
 
-  const { get, post, put } = useApi();
+  const { get, post } = useApi();
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       setLoading(true);
       const [
@@ -84,7 +80,11 @@ const VorsorgeWizard = ({ onComplete, onCancel }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [get]);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const steps = [
     { id: 'bestattungsart', title: 'Bestattungsart', icon: 'fas fa-cross' },

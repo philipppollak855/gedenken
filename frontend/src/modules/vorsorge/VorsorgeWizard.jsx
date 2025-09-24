@@ -43,7 +43,7 @@ const VorsorgeWizard = ({ onComplete, onCancel }) => {
     digitalerNachlassKategorien: []
   });
 
-  const { get, post } = useApi();
+  const { post } = useApi();
 
   const loadCategories = useCallback(async () => {
     try {
@@ -81,38 +81,10 @@ const VorsorgeWizard = ({ onComplete, onCancel }) => {
         ]
       };
 
-      try {
-        const [
-          bestattungsarten,
-          verabschiedungsarten,
-          musikKategorien,
-          vereinsKategorien,
-          grabarten,
-          dokumentKategorien,
-          digitalerNachlassKategorien
-        ] = await Promise.all([
-          get('/api/bestattungsarten/').catch(() => ({ data: fallbackCategories.bestattungsarten })),
-          get('/api/verabschiedungsarten/').catch(() => ({ data: fallbackCategories.verabschiedungsarten })),
-          get('/api/musik-kategorien/').catch(() => ({ data: fallbackCategories.musikKategorien })),
-          get('/api/vereins-kategorien/').catch(() => ({ data: fallbackCategories.vereinsKategorien })),
-          get('/api/grabarten/').catch(() => ({ data: fallbackCategories.grabarten })),
-          get('/api/dokument-kategorien/').catch(() => ({ data: fallbackCategories.dokumentKategorien })),
-          get('/api/digitaler-nachlass-kategorien/').catch(() => ({ data: fallbackCategories.digitalerNachlassKategorien }))
-        ]);
-
-        setCategories({
-          bestattungsarten: bestattungsarten?.data || fallbackCategories.bestattungsarten,
-          verabschiedungsarten: verabschiedungsarten?.data || fallbackCategories.verabschiedungsarten,
-          musikKategorien: musikKategorien?.data || fallbackCategories.musikKategorien,
-          vereinsKategorien: vereinsKategorien?.data || fallbackCategories.vereinsKategorien,
-          grabarten: grabarten?.data || fallbackCategories.grabarten,
-          dokumentKategorien: dokumentKategorien?.data || fallbackCategories.dokumentKategorien,
-          digitalerNachlassKategorien: digitalerNachlassKategorien?.data || fallbackCategories.digitalerNachlassKategorien
-        });
-      } catch (apiError) {
-        console.warn('API nicht verfügbar, verwende Fallback-Daten:', apiError);
-        setCategories(fallbackCategories);
-      }
+      // Verwende direkt Fallback-Daten, da API noch nicht verfügbar
+      console.log('Verwende Fallback-Daten für Kategorien');
+      setCategories(fallbackCategories);
+      
     } catch (error) {
       console.error('Fehler beim Laden der Kategorien:', error);
       // Fallback-Daten auch bei Fehlern setzen
@@ -128,7 +100,7 @@ const VorsorgeWizard = ({ onComplete, onCancel }) => {
     } finally {
       setLoading(false);
     }
-  }, [get]);
+  }, []);
 
   useEffect(() => {
     loadCategories();

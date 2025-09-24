@@ -538,7 +538,7 @@ class ManagedMemorialPageViewSet(viewsets.ModelViewSet):
         
         return MemorialPage.objects.filter(
             Q(user=user) | Q(user_id__in=list(linked_deceased_ids))
-    )
+        )
 
 class CondolenceViewSet(viewsets.ModelViewSet):
     serializer_class = CondolenceSerializer
@@ -740,18 +740,18 @@ class FamilyLinkViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         
-        queryset = FamilyLink.objects.select_related(
-            'deceased_user', 'relative_user', 'created_by', 'validated_by'
-        )
-        
-        # Admins können alle FamilyLinks sehen
-        if user.is_staff:
-            return queryset
-        
-        # Normale Benutzer können nur ihre eigenen FamilyLinks sehen
-        return queryset.filter(
-            Q(relative_user=user) | Q(deceased_user=user)
-        )
+            queryset = FamilyLink.objects.select_related(
+                'deceased_user', 'relative_user', 'created_by', 'validated_by'
+            )
+            
+            # Admins können alle FamilyLinks sehen
+            if user.is_staff:
+                return queryset
+            
+            # Normale Benutzer können nur ihre eigenen FamilyLinks sehen
+            return queryset.filter(
+                Q(relative_user=user) | Q(deceased_user=user)
+            )
     
     def get_serializer_class(self):
         """Verwende verschiedene Serializer für verschiedene Aktionen"""

@@ -15,15 +15,20 @@ const VorsorgeDashboard = () => {
   const loadVorsorge = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await get('/api/bestattungsvorsorge/my_vorsorge/');
-      if (response.data) {
-        setVorsorge(response.data);
-        setHasVorsorge(true);
-      } else {
+      try {
+        const response = await get('/api/bestattungsvorsorge/my_vorsorge/');
+        if (response?.data) {
+          setVorsorge(response.data);
+          setHasVorsorge(true);
+        } else {
+          setHasVorsorge(false);
+        }
+      } catch (apiError) {
+        console.log('API nicht verfügbar oder keine Vorsorge vorhanden:', apiError);
         setHasVorsorge(false);
       }
     } catch (error) {
-      console.log('Keine Vorsorge vorhanden:', error);
+      console.log('Fehler beim Laden der Vorsorge:', error);
       setHasVorsorge(false);
     } finally {
       setLoading(false);

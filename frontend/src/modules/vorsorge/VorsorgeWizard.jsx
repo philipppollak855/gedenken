@@ -48,35 +48,83 @@ const VorsorgeWizard = ({ onComplete, onCancel }) => {
   const loadCategories = useCallback(async () => {
     try {
       setLoading(true);
-      const [
-        bestattungsarten,
-        verabschiedungsarten,
-        musikKategorien,
-        vereinsKategorien,
-        grabarten,
-        dokumentKategorien,
-        digitalerNachlassKategorien
-      ] = await Promise.all([
-        get('/api/bestattungsarten/'),
-        get('/api/verabschiedungsarten/'),
-        get('/api/musik-kategorien/'),
-        get('/api/vereins-kategorien/'),
-        get('/api/grabarten/'),
-        get('/api/dokument-kategorien/'),
-        get('/api/digitaler-nachlass-kategorien/')
-      ]);
+      
+      // Fallback-Daten falls API nicht verfügbar
+      const fallbackCategories = {
+        bestattungsarten: [
+          { id: 1, name: 'Erdbestattung', description: 'Traditionelle Erdbestattung', is_active: true },
+          { id: 2, name: 'Feuerbestattung', description: 'Einäscherung mit Urne', is_active: true },
+          { id: 3, name: 'Seebestattung', description: 'Urnenbeisetzung im Meer', is_active: true }
+        ],
+        verabschiedungsarten: [
+          { id: 1, name: 'Trauerfeier', description: 'Klassische Trauerfeier', is_religious: false, is_active: true },
+          { id: 2, name: 'Gottesdienst', description: 'Religiöse Trauerfeier', is_religious: true, is_active: true }
+        ],
+        musikKategorien: [
+          { id: 1, name: 'Klassische Musik', description: 'Traditionelle Trauermusik', is_active: true },
+          { id: 2, name: 'Moderne Musik', description: 'Zeitgenössische Musik', is_active: true }
+        ],
+        vereinsKategorien: [
+          { id: 1, name: 'Vereinsmitgliedschaft', description: 'Mitgliedschaft in Vereinen', is_active: true }
+        ],
+        grabarten: [
+          { id: 1, name: 'Einzelgrab', description: 'Grab für eine Person', is_active: true },
+          { id: 2, name: 'Familiengrab', description: 'Grab für mehrere Personen', is_active: true }
+        ],
+        dokumentKategorien: [
+          { id: 1, name: 'Geburtsurkunde', description: 'Geburtsurkunde', is_required: true, is_active: true },
+          { id: 2, name: 'Sterbeurkunde', description: 'Sterbeurkunde', is_required: true, is_active: true }
+        ],
+        digitalerNachlassKategorien: [
+          { id: 1, name: 'Soziale Medien', description: 'Facebook, Instagram, etc.', is_active: true },
+          { id: 2, name: 'E-Mail Konten', description: 'E-Mail-Adressen', is_active: true }
+        ]
+      };
 
-      setCategories({
-        bestattungsarten: bestattungsarten.data || [],
-        verabschiedungsarten: verabschiedungsarten.data || [],
-        musikKategorien: musikKategorien.data || [],
-        vereinsKategorien: vereinsKategorien.data || [],
-        grabarten: grabarten.data || [],
-        dokumentKategorien: dokumentKategorien.data || [],
-        digitalerNachlassKategorien: digitalerNachlassKategorien.data || []
-      });
+      try {
+        const [
+          bestattungsarten,
+          verabschiedungsarten,
+          musikKategorien,
+          vereinsKategorien,
+          grabarten,
+          dokumentKategorien,
+          digitalerNachlassKategorien
+        ] = await Promise.all([
+          get('/api/bestattungsarten/').catch(() => ({ data: fallbackCategories.bestattungsarten })),
+          get('/api/verabschiedungsarten/').catch(() => ({ data: fallbackCategories.verabschiedungsarten })),
+          get('/api/musik-kategorien/').catch(() => ({ data: fallbackCategories.musikKategorien })),
+          get('/api/vereins-kategorien/').catch(() => ({ data: fallbackCategories.vereinsKategorien })),
+          get('/api/grabarten/').catch(() => ({ data: fallbackCategories.grabarten })),
+          get('/api/dokument-kategorien/').catch(() => ({ data: fallbackCategories.dokumentKategorien })),
+          get('/api/digitaler-nachlass-kategorien/').catch(() => ({ data: fallbackCategories.digitalerNachlassKategorien }))
+        ]);
+
+        setCategories({
+          bestattungsarten: bestattungsarten?.data || fallbackCategories.bestattungsarten,
+          verabschiedungsarten: verabschiedungsarten?.data || fallbackCategories.verabschiedungsarten,
+          musikKategorien: musikKategorien?.data || fallbackCategories.musikKategorien,
+          vereinsKategorien: vereinsKategorien?.data || fallbackCategories.vereinsKategorien,
+          grabarten: grabarten?.data || fallbackCategories.grabarten,
+          dokumentKategorien: dokumentKategorien?.data || fallbackCategories.dokumentKategorien,
+          digitalerNachlassKategorien: digitalerNachlassKategorien?.data || fallbackCategories.digitalerNachlassKategorien
+        });
+      } catch (apiError) {
+        console.warn('API nicht verfügbar, verwende Fallback-Daten:', apiError);
+        setCategories(fallbackCategories);
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Kategorien:', error);
+      // Fallback-Daten auch bei Fehlern setzen
+      setCategories({
+        bestattungsarten: [],
+        verabschiedungsarten: [],
+        musikKategorien: [],
+        vereinsKategorien: [],
+        grabarten: [],
+        dokumentKategorien: [],
+        digitalerNachlassKategorien: []
+      });
     } finally {
       setLoading(false);
     }

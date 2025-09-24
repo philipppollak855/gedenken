@@ -2,53 +2,51 @@ import React, { useState } from 'react';
 import './WizardStep.css';
 
 const DokumenteStep = ({ formData, updateFormData, categories, onNext, onPrevious, onCancel }) => {
-  const [uploading, setUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [dokumente, setDokumente] = useState(formData.dokumente || []);
+  const [uploadedFiles, setUploadedFiles] = useState({});
 
-  const handleFileUpload = async (kategorie, file) => {
-    setUploading(true);
-    try {
-      // Hier würde der tatsächliche Upload stattfinden
-      // Für jetzt simulieren wir den Upload
-      const newDocument = {
-        id: Date.now(),
-        kategorie: kategorie,
-        titel: file.name,
-        datei: file,
-        is_uploaded: true
-      };
-      
-      setUploadedFiles(prev => [...prev, newDocument]);
-      updateFormData({ 
-        dokumente: [...(formData.dokumente || []), newDocument] 
-      });
-    } catch (error) {
-      console.error('Upload-Fehler:', error);
-      alert('Fehler beim Hochladen der Datei');
-    } finally {
-      setUploading(false);
-    }
+  const addDokument = () => {
+    const newDokument = {
+      id: Date.now(),
+      kategorie: '',
+      titel: '',
+      beschreibung: '',
+      is_uploaded: false,
+      datei: null
+    };
+    const updated = [...dokumente, newDokument];
+    setDokumente(updated);
+    updateFormData({ dokumente: updated });
   };
 
-  const handleFileChange = (kategorie, event) => {
-    const file = event.target.files[0];
-    if (file) {
-      handleFileUpload(kategorie, file);
-    }
+  const removeDokument = (id) => {
+    const updated = dokumente.filter(dok => dok.id !== id);
+    setDokumente(updated);
+    updateFormData({ dokumente: updated });
   };
 
-  const removeDocument = (documentId) => {
-    setUploadedFiles(prev => prev.filter(doc => doc.id !== documentId));
-    updateFormData({ 
-      dokumente: formData.dokumente.filter(doc => doc.id !== documentId) 
-    });
+  const updateDokument = (id, field, value) => {
+    const updated = dokumente.map(dok => 
+      dok.id === id ? { ...dok, [field]: value } : dok
+    );
+    setDokumente(updated);
+    updateFormData({ dokumente: updated });
   };
 
-  const getRequiredDocuments = () => {
+  const handleFileUpload = (dokumentId, file) => {
+    setUploadedFiles(prev => ({
+      ...prev,
+      [dokumentId]: file
+    }));
+    updateDokument(dokumentId, 'is_uploaded', true);
+    updateDokument(dokumentId, 'datei', file.name);
+  };
+
+  const getRequiredDokumente = () => {
     return categories.dokumentKategorien.filter(kat => kat.is_required);
   };
 
-  const getOptionalDocuments = () => {
+  const getOptionalDokumente = () => {
     return categories.dokumentKategorien.filter(kat => !kat.is_required);
   };
 
@@ -56,160 +54,270 @@ const DokumenteStep = ({ formData, updateFormData, categories, onNext, onPreviou
     <div className="wizard-step-content">
       <div className="step-header">
         <div className="step-icon">
-          <i className="fas fa-file"></i>
+          <i className="fas fa-file-alt"></i>
         </div>
-        <h2>Dokumente hochladen</h2>
+        <h2>📄 Wichtige Dokumente</h2>
         <p className="step-description">
-          Laden Sie wichtige Dokumente für Ihre Bestattungsvorsorge hoch.
+          Dokumente sind essentiell für eine reibungslose Abwicklung. 
+          Laden Sie alle wichtigen Unterlagen hoch und organisieren Sie sie systematisch.
         </p>
       </div>
 
       <div className="step-content">
-        {/* Erforderliche Dokumente */}
-        {getRequiredDocuments().length > 0 && (
-          <div className="form-section">
-            <label className="form-label">
-              <i className="fas fa-exclamation-triangle"></i>
-              Erforderliche Dokumente
-            </label>
-            <div className="documents-grid">
-              {getRequiredDocuments().map((kategorie) => (
-                <div key={kategorie.id} className="document-card required">
-                  <div className="document-header">
-                    <div className="document-icon">
-                      <i className={kategorie.icon}></i>
-                    </div>
-                    <div className="document-info">
-                      <h4>{kategorie.name}</h4>
-                      {kategorie.description && (
-                        <p className="document-description">{kategorie.description}</p>
-                      )}
-                    </div>
-                    <span className="required-badge">Erforderlich</span>
-                  </div>
-                  <div className="document-upload">
-                    <input
-                      type="file"
-                      id={`file-${kategorie.id}`}
-                      className="file-input"
-                      onChange={(e) => handleFileChange(kategorie, e)}
-                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                    />
-                    <label htmlFor={`file-${kategorie.id}`} className="upload-button">
-                      <i className="fas fa-upload"></i>
-                      Datei auswählen
-                    </label>
-                  </div>
-                </div>
-              ))}
+        <div className="info-box">
+          <div className="info-content">
+            <div className="info-title">Dokumente sicher verwahren</div>
+            <div className="info-text">
+              Alle wichtigen Dokumente sollten an einem sicheren Ort aufbewahrt werden. 
+              Laden Sie Kopien hoch und teilen Sie den Standort mit vertrauten Personen.
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Optionale Dokumente */}
-        {getOptionalDocuments().length > 0 && (
-          <div className="form-section">
-            <label className="form-label">
-              <i className="fas fa-plus-circle"></i>
-              Optionale Dokumente
-            </label>
-            <div className="documents-grid">
-              {getOptionalDocuments().map((kategorie) => (
-                <div key={kategorie.id} className="document-card optional">
-                  <div className="document-header">
-                    <div className="document-icon">
-                      <i className={kategorie.icon}></i>
-                    </div>
-                    <div className="document-info">
-                      <h4>{kategorie.name}</h4>
-                      {kategorie.description && (
-                        <p className="document-description">{kategorie.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="document-upload">
-                    <input
-                      type="file"
-                      id={`file-${kategorie.id}`}
-                      className="file-input"
-                      onChange={(e) => handleFileChange(kategorie, e)}
-                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                    />
-                    <label htmlFor={`file-${kategorie.id}`} className="upload-button">
-                      <i className="fas fa-upload"></i>
-                      Datei auswählen
-                    </label>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="form-section">
+          <div className="section-title">
+            <span className="section-icon">📋</span>
+            Erforderliche Dokumente
           </div>
-        )}
-
-        {/* Hochgeladene Dokumente */}
-        {uploadedFiles.length > 0 && (
-          <div className="form-section">
-            <label className="form-label">
-              <i className="fas fa-check-circle"></i>
-              Hochgeladene Dokumente
-            </label>
-            <div className="uploaded-documents">
-              {uploadedFiles.map((doc) => (
-                <div key={doc.id} className="uploaded-document">
-                  <div className="document-info">
-                    <i className="fas fa-file"></i>
-                    <span className="document-name">{doc.titel}</span>
-                    <span className="document-category">{doc.kategorie.name}</span>
+          <p style={{ color: '#6c757d', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Diese Dokumente sind für die Bestattung zwingend erforderlich:
+          </p>
+          
+          <div className="required-docs-grid">
+            {getRequiredDokumente().map((kategorie) => (
+              <div key={kategorie.id} className="required-doc-card">
+                <div className="doc-icon">
+                  <i className="fas fa-file-medical"></i>
+                </div>
+                <div className="doc-content">
+                  <h4>{kategorie.name}</h4>
+                  <p>{kategorie.description}</p>
+                  <div className="doc-status">
+                    <span className="status-required">Erforderlich</span>
                   </div>
-                  <div className="document-actions">
-                    <span className="status-badge success">
-                      <i className="fas fa-check"></i>
-                      Hochgeladen
-                    </span>
-                    <button 
-                      className="remove-button"
-                      onClick={() => removeDocument(doc.id)}
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="help-section">
-          <div className="help-card">
-            <i className="fas fa-lightbulb"></i>
-            <div className="help-content">
-              <h4>Häufige Dokumente für die Bestattungsvorsorge</h4>
-              <div className="help-grid">
-                <div className="help-item">
-                  <strong>Personaldokumente:</strong>
-                  <ul>
-                    <li>Personalausweis oder Reisepass</li>
-                    <li>Geburtsurkunde</li>
-                    <li>Heiratsurkunde</li>
-                  </ul>
-                </div>
-                <div className="help-item">
-                  <strong>Bestattungsdokumente:</strong>
-                  <ul>
-                    <li>Bestattungsvertrag</li>
-                    <li>Grabvertrag</li>
-                    <li>Sterbeurkunde (nach Eintritt)</li>
-                  </ul>
-                </div>
-                <div className="help-item">
-                  <strong>Versicherungsdokumente:</strong>
-                  <ul>
-                    <li>Sterbegeldversicherung</li>
-                    <li>Lebensversicherung</li>
-                    <li>Bestattungsversicherung</li>
-                  </ul>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-section">
+          <div className="section-title">
+            <span className="section-icon">📁</span>
+            Optionale Dokumente
+          </div>
+          <p style={{ color: '#6c757d', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Diese Dokumente können hilfreich sein, sind aber nicht zwingend erforderlich:
+          </p>
+          
+          <div className="optional-docs-grid">
+            {getOptionalDokumente().map((kategorie) => (
+              <div key={kategorie.id} className="optional-doc-card">
+                <div className="doc-icon">
+                  <i className="fas fa-file"></i>
+                </div>
+                <div className="doc-content">
+                  <h4>{kategorie.name}</h4>
+                  <p>{kategorie.description}</p>
+                  <div className="doc-status">
+                    <span className="status-optional">Optional</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-section">
+          <div className="section-title">
+            <span className="section-icon">📤</span>
+            Dokumente hochladen
+          </div>
+          <p style={{ color: '#6c757d', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Laden Sie Ihre Dokumente hoch und organisieren Sie sie:
+          </p>
+          
+          {dokumente.map((dokument, index) => (
+            <div key={dokument.id} className="dokument-item">
+              <div className="dokument-header">
+                <div className="dokument-number">{index + 1}</div>
+                <button
+                  type="button"
+                  onClick={() => removeDokument(dokument.id)}
+                  className="remove-dokument-btn"
+                  title="Dokument entfernen"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="dokument-fields">
+                <div className="form-group">
+                  <label className="form-label required">Dokument-Kategorie</label>
+                  <select
+                    value={dokument.kategorie}
+                    onChange={(e) => updateDokument(dokument.id, 'kategorie', e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="">Bitte wählen...</option>
+                    {categories.dokumentKategorien.map(kat => (
+                      <option key={kat.id} value={kat.id}>
+                        {kat.name} {kat.is_required ? '(Erforderlich)' : '(Optional)'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label required">Titel des Dokuments</label>
+                  <input
+                    type="text"
+                    value={dokument.titel}
+                    onChange={(e) => updateDokument(dokument.id, 'titel', e.target.value)}
+                    placeholder="z.B. Geburtsurkunde, Reisepass, Versicherungspolice..."
+                    className="form-input"
+                  />
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">Beschreibung</label>
+                <textarea
+                  value={dokument.beschreibung}
+                  onChange={(e) => updateDokument(dokument.id, 'beschreibung', e.target.value)}
+                  placeholder="z.B. Ausgestellt am..., Gültig bis..., Besondere Hinweise..."
+                  className="form-textarea"
+                  rows={2}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">Datei hochladen</label>
+                <div className="file-upload-area">
+                  <input
+                    type="file"
+                    id={`file-${dokument.id}`}
+                    onChange={(e) => handleFileUpload(dokument.id, e.target.files[0])}
+                    className="file-input"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  />
+                  <label htmlFor={`file-${dokument.id}`} className="file-upload-label">
+                    <i className="fas fa-cloud-upload-alt"></i>
+                    {uploadedFiles[dokument.id] ? uploadedFiles[dokument.id].name : 'Datei auswählen'}
+                  </label>
+                  {uploadedFiles[dokument.id] && (
+                    <div className="file-info">
+                      <i className="fas fa-check-circle"></i>
+                      <span>Datei hochgeladen</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {dokumente.length < 20 && (
+            <button
+              type="button"
+              onClick={addDokument}
+              className="add-dokument-btn"
+            >
+              <span>+</span> Weitere Dokumente hinzufügen
+            </button>
+          )}
+        </div>
+
+        <div className="form-section">
+          <div className="section-title">
+            <span className="section-icon">🔒</span>
+            Dokumentensicherheit
+          </div>
+          <div className="security-tips">
+            <div className="tip-item">
+              <i className="fas fa-shield-alt"></i>
+              <div>
+                <h4>Sichere Aufbewahrung</h4>
+                <p>Bewahren Sie Originale an einem sicheren Ort auf (Tresor, Bankschließfach)</p>
+              </div>
+            </div>
+            
+            <div className="tip-item">
+              <i className="fas fa-copy"></i>
+              <div>
+                <h4>Kopien erstellen</h4>
+                <p>Erstellen Sie Kopien aller wichtigen Dokumente</p>
+              </div>
+            </div>
+            
+            <div className="tip-item">
+              <i className="fas fa-users"></i>
+              <div>
+                <h4>Vertrauenspersonen informieren</h4>
+                <p>Teilen Sie den Standort der Dokumente mit vertrauten Personen</p>
+              </div>
+            </div>
+            
+            <div className="tip-item">
+              <i className="fas fa-calendar-alt"></i>
+              <div>
+                <h4>Gültigkeit prüfen</h4>
+                <p>Überprüfen Sie regelmäßig die Gültigkeit Ihrer Dokumente</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <div className="section-title">
+            <span className="section-icon">📋</span>
+            Checkliste Dokumente
+          </div>
+          <div className="checklist-grid">
+            <div className="checklist-item">
+              <h4>Persönliche Dokumente</h4>
+              <ul>
+                <li>✓ Geburtsurkunde</li>
+                <li>✓ Reisepass/Personalausweis</li>
+                <li>✓ Heiratsurkunde</li>
+                <li>✓ Scheidungsurkunde</li>
+                <li>✓ Sterbeurkunde (falls vorhanden)</li>
+              </ul>
+            </div>
+            
+            <div className="checklist-item">
+              <h4>Versicherungen</h4>
+              <ul>
+                <li>✓ Krankenversicherung</li>
+                <li>✓ Lebensversicherung</li>
+                <li>✓ Unfallversicherung</li>
+                <li>✓ Haftpflichtversicherung</li>
+                <li>✓ Bestattungsversicherung</li>
+              </ul>
+            </div>
+            
+            <div className="checklist-item">
+              <h4>Finanzielle Dokumente</h4>
+              <ul>
+                <li>✓ Bankunterlagen</li>
+                <li>✓ Sparbücher</li>
+                <li>✓ Wertpapiere</li>
+                <li>✓ Rentenbescheide</li>
+                <li>✓ Steuerunterlagen</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="warning-box">
+          <div className="warning-content">
+            <div className="warning-title">Wichtige Hinweise</div>
+            <div className="warning-text">
+              <ul>
+                <li><strong>Originale:</strong> Bewahren Sie Originale sicher auf, Kopien reichen für die Vorsorge.</li>
+                <li><strong>Gültigkeit:</strong> Überprüfen Sie regelmäßig die Gültigkeit Ihrer Dokumente.</li>
+                <li><strong>Zugang:</strong> Stellen Sie sicher, dass vertraute Personen Zugang zu den Dokumenten haben.</li>
+                <li><strong>Backup:</strong> Erstellen Sie digitale Kopien als Backup.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -227,19 +335,9 @@ const DokumenteStep = ({ formData, updateFormData, categories, onNext, onPreviou
         <button 
           className="btn btn-primary"
           onClick={onNext}
-          disabled={uploading}
         >
-          {uploading ? (
-            <>
-              <i className="fas fa-spinner fa-spin"></i>
-              Lade hoch...
-            </>
-          ) : (
-            <>
-              Weiter
-              <i className="fas fa-arrow-right"></i>
-            </>
-          )}
+          Weiter
+          <i className="fas fa-arrow-right"></i>
         </button>
       </div>
     </div>

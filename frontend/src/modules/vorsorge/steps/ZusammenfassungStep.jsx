@@ -1,198 +1,257 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './WizardStep.css';
 
-const ZusammenfassungStep = ({ formData, updateFormData, categories, onNext, onPrevious, onCancel, onSave }) => {
-  const getCompletionPercentage = () => {
-    const fields = [
-      formData.bestattungsart,
-      formData.verabschiedungsart,
-      formData.musik_wünsche,
-      formData.spezielle_wünsche,
-      formData.grabart,
-      formData.friedhof
-    ];
-    const completed = fields.filter(field => field).length;
-    return Math.round((completed / fields.length) * 100);
+const ZusammenfassungStep = ({ formData, updateFormData, categories, onNext, onPrevious, onCancel, onComplete }) => {
+  const [isCompleting, setIsCompleting] = useState(false);
+
+  const handleComplete = async () => {
+    setIsCompleting(true);
+    try {
+      await onComplete(formData);
+    } catch (error) {
+      console.error('Fehler beim Speichern:', error);
+    } finally {
+      setIsCompleting(false);
+    }
   };
 
-  const getCompletionColor = (percentage) => {
-    if (percentage >= 80) return 'success';
-    if (percentage >= 50) return 'warning';
-    return 'danger';
+  const getBestattungsartName = () => {
+    const art = categories.bestattungsarten.find(a => a.id === formData.bestattungsart);
+    return art ? art.name : 'Nicht ausgewählt';
   };
 
-  const getCompletionText = (percentage) => {
-    if (percentage >= 80) return 'Fast abgeschlossen';
-    if (percentage >= 50) return 'Gut vorbereitet';
-    return 'Grundlagen gelegt';
+  const getVerabschiedungsartName = () => {
+    const art = categories.verabschiedungsarten.find(a => a.id === formData.verabschiedungsart);
+    return art ? art.name : 'Nicht ausgewählt';
   };
+
+  const getGrabartName = () => {
+    const art = categories.grabarten.find(a => a.id === formData.grabart);
+    return art ? art.name : 'Nicht ausgewählt';
+  };
+
+  const getMusikKategorienNames = () => {
+    const selectedKategorien = categories.musikKategorien.filter(k => 
+      formData.musik_kategorien?.some(selected => selected.id === k.id)
+    );
+    return selectedKategorien.map(k => k.name).join(', ') || 'Keine ausgewählt';
+  };
+
+  const getVereinsKategorienNames = () => {
+    const selectedKategorien = categories.vereinsKategorien.filter(k => 
+      formData.vereins_kategorien?.some(selected => selected.id === k.id)
+    );
+    return selectedKategorien.map(k => k.name).join(', ') || 'Keine ausgewählt';
+  };
+
+  const getDokumentKategorienNames = () => {
+    const selectedKategorien = categories.dokumentKategorien.filter(k => 
+      formData.dokument_kategorien?.some(selected => selected.id === k.id)
+    );
+    return selectedKategorien.map(k => k.name).join(', ') || 'Keine ausgewählt';
+  };
+
+  const getDigitalerNachlassKategorienNames = () => {
+    const selectedKategorien = categories.digitalerNachlassKategorien.filter(k => 
+      formData.digitaler_nachlass_kategorien?.some(selected => selected.id === k.id)
+    );
+    return selectedKategorien.map(k => k.name).join(', ') || 'Keine ausgewählt';
+  };
+
+  const calculateCompletionPercentage = () => {
+    let completed = 0;
+    let total = 0;
+
+    // Bestattungsart
+    total++;
+    if (formData.bestattungsart) completed++;
+
+    // Verabschiedungsart
+    total++;
+    if (formData.verabschiedungsart) completed++;
+
+    // Grabart
+    total++;
+    if (formData.grabart) completed++;
+
+    // Musik
+    total++;
+    if (formData.musik_wünsche || formData.musik_stücke?.length > 0) completed++;
+
+    // Vereine
+    total++;
+    if (formData.vereins_wünsche) completed++;
+
+    // Spezielle Wünsche
+    total++;
+    if (formData.spezielle_wünsche) completed++;
+
+    // Grab
+    total++;
+    if (formData.friedhof) completed++;
+
+    // Dokumente
+    total++;
+    if (formData.dokumente?.length > 0) completed++;
+
+    // Digitaler Nachlass
+    total++;
+    if (formData.digitaler_nachlass?.length > 0) completed++;
+
+    return Math.round((completed / total) * 100);
+  };
+
+  const completionPercentage = calculateCompletionPercentage();
 
   return (
     <div className="wizard-step-content">
       <div className="step-header">
         <div className="step-icon">
-          <i className="fas fa-check"></i>
+          <i className="fas fa-check-circle"></i>
         </div>
-        <h2>Zusammenfassung</h2>
+        <h2>✅ Zusammenfassung Ihrer Vorsorge</h2>
         <p className="step-description">
-          Überprüfen Sie Ihre Angaben und speichern Sie Ihre Bestattungsvorsorge.
+          Überprüfen Sie alle Ihre Angaben und schließen Sie Ihre Bestattungsvorsorge ab.
         </p>
       </div>
 
       <div className="step-content">
-        {/* Fortschritt */}
-        <div className="summary-section">
-          <div className="summary-header">
-            <h3>Fortschritt</h3>
-            <span className={`progress-badge ${getCompletionColor(getCompletionPercentage())}`}>
-              {getCompletionPercentage()}%
-            </span>
+        <div className="completion-status">
+          <div className="completion-circle">
+            <div className="completion-percentage">{completionPercentage}%</div>
+            <div className="completion-label">Vollständig</div>
           </div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill"
-              style={{ width: `${getCompletionPercentage()}%` }}
-            ></div>
+          <div className="completion-text">
+            <h3>Ihre Vorsorge ist {completionPercentage}% vollständig</h3>
+            <p>
+              {completionPercentage >= 80 
+                ? "Ausgezeichnet! Ihre Vorsorge ist sehr umfassend." 
+                : completionPercentage >= 60 
+                ? "Gut! Sie können noch weitere Details ergänzen." 
+                : "Sie können noch weitere Bereiche ausfüllen."}
+            </p>
           </div>
-          <p className="progress-text">
-            {getCompletionText(getCompletionPercentage())}
-          </p>
         </div>
 
-        {/* Bestattungsart */}
-        {formData.bestattungsart && (
+        <div className="summary-sections">
           <div className="summary-section">
-            <div className="summary-header">
-              <div className="summary-icon">
-                <i className="fas fa-cross"></i>
-              </div>
-              <h3>Bestattungsart</h3>
+            <div className="summary-title">
+              <i className="fas fa-cross"></i>
+              Bestattungsart
             </div>
             <div className="summary-content">
               <div className="summary-item">
-                <span className="summary-label">Art:</span>
-                <span className="summary-value">{formData.bestattungsart.name}</span>
+                <span className="summary-label">Gewählte Art:</span>
+                <span className="summary-value">{getBestattungsartName()}</span>
               </div>
               {formData.bestattungsart_notizen && (
                 <div className="summary-item">
-                  <span className="summary-label">Notizen:</span>
+                  <span className="summary-label">Besondere Wünsche:</span>
                   <span className="summary-value">{formData.bestattungsart_notizen}</span>
                 </div>
               )}
             </div>
           </div>
-        )}
 
-        {/* Verabschiedung */}
-        {formData.verabschiedungsart && (
           <div className="summary-section">
-            <div className="summary-header">
-              <div className="summary-icon">
-                <i className="fas fa-church"></i>
-              </div>
-              <h3>Verabschiedung</h3>
+            <div className="summary-title">
+              <i className="fas fa-church"></i>
+              Verabschiedung
             </div>
             <div className="summary-content">
               <div className="summary-item">
-                <span className="summary-label">Art:</span>
-                <span className="summary-value">{formData.verabschiedungsart.name}</span>
+                <span className="summary-label">Art der Feier:</span>
+                <span className="summary-value">{getVerabschiedungsartName()}</span>
               </div>
-              {formData.verabschiedungsart_notizen && (
+              {formData.sarg_urne_wünsche && (
                 <div className="summary-item">
-                  <span className="summary-label">Notizen:</span>
-                  <span className="summary-value">{formData.verabschiedungsart_notizen}</span>
+                  <span className="summary-label">Sarg/Urne:</span>
+                  <span className="summary-value">{formData.sarg_urne_wünsche}</span>
+                </div>
+              )}
+              {formData.kleidung && (
+                <div className="summary-item">
+                  <span className="summary-label">Kleidung:</span>
+                  <span className="summary-value">{formData.kleidung}</span>
+                </div>
+              )}
+              {formData.blumenschmuck && (
+                <div className="summary-item">
+                  <span className="summary-label">Blumenschmuck:</span>
+                  <span className="summary-value">{formData.blumenschmuck}</span>
                 </div>
               )}
             </div>
           </div>
-        )}
 
-        {/* Musik */}
-        {formData.musik_wünsche && (
           <div className="summary-section">
-            <div className="summary-header">
-              <div className="summary-icon">
-                <i className="fas fa-music"></i>
-              </div>
-              <h3>Musik</h3>
+            <div className="summary-title">
+              <i className="fas fa-music"></i>
+              Musik
             </div>
             <div className="summary-content">
               <div className="summary-item">
-                <span className="summary-label">Wünsche:</span>
-                <span className="summary-value">{formData.musik_wünsche}</span>
+                <span className="summary-label">Kategorien:</span>
+                <span className="summary-value">{getMusikKategorienNames()}</span>
               </div>
-              {formData.musik_kategorien && formData.musik_kategorien.length > 0 && (
+              {formData.musik_wünsche && (
                 <div className="summary-item">
-                  <span className="summary-label">Kategorien:</span>
-                  <div className="tags">
-                    {formData.musik_kategorien.map((kategorie, index) => (
-                      <span key={index} className="tag">{kategorie.name}</span>
-                    ))}
-                  </div>
+                  <span className="summary-label">Musikwünsche:</span>
+                  <span className="summary-value">{formData.musik_wünsche}</span>
+                </div>
+              )}
+              {formData.musik_stücke?.length > 0 && (
+                <div className="summary-item">
+                  <span className="summary-label">Musikstücke:</span>
+                  <span className="summary-value">{formData.musik_stücke.length} Lieder ausgewählt</span>
                 </div>
               )}
             </div>
           </div>
-        )}
 
-        {/* Vereine */}
-        {formData.vereins_wünsche && (
           <div className="summary-section">
-            <div className="summary-header">
-              <div className="summary-icon">
-                <i className="fas fa-users"></i>
-              </div>
-              <h3>Vereine</h3>
+            <div className="summary-title">
+              <i className="fas fa-users"></i>
+              Vereine
             </div>
             <div className="summary-content">
               <div className="summary-item">
-                <span className="summary-label">Wünsche:</span>
-                <span className="summary-value">{formData.vereins_wünsche}</span>
+                <span className="summary-label">Kategorien:</span>
+                <span className="summary-value">{getVereinsKategorienNames()}</span>
               </div>
-              {formData.vereins_kategorien && formData.vereins_kategorien.length > 0 && (
+              {formData.vereins_wünsche && (
                 <div className="summary-item">
-                  <span className="summary-label">Kategorien:</span>
-                  <div className="tags">
-                    {formData.vereins_kategorien.map((kategorie, index) => (
-                      <span key={index} className="tag">{kategorie.name}</span>
-                    ))}
-                  </div>
+                  <span className="summary-label">Vereinswünsche:</span>
+                  <span className="summary-value">{formData.vereins_wünsche}</span>
                 </div>
               )}
             </div>
           </div>
-        )}
 
-        {/* Spezielle Wünsche */}
-        {formData.spezielle_wünsche && (
           <div className="summary-section">
-            <div className="summary-header">
-              <div className="summary-icon">
-                <i className="fas fa-star"></i>
-              </div>
-              <h3>Spezielle Wünsche</h3>
+            <div className="summary-title">
+              <i className="fas fa-star"></i>
+              Spezielle Wünsche
             </div>
             <div className="summary-content">
-              <div className="summary-item">
-                <span className="summary-value">{formData.spezielle_wünsche}</span>
-              </div>
+              {formData.spezielle_wünsche && (
+                <div className="summary-item">
+                  <span className="summary-label">Wünsche:</span>
+                  <span className="summary-value">{formData.spezielle_wünsche}</span>
+                </div>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Grab */}
-        {formData.grabart && (
           <div className="summary-section">
-            <div className="summary-header">
-              <div className="summary-icon">
-                <i className="fas fa-tombstone"></i>
-              </div>
-              <h3>Grab</h3>
+            <div className="summary-title">
+              <i className="fas fa-monument"></i>
+              Grab
             </div>
             <div className="summary-content">
               <div className="summary-item">
                 <span className="summary-label">Grabart:</span>
-                <span className="summary-value">{formData.grabart.name}</span>
+                <span className="summary-value">{getGrabartName()}</span>
               </div>
               {formData.friedhof && (
                 <div className="summary-item">
@@ -208,85 +267,83 @@ const ZusammenfassungStep = ({ formData, updateFormData, categories, onNext, onP
               )}
               {formData.grab_wünsche && (
                 <div className="summary-item">
-                  <span className="summary-label">Wünsche:</span>
+                  <span className="summary-label">Grabwünsche:</span>
                   <span className="summary-value">{formData.grab_wünsche}</span>
                 </div>
               )}
             </div>
           </div>
-        )}
 
-        {/* Dokumente */}
-        {formData.dokumente && formData.dokumente.length > 0 && (
           <div className="summary-section">
-            <div className="summary-header">
-              <div className="summary-icon">
-                <i className="fas fa-file"></i>
-              </div>
-              <h3>Dokumente</h3>
+            <div className="summary-title">
+              <i className="fas fa-file-alt"></i>
+              Dokumente
             </div>
             <div className="summary-content">
-              <div className="documents-list">
-                {formData.dokumente.map((dokument) => (
-                  <div key={dokument.id} className="document-item">
-                    <div className="document-info">
-                      <span className="document-title">{dokument.titel}</span>
-                      <span className="document-category">{dokument.kategorie.name}</span>
-                    </div>
-                    <div className="document-status">
-                      <span className="status-badge success">
-                        <i className="fas fa-check"></i>
-                        Hochgeladen
-                      </span>
-                    </div>
-                  </div>
-                ))}
+              <div className="summary-item">
+                <span className="summary-label">Anzahl Dokumente:</span>
+                <span className="summary-value">{formData.dokumente?.length || 0} Dokumente</span>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Digitaler Nachlass */}
-        {formData.digitaler_nachlass && formData.digitaler_nachlass.length > 0 && (
           <div className="summary-section">
-            <div className="summary-header">
-              <div className="summary-icon">
-                <i className="fas fa-laptop"></i>
-              </div>
-              <h3>Digitaler Nachlass</h3>
+            <div className="summary-title">
+              <i className="fas fa-laptop"></i>
+              Digitaler Nachlass
             </div>
             <div className="summary-content">
-              <div className="nachlass-list">
-                {formData.digitaler_nachlass.map((nachlass) => (
-                  <div key={nachlass.id} className="nachlass-item">
-                    <div className="nachlass-info">
-                      <span className="nachlass-platform">{nachlass.plattform}</span>
-                      <span className="nachlass-category">{nachlass.kategorie.name}</span>
-                      {nachlass.is_important && (
-                        <span className="status-badge important">
-                          <i className="fas fa-exclamation"></i>
-                          Wichtig
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="summary-item">
+                <span className="summary-label">Anzahl Konten:</span>
+                <span className="summary-value">{formData.digitaler_nachlass?.length || 0} Konten</span>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Speichern-Hinweis */}
-        <div className="save-notice">
-          <div className="notice-icon">
-            <i className="fas fa-info-circle"></i>
+        <div className="form-section">
+          <div className="section-title">
+            <span className="section-icon">📋</span>
+            Nächste Schritte
           </div>
-          <div className="notice-content">
-            <h4>Ihre Vorsorge wird gespeichert</h4>
-            <p>
-              Alle Ihre Angaben werden sicher gespeichert und können jederzeit bearbeitet werden. 
-              Ihre Angehörigen können auf diese Informationen zugreifen, wenn Sie es wünschen.
-            </p>
+          <div className="next-steps">
+            <div className="step-item">
+              <div className="step-number">1</div>
+              <div className="step-content">
+                <h4>Vorsorge speichern</h4>
+                <p>Ihre Angaben werden sicher gespeichert und können jederzeit bearbeitet werden.</p>
+              </div>
+            </div>
+            
+            <div className="step-item">
+              <div className="step-number">2</div>
+              <div className="step-content">
+                <h4>Vertrauenspersonen informieren</h4>
+                <p>Teilen Sie den Standort Ihrer Vorsorge mit vertrauten Personen.</p>
+              </div>
+            </div>
+            
+            <div className="step-item">
+              <div className="step-number">3</div>
+              <div className="step-content">
+                <h4>Regelmäßig aktualisieren</h4>
+                <p>Überprüfen und aktualisieren Sie Ihre Vorsorge regelmäßig.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="warning-box">
+          <div className="warning-content">
+            <div className="warning-title">Wichtige Hinweise</div>
+            <div className="warning-text">
+              <ul>
+                <li><strong>Vertraulichkeit:</strong> Ihre Vorsorge wird vertraulich behandelt und nur bei Bedarf eingesehen.</li>
+                <li><strong>Aktualität:</strong> Überprüfen Sie regelmäßig Ihre Angaben und passen Sie sie bei Bedarf an.</li>
+                <li><strong>Zugang:</strong> Stellen Sie sicher, dass vertraute Personen Zugang zu Ihrer Vorsorge haben.</li>
+                <li><strong>Rechtliche Gültigkeit:</strong> Diese Vorsorge ist rechtlich nicht bindend, aber eine wichtige Orientierung.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -301,11 +358,21 @@ const ZusammenfassungStep = ({ formData, updateFormData, categories, onNext, onP
         </button>
         
         <button 
-          className="btn btn-success"
-          onClick={onSave}
+          className="btn btn-primary"
+          onClick={handleComplete}
+          disabled={isCompleting}
         >
-          <i className="fas fa-save"></i>
-          Vorsorge speichern
+          {isCompleting ? (
+            <>
+              <i className="fas fa-spinner fa-spin"></i>
+              Speichern...
+            </>
+          ) : (
+            <>
+              <i className="fas fa-check"></i>
+              Vorsorge abschließen
+            </>
+          )}
         </button>
       </div>
     </div>

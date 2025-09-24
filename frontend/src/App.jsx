@@ -26,6 +26,9 @@ import GedenkenDashboard from './modules/user/GedenkenDashboard'; // NEUES Layou
 import VorsorgeDashboard from './modules/user/VorsorgeDashboard'; // NEUES Layout für Vorsorge
 import UnterlagenDashboard from './modules/user/UnterlagenDashboard'; // NEUES Layout für Unterlagen
 
+// Bestattungsvorsorge Module
+import BestattungsvorsorgeDashboard from './modules/vorsorge/VorsorgeDashboard';
+
 // Unterseiten, die jetzt in den Dashboards gerendert werden
 import MeineVorsorge from './modules/user/MeineVorsorge';
 import MeineGedenkseite from './modules/user/MeineGedenkseite';
@@ -87,7 +90,7 @@ function App() {
               {/* Vorsorge Portal */}
               <Route path="vorsorge" element={<VorsorgeDashboard />}>
                   <Route index element={<Navigate to="uebersicht" replace />} />
-                  <Route path="uebersicht" element={<MeineVorsorge />} />
+                  <Route path="uebersicht" element={<BestattungsvorsorgeDashboard />} />
                   <Route path="meine-gedenkseite" element={<MeineGedenkseite />} />
                   <Route path="meine-gedenkseite-erstellen" element={<MeineGedenkseiteErstellen />} />
                   <Route path="medien" element={<MeineMedien />} />

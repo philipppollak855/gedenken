@@ -481,19 +481,23 @@ class FamilyLinkSerializer(serializers.ModelSerializer):
     relative_user_name = serializers.SerializerMethodField()
     role_display = serializers.CharField(source='get_role_display', read_only=True)
     permission_level_display = serializers.CharField(source='get_permission_level_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
     created_by_name = serializers.SerializerMethodField()
     validated_by_name = serializers.SerializerMethodField()
+    can_access_memorial = serializers.SerializerMethodField()
+    can_access_precaution = serializers.SerializerMethodField()
     
     class Meta:
         model = FamilyLink
         fields = [
             'id', 'deceased_user', 'deceased_user_name', 'relative_user', 'relative_user_name',
             'role', 'role_display', 'permission_level', 'permission_level_display',
-            'relationship', 'is_active', 'is_validated_by_admin', 'validated_at',
-            'validated_by', 'validated_by_name', 'created_at', 'updated_at',
-            'created_by', 'created_by_name', 'notes'
+            'status', 'status_display', 'relationship', 'is_validated_by_admin', 
+            'validated_at', 'validated_by', 'validated_by_name', 'created_at', 'updated_at',
+            'created_by', 'created_by_name', 'notes', 'access_count', 'last_accessed',
+            'last_ip_address', 'can_access_memorial', 'can_access_precaution'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'validated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'validated_at', 'access_count', 'last_accessed', 'last_ip_address']
     
     def get_deceased_user_name(self, obj):
         return obj.deceased_user.get_full_name() if obj.deceased_user else ""
@@ -506,6 +510,12 @@ class FamilyLinkSerializer(serializers.ModelSerializer):
     
     def get_validated_by_name(self, obj):
         return obj.validated_by.get_full_name() if obj.validated_by else ""
+    
+    def get_can_access_memorial(self, obj):
+        return obj.can_access_memorial()
+    
+    def get_can_access_precaution(self, obj):
+        return obj.can_access_precaution_data()
 
 class MeinBereichDataSerializer(serializers.Serializer):
     own_page = ManagedGedenkseiteSerializer(read_only=True)

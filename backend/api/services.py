@@ -28,6 +28,65 @@ def get_family_links_for_deceased(deceased_user):
                     SELECT column_name FROM information_schema.columns 
                     WHERE table_name = 'api_familylink' AND table_schema = 'public'
                 """)
+
+def get_active_family_links_for_user(user, permission_levels=None):
+    """
+    Neue konsistente Hilfsfunktion: Aktive FamilyLinks für einen Benutzer
+    mit optionaler Filterung nach Berechtigungsstufen
+    """
+    queryset = FamilyLink.objects.filter(
+        relative_user=user,
+        status=FamilyLink.Status.ACTIVE,
+        is_validated_by_admin=True
+    )
+    
+    if permission_levels:
+        queryset = queryset.filter(permission_level__in=permission_levels)
+    
+    return queryset
+
+def can_user_access_memorial(user, deceased_user):
+    """
+    Prüft ob ein Benutzer auf eine Gedenkseite zugreifen kann
+    """
+    if user.is_staff:
+        return True
+    
+    if user == deceased_user:
+        return True
+    
+    return FamilyLink.objects.filter(
+        deceased_user=deceased_user,
+        relative_user=user,
+        status=FamilyLink.Status.ACTIVE,
+        permission_level__in=[
+            FamilyLink.PermissionLevel.EDIT_MEMORIAL,
+            FamilyLink.PermissionLevel.MANAGE_ALL,
+            FamilyLink.PermissionLevel.ADMIN_LEVEL
+        ],
+        is_validated_by_admin=True
+    ).exists()
+
+def can_user_access_precaution_data(user, deceased_user):
+    """
+    Prüft ob ein Benutzer auf Vorsorgedaten zugreifen kann
+    """
+    if user.is_staff:
+        return True
+    
+    if user == deceased_user:
+        return True
+    
+    return FamilyLink.objects.filter(
+        deceased_user=deceased_user,
+        relative_user=user,
+        status=FamilyLink.Status.ACTIVE,
+        permission_level__in=[
+            FamilyLink.PermissionLevel.MANAGE_ALL,
+            FamilyLink.PermissionLevel.ADMIN_LEVEL
+        ],
+        is_validated_by_admin=True
+    ).exists()
                 existing_columns = [row[0] for row in cursor.fetchall()]
                 
                 # Verwende passende SQL basierend auf vorhandenen Spalten

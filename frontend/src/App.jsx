@@ -36,6 +36,7 @@ import VerwalteteSeiten from './modules/user/VerwalteteSeiten';
 import MyContributions from './modules/user/MyContributions';
 import GespeicherteSeiten from './modules/user/GespeicherteSeiten';
 import AngehoerigeVerwalten from './modules/user/AngehoerigeVerwalten';
+import FamilyLinkStats from './modules/user/FamilyLinkStats';
 import KontoVerwalten from './modules/user/KontoVerwalten';
 
 // Unterlagen Module
@@ -79,6 +80,7 @@ function App() {
                   <Route path="uebersicht" element={<VerwalteteSeiten />} /> 
                   <Route path="gespeicherte-seiten" element={<GespeicherteSeiten />} />
                   <Route path="angehoerige-verwalten" element={<AngehoerigeVerwalten />} />
+                  <Route path="familylink-stats" element={<FamilyLinkStats />} />
                   <Route path="beitraege" element={<MyContributions />} />
               </Route>
 

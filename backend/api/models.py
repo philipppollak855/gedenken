@@ -640,8 +640,8 @@ class ReleaseRequest(models.Model):
 
 class FamilyLink(models.Model):
     """
-    Vereinfachtes FamilyLink-Model für Angehörigen-Verknüpfungen
-    Admin-basierte Verknüpfung ohne Einladungscodes
+    Konsistentes FamilyLink-Model für Angehörigen-Verknüpfungen
+    Vollständig überarbeitet für maximale Konsistenz und Funktionalität
     """
     
     class FamilyRole(models.TextChoices):
@@ -649,17 +649,31 @@ class FamilyLink(models.Model):
         MAIN_CONTACT = 'main_contact', 'Hauptansprechpartner'
         EXECUTOR = 'executor', 'Testamentsvollstrecker'
         GUARDIAN = 'guardian', 'Vormund/Betreuer'
+        FRIEND = 'friend', 'Freund/Bekannter'
+        LEGAL_REPRESENTATIVE = 'legal_representative', 'Rechtsvertreter'
     
     class PermissionLevel(models.TextChoices):
         VIEW_ONLY = 'view_only', 'Nur anzeigen'
         EDIT_MEMORIAL = 'edit_memorial', 'Gedenkseite bearbeiten'
         MANAGE_ALL = 'manage_all', 'Vollzugriff (Vorsorge + Gedenkseite)'
+        ADMIN_LEVEL = 'admin_level', 'Admin-Berechtigung'
+    
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Ausstehend'
+        ACTIVE = 'active', 'Aktiv'
+        SUSPENDED = 'suspended', 'Gesperrt'
+        REVOKED = 'revoked', 'Widerrufen'
     
     class Meta:
         verbose_name = "Angehörigen-Verknüpfung"
         verbose_name_plural = "Angehörigen-Verknüpfungen"
         unique_together = ('deceased_user', 'relative_user')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['deceased_user', 'status']),
+            models.Index(fields=['relative_user', 'status']),
+            models.Index(fields=['permission_level', 'status']),
+        ]
         
     # Grundlegende Verknüpfung
     deceased_user = models.ForeignKey(
@@ -667,23 +681,25 @@ class FamilyLink(models.Model):
         on_delete=models.CASCADE, 
         related_name='family_links_as_deceased', 
         verbose_name="Verstorbener",
-        limit_choices_to={'role': User.Role.VERSTORBENER}
+        limit_choices_to={'role': User.Role.VERSTORBENER},
+        help_text="Der verstorbene Benutzer"
     )
     relative_user = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
         related_name='family_links_as_relative', 
         verbose_name="Angehöriger",
-        limit_choices_to={'role__in': [User.Role.VORSORGENDER, User.Role.ANGEHOERIGER]}
+        limit_choices_to={'role__in': [User.Role.VORSORGENDER, User.Role.ANGEHOERIGER]},
+        help_text="Der Angehörige mit Zugriffsrechten"
     )
     
-    # Vereinfachte Rollen und Berechtigungen
+    # Rollen und Berechtigungen
     role = models.CharField(
         "Rolle", 
-        max_length=20, 
+        max_length=25, 
         choices=FamilyRole.choices, 
         default=FamilyRole.FAMILY_MEMBER,
-        help_text="Rolle des Angehörigen"
+        help_text="Rolle des Angehörigen in der Familie"
     )
     permission_level = models.CharField(
         "Berechtigungsstufe", 
@@ -693,19 +709,21 @@ class FamilyLink(models.Model):
         help_text="Was darf der Angehörige tun?"
     )
     
-    # Verwandtschaftsbezeichnung (optional)
+    # Verwandtschaftsbezeichnung
     relationship = models.CharField(
         "Verwandtschaftsbezeichnung", 
         max_length=100, 
         blank=True, 
-        help_text="z.B. Sohn, Ehefrau, Guter Freund"
+        help_text="z.B. Sohn, Ehefrau, Guter Freund, Anwalt"
     )
     
     # Status und Validierung
-    is_active = models.BooleanField(
-        "Aktiv", 
-        default=True, 
-        help_text="Aktive Verknüpfung"
+    status = models.CharField(
+        "Status", 
+        max_length=15, 
+        choices=Status.choices, 
+        default=Status.PENDING,
+        help_text="Aktueller Status der Verknüpfung"
     )
     is_validated_by_admin = models.BooleanField(
         "Vom Admin validiert", 
@@ -723,26 +741,47 @@ class FamilyLink(models.Model):
         blank=True, 
         related_name='validated_family_links',
         verbose_name="Validiert von",
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
+        limit_choices_to={'is_staff': True}
     )
     
     # Zeitstempel
     created_at = models.DateTimeField("Erstellt am", default=timezone.now)
     updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
+    last_accessed = models.DateTimeField(
+        "Zuletzt zugegriffen", 
+        null=True, 
+        blank=True,
+        help_text="Wann hat der Angehörige zuletzt zugegriffen?"
+    )
     
     # Metadaten
     created_by = models.ForeignKey(
         User, 
         related_name='created_family_links', 
         verbose_name="Erstellt von",
-        help_text="Admin der die Verknüpfung erstellt hat",
+        help_text="Wer hat die Verknüpfung erstellt",
         on_delete=models.SET_NULL,
-        null=True
+        null=True,
+        limit_choices_to={'is_staff': True}
     )
     notes = models.TextField(
         "Interne Notizen", 
         blank=True, 
         help_text="Interne Notizen für Admins"
+    )
+    
+    # Zusätzliche Sicherheitsfelder
+    access_count = models.PositiveIntegerField(
+        "Zugriffe", 
+        default=0,
+        help_text="Anzahl der Zugriffe durch den Angehörigen"
+    )
+    last_ip_address = models.GenericIPAddressField(
+        "Letzte IP-Adresse", 
+        null=True, 
+        blank=True,
+        help_text="IP-Adresse des letzten Zugriffs"
     )
 
     def __str__(self):
@@ -763,25 +802,66 @@ class FamilyLink(models.Model):
                 relative_user=self.relative_user
             ).exists():
                 raise ValidationError("Diese Verknüpfung existiert bereits.")
+        
+        # Validierung der Rollen-Kombinationen
+        if self.role == self.FamilyRole.MAIN_CONTACT and self.permission_level == self.PermissionLevel.VIEW_ONLY:
+            raise ValidationError("Hauptansprechpartner müssen mindestens Gedenkseite-Bearbeitung haben.")
     
     def save(self, *args, **kwargs):
+        # Automatische Status-Updates
+        if self.is_validated_by_admin and self.status == self.Status.PENDING:
+            self.status = self.Status.ACTIVE
+            if not self.validated_at:
+                self.validated_at = timezone.now()
+        
         self.clean()
         super().save(*args, **kwargs)
+    
+    def can_access_memorial(self):
+        """Prüft ob der Angehörige auf die Gedenkseite zugreifen kann"""
+        return (self.status == self.Status.ACTIVE and 
+                self.permission_level in [self.PermissionLevel.EDIT_MEMORIAL, 
+                                        self.PermissionLevel.MANAGE_ALL,
+                                        self.PermissionLevel.ADMIN_LEVEL])
+    
+    def can_access_precaution_data(self):
+        """Prüft ob der Angehörige auf Vorsorgedaten zugreifen kann"""
+        return (self.status == self.Status.ACTIVE and 
+                self.permission_level in [self.PermissionLevel.MANAGE_ALL,
+                                        self.PermissionLevel.ADMIN_LEVEL])
+    
+    def record_access(self, ip_address=None):
+        """Zeichnet einen Zugriff auf"""
+        self.access_count += 1
+        self.last_accessed = timezone.now()
+        if ip_address:
+            self.last_ip_address = ip_address
+        self.save(update_fields=['access_count', 'last_accessed', 'last_ip_address'])
     
     @property
     def can_edit_memorial_page(self):
         """Kompatibilität: Gedenkseite bearbeiten basierend auf permission_level"""
-        return self.permission_level in [self.PermissionLevel.EDIT_MEMORIAL, self.PermissionLevel.MANAGE_ALL]
+        return self.permission_level in [
+            self.PermissionLevel.EDIT_MEMORIAL, 
+            self.PermissionLevel.MANAGE_ALL,
+            self.PermissionLevel.ADMIN_LEVEL
+        ]
     
     @property
     def can_view_precaution_data(self):
         """Kompatibilität: Vorsorge einsehen basierend auf permission_level"""
-        return self.permission_level == self.PermissionLevel.MANAGE_ALL
+        return self.permission_level in [
+            self.PermissionLevel.MANAGE_ALL,
+            self.PermissionLevel.ADMIN_LEVEL
+        ]
     
     @property
     def can_edit_precaution_data(self):
         """Kompatibilität: Vorsorge bearbeiten basierend auf permission_level"""
-        return self.permission_level == self.PermissionLevel.MANAGE_ALL
+        return self.permission_level in [
+            self.PermissionLevel.MANAGE_ALL,
+            self.PermissionLevel.ADMIN_LEVEL
+        ]
     
     @property
     def is_main_contact(self):

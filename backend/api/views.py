@@ -69,11 +69,16 @@ def get_consistent_familylink_sql(where_clause="", order_by="COALESCE(fl.created
 
 def get_family_links_for_user(user, permission_level=None, is_validated=None):
     """
+    DEPRECATED: Verwende get_active_family_links_for_user aus services.py
     Hilfsfunktion für FamilyLink-Queries mit Datenbank-Kompatibilität
     """
     try:
-        # Versuche normale Django ORM-Query
-        queryset = FamilyLink.objects.filter(relative_user=user)
+        # Neue konsistente FamilyLink-Integration
+        queryset = FamilyLink.objects.filter(
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            is_validated_by_admin=True
+        )
         if permission_level:
             queryset = queryset.filter(permission_level=permission_level)
         if is_validated is not None:
@@ -340,9 +345,17 @@ class CanViewVorsorgeDataPermission(permissions.BasePermission):
         user = request.user
         if not user.is_authenticated: return False
         if user.is_staff or obj.user == user: return True
+        
+        # Neue konsistente FamilyLink-Berechtigung
         return FamilyLink.objects.filter(
-            deceased_user=obj.user, relative_user=user,
-            permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True
+            deceased_user=obj.user, 
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
+            is_validated_by_admin=True
         ).exists()
 
 class CanEditVorsorgeDataPermission(permissions.BasePermission):
@@ -350,9 +363,17 @@ class CanEditVorsorgeDataPermission(permissions.BasePermission):
         user = request.user
         if not user.is_authenticated: return False
         if user.is_staff or obj.user == user: return True
+        
+        # Neue konsistente FamilyLink-Berechtigung
         return FamilyLink.objects.filter(
-            deceased_user=obj.user, relative_user=user,
-            permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated_by_admin=True
+            deceased_user=obj.user, 
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
+            is_validated_by_admin=True
         ).exists()
 
 class CanEditMemorialPagePermission(permissions.BasePermission):
@@ -360,9 +381,18 @@ class CanEditMemorialPagePermission(permissions.BasePermission):
         user = request.user
         if not user.is_authenticated: return False
         if user.is_staff or obj.user == user: return True
+        
+        # Neue konsistente FamilyLink-Berechtigung
         return FamilyLink.objects.filter(
-            deceased_user=obj.user, relative_user=user,
-            permission_level__in=[FamilyLink.PermissionLevel.EDIT_MEMORIAL, FamilyLink.PermissionLevel.MANAGE_ALL]
+            deceased_user=obj.user, 
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.EDIT_MEMORIAL, 
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
+            is_validated_by_admin=True
         ).exists()
 
 class DigitalLegacyItemViewSet(viewsets.ModelViewSet):
@@ -370,7 +400,16 @@ class DigitalLegacyItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
+        # Neue konsistente FamilyLink-Integration
+        linked_deceased_ids = FamilyLink.objects.filter(
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
+            is_validated_by_admin=True
+        ).values_list('deceased_user_id', flat=True)
         return DigitalLegacyItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -379,7 +418,16 @@ class FinancialItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
+        # Neue konsistente FamilyLink-Integration
+        linked_deceased_ids = FamilyLink.objects.filter(
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
+            is_validated_by_admin=True
+        ).values_list('deceased_user_id', flat=True)
         return FinancialItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -388,7 +436,16 @@ class InsuranceItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
+        # Neue konsistente FamilyLink-Integration
+        linked_deceased_ids = FamilyLink.objects.filter(
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
+            is_validated_by_admin=True
+        ).values_list('deceased_user_id', flat=True)
         return InsuranceItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -397,7 +454,16 @@ class ContractItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewVorsorgeDataPermission]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
+        # Neue konsistente FamilyLink-Integration
+        linked_deceased_ids = FamilyLink.objects.filter(
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
+            is_validated_by_admin=True
+        ).values_list('deceased_user_id', flat=True)
         return ContractItem.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -407,7 +473,16 @@ class DocumentViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     def get_queryset(self):
         user = self.request.user
-        linked_deceased_ids = get_family_links_for_user(user, permission_level=FamilyLink.PermissionLevel.MANAGE_ALL, is_validated=True).values_list('deceased_user_id', flat=True)
+        # Neue konsistente FamilyLink-Integration
+        linked_deceased_ids = FamilyLink.objects.filter(
+            relative_user=user,
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
+            is_validated_by_admin=True
+        ).values_list('deceased_user_id', flat=True)
         return Document.objects.filter(Q(user=user) | Q(user_id__in=list(linked_deceased_ids)))
     def perform_create(self, serializer): serializer.save(user=self.request.user)
 
@@ -440,14 +515,22 @@ class ManagedMemorialPageViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_staff:
             return MemorialPage.objects.all()
+        
+        # Neue konsistente FamilyLink-Integration
         linked_deceased_ids = FamilyLink.objects.filter(
             relative_user=user, 
-            permission_level__in=[FamilyLink.PermissionLevel.EDIT_MEMORIAL, FamilyLink.PermissionLevel.MANAGE_ALL],
+            status=FamilyLink.Status.ACTIVE,
+            permission_level__in=[
+                FamilyLink.PermissionLevel.EDIT_MEMORIAL, 
+                FamilyLink.PermissionLevel.MANAGE_ALL,
+                FamilyLink.PermissionLevel.ADMIN_LEVEL
+            ],
             deceased_user__role=User.Role.VERSTORBENER
         ).values_list('deceased_user_id', flat=True)
+        
         return MemorialPage.objects.filter(
             Q(user=user) | Q(user_id__in=list(linked_deceased_ids))
-        )
+    )
 
 class CondolenceViewSet(viewsets.ModelViewSet):
     serializer_class = CondolenceSerializer
@@ -563,7 +646,17 @@ class MeinBereichDataView(APIView):
             own_page = None
         
         try:
-            managed_links = FamilyLink.objects.filter(relative_user=user, permission_level__in=[FamilyLink.PermissionLevel.EDIT_MEMORIAL, FamilyLink.PermissionLevel.MANAGE_ALL])
+            # Neue konsistente FamilyLink-Integration
+            managed_links = FamilyLink.objects.filter(
+                relative_user=user, 
+                status=FamilyLink.Status.ACTIVE,
+                permission_level__in=[
+                    FamilyLink.PermissionLevel.EDIT_MEMORIAL, 
+                    FamilyLink.PermissionLevel.MANAGE_ALL,
+                    FamilyLink.PermissionLevel.ADMIN_LEVEL
+                ],
+                is_validated_by_admin=True
+            )
         except Exception as e:
             if "column api_familylink.id does not exist" in str(e):
                 # Fallback: Verwende Raw SQL
@@ -627,147 +720,134 @@ class CreateMemorialPageView(APIView):
 
 
 class FamilyLinkViewSet(viewsets.ModelViewSet):
-    """ViewSet für FamilyLink-Verwaltung"""
+    """ViewSet für FamilyLink-Verwaltung - Vollständig überarbeitet für Konsistenz"""
     queryset = FamilyLink.objects.all()
     serializer_class = FamilyLinkSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['status', 'role', 'permission_level', 'is_validated_by_admin']
+    search_fields = ['relationship', 'notes', 'deceased_user__first_name', 'deceased_user__last_name', 'relative_user__first_name', 'relative_user__last_name']
+    ordering_fields = ['created_at', 'updated_at', 'last_accessed', 'access_count']
+    ordering = ['-created_at']
     
     def get_queryset(self):
         user = self.request.user
         
-        # Versuche normale Django-Query
-        try:
-            queryset = FamilyLink.objects.select_related(
-                'deceased_user', 'relative_user', 'created_by', 'validated_by'
-            )
-            
-            # Admins können alle FamilyLinks sehen
-            if user.is_staff:
-                return queryset
-            
-            # Normale Benutzer können nur ihre eigenen FamilyLinks sehen
-            return queryset.filter(
-                Q(relative_user=user) | Q(deceased_user=user)
-            )
-        except Exception as e:
-            # Fallback: Verwende Raw SQL wenn Django ORM fehlschlägt
-            if "column api_familylink.id does not exist" in str(e):
-                from django.db import connection
-                with connection.cursor() as cursor:
-                    # Prüfe welche Spalten existieren
-                    cursor.execute("""
-                        SELECT column_name FROM information_schema.columns 
-                        WHERE table_name = 'api_familylink' AND table_schema = 'public'
-                    """)
-                    existing_columns = [row[0] for row in cursor.fetchall()]
-                    
-                    # Verwende zentrale Hilfsfunktion für konsistente SQL-Query
-                    cursor.execute(get_consistent_familylink_sql(
-                        "LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id"
-                    ))
-                    
-                    # Erstelle Mock-Objekte für das API
-                    class MockFamilyLink:
-                        def __init__(self, row):
-                            self.id = row[0]
-                            self.relationship = row[1] or ''
-                            self.role = row[2] or 'family_member'
-                            self.permission_level = row[3] or 'view_only'
-                            self.is_active = row[4] if row[4] is not None else True
-                            self.is_validated_by_admin = row[5] if row[5] is not None else False
-                            self.validated_at = row[6]
-                            self.created_at = row[7]
-                            self.updated_at = row[8]
-                            self.notes = row[9] or ''
-                            
-                            # Mock User-Objekte
-                            self.deceased_user = type('User', (), {
-                                'id': row[10],
-                                'first_name': row[14] or '',
-                                'last_name': row[15] or '',
-                                'get_full_name': lambda: f"{row[14] or ''} {row[15] or ''}".strip(),
-                                'email': f"user{row[10]}@example.com"
-                            })()
-                            
-                            self.relative_user = type('User', (), {
-                                'id': row[11],
-                                'first_name': row[16] or '',
-                                'last_name': row[17] or '',
-                                'get_full_name': lambda: f"{row[16] or ''} {row[17] or ''}".strip(),
-                                'email': f"user{row[11]}@example.com"
-                            })()
-                            
-                            self.created_by = None
-                            self.validated_by = None
-                        
-                        def get_role_display(self):
-                            role_map = {
-                                'family_member': 'Familienmitglied',
-                                'main_contact': 'Hauptansprechpartner',
-                                'executor': 'Testamentsvollstrecker',
-                                'guardian': 'Vormund/Betreuer'
-                            }
-                            return role_map.get(self.role, self.role)
-                        
-                        def get_permission_level_display(self):
-                            permission_map = {
-                                'view_only': 'Nur anzeigen',
-                                'edit_memorial': 'Gedenkseite bearbeiten',
-                                'manage_all': 'Vollzugriff (Vorsorge + Gedenkseite)'
-                            }
-                            return permission_map.get(self.permission_level, self.permission_level)
-                    
-                    rows = cursor.fetchall()
-                    mock_objects = [MockFamilyLink(row) for row in rows]
-                    
-                    # Filtere basierend auf Benutzer-Berechtigung
-                    if user.is_staff:
-                        return mock_objects
-                    else:
-                        return [obj for obj in mock_objects 
-                               if obj.relative_user.id == user.id or obj.deceased_user.id == user.id]
-            else:
-                # Andere Fehler: Leere Liste zurückgeben
-                return []
+        queryset = FamilyLink.objects.select_related(
+            'deceased_user', 'relative_user', 'created_by', 'validated_by'
+        )
+        
+        # Admins können alle FamilyLinks sehen
+        if user.is_staff:
+            return queryset
+        
+        # Normale Benutzer können nur ihre eigenen FamilyLinks sehen
+        return queryset.filter(
+            Q(relative_user=user) | Q(deceased_user=user)
+        )
+    
+    def get_serializer_class(self):
+        """Verwende verschiedene Serializer für verschiedene Aktionen"""
+        if self.action == 'list':
+            return FamilyLinkSerializer
+        elif self.action == 'retrieve':
+            return FamilyLinkSerializer
+        else:
+            return FamilyLinkSerializer
     
     def perform_create(self, serializer):
-        # Setze created_by auf den aktuellen Benutzer
+        """Beim Erstellen einer FamilyLink-Verknüpfung"""
+        # Setze den Ersteller
         serializer.save(created_by=self.request.user)
+        
+        # Logging für Audit-Trail
+        if hasattr(self.request, 'META'):
+            ip_address = self.request.META.get('REMOTE_ADDR')
+            # Hier könnte man ein Audit-Log erstellen
+    
+    def perform_update(self, serializer):
+        """Beim Aktualisieren einer FamilyLink-Verknüpfung"""
+        instance = serializer.save()
+        
+        # Wenn Status auf ACTIVE gesetzt wird, automatisch validieren
+        if instance.status == FamilyLink.Status.ACTIVE and not instance.is_validated_by_admin:
+            instance.is_validated_by_admin = True
+            instance.validated_by = self.request.user
+            instance.save()
+    
+    def perform_destroy(self, instance):
+        """Beim Löschen einer FamilyLink-Verknüpfung"""
+        # Soft delete: Setze Status auf REVOKED statt zu löschen
+        instance.status = FamilyLink.Status.REVOKED
+        instance.save()
     
     @action(detail=True, methods=['post'])
     def validate(self, request, pk=None):
-        """FamilyLink validieren (nur für Admins)"""
+        """Admin-Aktion: Validiere eine FamilyLink-Verknüpfung"""
         if not request.user.is_staff:
-            return Response({'error': 'Nur Admins können FamilyLinks validieren'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Nur Admins können validieren'}, status=status.HTTP_403_FORBIDDEN)
         
         family_link = self.get_object()
         family_link.is_validated_by_admin = True
         family_link.validated_by = request.user
-        family_link.validated_at = timezone.now()
+        family_link.status = FamilyLink.Status.ACTIVE
         family_link.save()
         
         serializer = self.get_serializer(family_link)
         return Response(serializer.data)
     
     @action(detail=True, methods=['post'])
-    def deactivate(self, request, pk=None):
-        """FamilyLink deaktivieren"""
+    def suspend(self, request, pk=None):
+        """Admin-Aktion: Sperre eine FamilyLink-Verknüpfung"""
+        if not request.user.is_staff:
+            return Response({'error': 'Nur Admins können sperren'}, status=status.HTTP_403_FORBIDDEN)
+        
         family_link = self.get_object()
-        family_link.is_active = False
+        family_link.status = FamilyLink.Status.SUSPENDED
         family_link.save()
         
         serializer = self.get_serializer(family_link)
         return Response(serializer.data)
     
     @action(detail=True, methods=['post'])
-    def activate(self, request, pk=None):
-        """FamilyLink aktivieren"""
+    def record_access(self, request, pk=None):
+        """Zeichne einen Zugriff auf"""
         family_link = self.get_object()
-        family_link.is_active = True
-        family_link.save()
+        
+        # Prüfe ob der Benutzer berechtigt ist
+        if (family_link.relative_user != request.user and 
+            family_link.deceased_user != request.user and 
+            not request.user.is_staff):
+            return Response({'error': 'Nicht berechtigt'}, status=status.HTTP_403_FORBIDDEN)
+        
+        ip_address = request.META.get('REMOTE_ADDR')
+        family_link.record_access(ip_address)
         
         serializer = self.get_serializer(family_link)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """Statistiken für FamilyLinks"""
+        if not request.user.is_staff:
+            return Response({'error': 'Nur Admins können Statistiken abrufen'}, status=status.HTTP_403_FORBIDDEN)
+        
+        stats = {
+            'total_links': FamilyLink.objects.count(),
+            'active_links': FamilyLink.objects.filter(status=FamilyLink.Status.ACTIVE).count(),
+            'pending_links': FamilyLink.objects.filter(status=FamilyLink.Status.PENDING).count(),
+            'suspended_links': FamilyLink.objects.filter(status=FamilyLink.Status.SUSPENDED).count(),
+            'revoked_links': FamilyLink.objects.filter(status=FamilyLink.Status.REVOKED).count(),
+            'validated_links': FamilyLink.objects.filter(is_validated_by_admin=True).count(),
+            'unvalidated_links': FamilyLink.objects.filter(is_validated_by_admin=False).count(),
+            'total_accesses': FamilyLink.objects.aggregate(
+                total=models.Sum('access_count')
+            )['total'] or 0,
+            'recent_accesses': FamilyLink.objects.filter(
+                last_accessed__gte=timezone.now() - timezone.timedelta(days=7)
+            ).count()
+        }
+        
+        return Response(stats)
 
 
 # ===== TRAUERDRUCK VIEWS =====

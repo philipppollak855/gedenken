@@ -44,19 +44,6 @@ const ZusammenfassungStep = ({ formData, updateFormData, categories, onNext, onP
     return selectedKategorien.map(k => k.name).join(', ') || 'Keine ausgewählt';
   };
 
-  const getDokumentKategorienNames = () => {
-    const selectedKategorien = categories.dokumentKategorien.filter(k => 
-      formData.dokument_kategorien?.some(selected => selected.id === k.id)
-    );
-    return selectedKategorien.map(k => k.name).join(', ') || 'Keine ausgewählt';
-  };
-
-  const getDigitalerNachlassKategorienNames = () => {
-    const selectedKategorien = categories.digitalerNachlassKategorien.filter(k => 
-      formData.digitaler_nachlass_kategorien?.some(selected => selected.id === k.id)
-    );
-    return selectedKategorien.map(k => k.name).join(', ') || 'Keine ausgewählt';
-  };
 
   const calculateCompletionPercentage = () => {
     let completed = 0;

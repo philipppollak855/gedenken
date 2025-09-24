@@ -638,6 +638,240 @@ class ReleaseRequest(models.Model):
     resolved_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Zugeordneter Vorsorge-Account")
     created_at = models.DateTimeField("Eingegangen am", auto_now_add=True)
 
+# ============================================================================
+# BESTATTUNGSVORSORGE MODELLE
+# ============================================================================
+
+class Bestattungsart(models.Model):
+    """Bestattungsarten für die Vorsorge"""
+    name = models.CharField("Name", max_length=100)
+    description = models.TextField("Beschreibung", blank=True)
+    is_active = models.BooleanField("Aktiv", default=True)
+    icon = models.CharField("Icon (FontAwesome)", max_length=50, default="fas fa-cross")
+    order = models.PositiveIntegerField("Reihenfolge", default=0)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Bestattungsart"
+        verbose_name_plural = "Bestattungsarten"
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+class Verabschiedungsart(models.Model):
+    """Verabschiedungsarten für die Trauerfeier"""
+    name = models.CharField("Name", max_length=100)
+    description = models.TextField("Beschreibung", blank=True)
+    is_religious = models.BooleanField("Religiös", default=False)
+    religion = models.CharField("Religion", max_length=50, blank=True)
+    is_active = models.BooleanField("Aktiv", default=True)
+    icon = models.CharField("Icon (FontAwesome)", max_length=50, default="fas fa-church")
+    order = models.PositiveIntegerField("Reihenfolge", default=0)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Verabschiedungsart"
+        verbose_name_plural = "Verabschiedungsarten"
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+class MusikKategorie(models.Model):
+    """Musik-Kategorien für die Trauerfeier"""
+    name = models.CharField("Name", max_length=100)
+    description = models.TextField("Beschreibung", blank=True)
+    is_active = models.BooleanField("Aktiv", default=True)
+    icon = models.CharField("Icon (FontAwesome)", max_length=50, default="fas fa-music")
+    order = models.PositiveIntegerField("Reihenfolge", default=0)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Musik-Kategorie"
+        verbose_name_plural = "Musik-Kategorien"
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+class VereinsKategorie(models.Model):
+    """Vereinskategorien für die Trauerfeier"""
+    name = models.CharField("Name", max_length=100)
+    description = models.TextField("Beschreibung", blank=True)
+    is_active = models.BooleanField("Aktiv", default=True)
+    icon = models.CharField("Icon (FontAwesome)", max_length=50, default="fas fa-users")
+    order = models.PositiveIntegerField("Reihenfolge", default=0)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Vereinskategorie"
+        verbose_name_plural = "Vereinskategorien"
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+class Grabart(models.Model):
+    """Grabarten für die Bestattung"""
+    name = models.CharField("Name", max_length=100)
+    description = models.TextField("Beschreibung", blank=True)
+    is_active = models.BooleanField("Aktiv", default=True)
+    icon = models.CharField("Icon (FontAwesome)", max_length=50, default="fas fa-tombstone")
+    order = models.PositiveIntegerField("Reihenfolge", default=0)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Grabart"
+        verbose_name_plural = "Grabarten"
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+class DokumentKategorie(models.Model):
+    """Dokumentkategorien für die Vorsorge"""
+    name = models.CharField("Name", max_length=100)
+    description = models.TextField("Beschreibung", blank=True)
+    is_required = models.BooleanField("Erforderlich", default=False)
+    is_active = models.BooleanField("Aktiv", default=True)
+    icon = models.CharField("Icon (FontAwesome)", max_length=50, default="fas fa-file")
+    order = models.PositiveIntegerField("Reihenfolge", default=0)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Dokumentkategorie"
+        verbose_name_plural = "Dokumentkategorien"
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+class DigitalerNachlassKategorie(models.Model):
+    """Kategorien für den digitalen Nachlass"""
+    name = models.CharField("Name", max_length=100)
+    description = models.TextField("Beschreibung", blank=True)
+    is_active = models.BooleanField("Aktiv", default=True)
+    icon = models.CharField("Icon (FontAwesome)", max_length=50, default="fas fa-laptop")
+    order = models.PositiveIntegerField("Reihenfolge", default=0)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Digitaler Nachlass Kategorie"
+        verbose_name_plural = "Digitaler Nachlass Kategorien"
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+class Bestattungsvorsorge(models.Model):
+    """Hauptmodell für die Bestattungsvorsorge"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bestattungsvorsorgen')
+    
+    # Bestattungsart
+    bestattungsart = models.ForeignKey(Bestattungsart, on_delete=models.SET_NULL, null=True, blank=True)
+    bestattungsart_notizen = models.TextField("Notizen zur Bestattungsart", blank=True)
+    
+    # Verabschiedung
+    verabschiedungsart = models.ForeignKey(Verabschiedungsart, on_delete=models.SET_NULL, null=True, blank=True)
+    verabschiedungsart_notizen = models.TextField("Notizen zur Verabschiedung", blank=True)
+    
+    # Musik
+    musik_wünsche = models.TextField("Musikwünsche", blank=True)
+    musik_kategorien = models.ManyToManyField(MusikKategorie, blank=True)
+    
+    # Vereine
+    vereins_wünsche = models.TextField("Vereinswünsche", blank=True)
+    vereins_kategorien = models.ManyToManyField(VereinsKategorie, blank=True)
+    
+    # Spezielle Wünsche
+    spezielle_wünsche = models.TextField("Spezielle Wünsche", blank=True)
+    blumenschmuck = models.TextField("Blumenschmuck", blank=True)
+    kleidung = models.TextField("Kleidung", blank=True)
+    
+    # Grab
+    grabart = models.ForeignKey(Grabart, on_delete=models.SET_NULL, null=True, blank=True)
+    friedhof = models.CharField("Friedhof", max_length=200, blank=True)
+    grabnummer = models.CharField("Grabnummer", max_length=50, blank=True)
+    grab_wünsche = models.TextField("Grabwünsche", blank=True)
+    
+    # Status
+    is_completed = models.BooleanField("Abgeschlossen", default=False)
+    completion_percentage = models.PositiveIntegerField("Fortschritt (%)", default=0)
+    
+    # Metadaten
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+    
+    class Meta:
+        verbose_name = "Bestattungsvorsorge"
+        verbose_name_plural = "Bestattungsvorsorgen"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Bestattungsvorsorge von {self.user.get_full_name()}"
+    
+    def calculate_completion_percentage(self):
+        """Berechnet den Fortschritt der Vorsorge"""
+        fields = [
+            self.bestattungsart,
+            self.verabschiedungsart,
+            self.musik_wünsche,
+            self.spezielle_wünsche,
+            self.grabart,
+            self.friedhof
+        ]
+        completed = sum(1 for field in fields if field)
+        return int((completed / len(fields)) * 100)
+
+class BestattungsvorsorgeDokument(models.Model):
+    """Dokumente für die Bestattungsvorsorge"""
+    vorsorge = models.ForeignKey(Bestattungsvorsorge, on_delete=models.CASCADE, related_name='dokumente')
+    kategorie = models.ForeignKey(DokumentKategorie, on_delete=models.CASCADE)
+    titel = models.CharField("Titel", max_length=200)
+    datei = models.FileField("Datei", upload_to='vorsorge_dokumente/%Y/%m/')
+    beschreibung = models.TextField("Beschreibung", blank=True)
+    is_uploaded = models.BooleanField("Hochgeladen", default=False)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Vorsorge-Dokument"
+        verbose_name_plural = "Vorsorge-Dokumente"
+        ordering = ['kategorie__order', 'titel']
+    
+    def __str__(self):
+        return f"{self.titel} ({self.kategorie.name})"
+
+class DigitalerNachlass(models.Model):
+    """Digitaler Nachlass für die Vorsorge"""
+    vorsorge = models.ForeignKey(Bestattungsvorsorge, on_delete=models.CASCADE, related_name='digitaler_nachlass')
+    kategorie = models.ForeignKey(DigitalerNachlassKategorie, on_delete=models.CASCADE)
+    plattform = models.CharField("Plattform/Service", max_length=100)
+    benutzername = models.CharField("Benutzername", max_length=100, blank=True)
+    email = models.EmailField("E-Mail", blank=True)
+    notizen = models.TextField("Notizen", blank=True)
+    is_important = models.BooleanField("Wichtig", default=False)
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Digitaler Nachlass"
+        verbose_name_plural = "Digitaler Nachlass"
+        ordering = ['kategorie__order', 'plattform']
+    
+    def __str__(self):
+        return f"{self.plattform} ({self.kategorie.name})"
+
+# ============================================================================
+# FAMILYLINK MODELLE (BESTEHEND)
+# ============================================================================
+
 class FamilyLink(models.Model):
     """
     Konsistentes FamilyLink-Model für Angehörigen-Verknüpfungen

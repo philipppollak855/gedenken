@@ -11,11 +11,96 @@ from .models import (
     CondolenceTemplate, CandleImage, CandleMessageTemplate, MediaAsset, EventLocation,
     EventAttendance, FamilyLink, TrauerdruckType, TrauerdruckEntwurf, TrauerdruckDesign,
     TrauerdruckKommentar, TrauerdruckFreigabe, TrauerdruckDesignFreigabe, TrauerdruckBenachrichtigung, 
-    TrauerdruckTemplate
+    TrauerdruckTemplate,
+    # Bestattungsvorsorge Modelle
+    Bestattungsart, Verabschiedungsart, MusikKategorie, VereinsKategorie, Grabart,
+    DokumentKategorie, DigitalerNachlassKategorie, Bestattungsvorsorge,
+    BestattungsvorsorgeDokument, DigitalerNachlass
 )
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+# ============================================================================
+# BESTATTUNGSVORSORGE SERIALIZER
+# ============================================================================
+
+class BestattungsartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bestattungsart
+        fields = ('id', 'name', 'description', 'is_active', 'icon', 'order')
+
+class VerabschiedungsartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Verabschiedungsart
+        fields = ('id', 'name', 'description', 'is_religious', 'religion', 'is_active', 'icon', 'order')
+
+class MusikKategorieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MusikKategorie
+        fields = ('id', 'name', 'description', 'is_active', 'icon', 'order')
+
+class VereinsKategorieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VereinsKategorie
+        fields = ('id', 'name', 'description', 'is_active', 'icon', 'order')
+
+class GrabartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Grabart
+        fields = ('id', 'name', 'description', 'is_active', 'icon', 'order')
+
+class DokumentKategorieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DokumentKategorie
+        fields = ('id', 'name', 'description', 'is_required', 'is_active', 'icon', 'order')
+
+class DigitalerNachlassKategorieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DigitalerNachlassKategorie
+        fields = ('id', 'name', 'description', 'is_active', 'icon', 'order')
+
+class BestattungsvorsorgeDokumentSerializer(serializers.ModelSerializer):
+    kategorie_name = serializers.CharField(source='kategorie.name', read_only=True)
+    
+    class Meta:
+        model = BestattungsvorsorgeDokument
+        fields = ('id', 'kategorie', 'kategorie_name', 'titel', 'datei', 'beschreibung', 'is_uploaded', 'created_at')
+
+class DigitalerNachlassSerializer(serializers.ModelSerializer):
+    kategorie_name = serializers.CharField(source='kategorie.name', read_only=True)
+    
+    class Meta:
+        model = DigitalerNachlass
+        fields = ('id', 'kategorie', 'kategorie_name', 'plattform', 'benutzername', 'email', 'notizen', 'is_important', 'created_at')
+
+class BestattungsvorsorgeSerializer(serializers.ModelSerializer):
+    bestattungsart_name = serializers.CharField(source='bestattungsart.name', read_only=True)
+    verabschiedungsart_name = serializers.CharField(source='verabschiedungsart.name', read_only=True)
+    grabart_name = serializers.CharField(source='grabart.name', read_only=True)
+    musik_kategorien_names = serializers.StringRelatedField(source='musik_kategorien', many=True, read_only=True)
+    vereins_kategorien_names = serializers.StringRelatedField(source='vereins_kategorien', many=True, read_only=True)
+    dokumente = BestattungsvorsorgeDokumentSerializer(many=True, read_only=True)
+    digitaler_nachlass = DigitalerNachlassSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Bestattungsvorsorge
+        fields = (
+            'id', 'user', 'bestattungsart', 'bestattungsart_name', 'bestattungsart_notizen',
+            'verabschiedungsart', 'verabschiedungsart_name', 'verabschiedungsart_notizen',
+            'musik_wünsche', 'musik_kategorien', 'musik_kategorien_names',
+            'vereins_wünsche', 'vereins_kategorien', 'vereins_kategorien_names',
+            'spezielle_wünsche', 'blumenschmuck', 'kleidung',
+            'grabart', 'grabart_name', 'friedhof', 'grabnummer', 'grab_wünsche',
+            'is_completed', 'completion_percentage',
+            'dokumente', 'digitaler_nachlass',
+            'created_at', 'updated_at'
+        )
+        read_only_fields = ('completion_percentage', 'created_at', 'updated_at')
+
+# ============================================================================
+# BESTEHENDE SERIALIZER
+# ============================================================================
 
 class MediaAssetSerializer(serializers.ModelSerializer):
     url = serializers.ReadOnlyField()

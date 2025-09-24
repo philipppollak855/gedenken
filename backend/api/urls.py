@@ -14,7 +14,10 @@ from .views import (
     SeedDatabaseView, EventAttendanceViewSet, MemorialEventViewSet, GlobalSearchView,
     MeinBereichDataView, CreateMemorialPageView, FamilyLinkViewSet, # NEU
     TrauerdruckTypeViewSet, TrauerdruckEntwurfViewSet, TrauerdruckDesignViewSet, TrauerdruckKommentarViewSet,
-    TrauerdruckFreigabeViewSet, TrauerdruckDesignFreigabeViewSet, TrauerdruckBenachrichtigungViewSet, TrauerdruckTemplateViewSet
+    TrauerdruckFreigabeViewSet, TrauerdruckDesignFreigabeViewSet, TrauerdruckBenachrichtigungViewSet, TrauerdruckTemplateViewSet,
+    # Bestattungsvorsorge ViewSets
+    BestattungsartViewSet, VerabschiedungsartViewSet, MusikKategorieViewSet, VereinsKategorieViewSet,
+    GrabartViewSet, DokumentKategorieViewSet, DigitalerNachlassKategorieViewSet, BestattungsvorsorgeViewSet
 )
 
 router = routers.DefaultRouter()
@@ -33,6 +36,16 @@ router.register(r'condolence-templates', CondolenceTemplateViewSet, basename='co
 router.register(r'candle-images', CandleImageViewSet, basename='candleimage')
 router.register(r'candle-message-templates', CandleMessageTemplateViewSet, basename='candle-message-template')
 router.register(r'family-links', FamilyLinkViewSet, basename='familylink')
+
+# Bestattungsvorsorge Router
+router.register(r'bestattungsarten', BestattungsartViewSet, basename='bestattungsart')
+router.register(r'verabschiedungsarten', VerabschiedungsartViewSet, basename='verabschiedungsart')
+router.register(r'musik-kategorien', MusikKategorieViewSet, basename='musikkategorie')
+router.register(r'vereins-kategorien', VereinsKategorieViewSet, basename='vereinskategorie')
+router.register(r'grabarten', GrabartViewSet, basename='grabart')
+router.register(r'dokument-kategorien', DokumentKategorieViewSet, basename='dokumentkategorie')
+router.register(r'digitaler-nachlass-kategorien', DigitalerNachlassKategorieViewSet, basename='digitalernachlasskategorie')
+router.register(r'bestattungsvorsorge', BestattungsvorsorgeViewSet, basename='bestattungsvorsorge')
 
 # Trauerdruck Router
 router.register(r'trauerdruck-types', TrauerdruckTypeViewSet, basename='trauerdrucktype')

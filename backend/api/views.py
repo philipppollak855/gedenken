@@ -33,7 +33,11 @@ from .serializers import (
     CandleImageSerializer, CandleMessageTemplateSerializer, EventAttendanceSerializer,
     MemorialEventSerializer, MeinBereichDataSerializer, FamilyLinkSerializer,
     TrauerdruckTypeSerializer, TrauerdruckEntwurfSerializer, TrauerdruckDesignSerializer, TrauerdruckKommentarSerializer,
-    TrauerdruckFreigabeSerializer, TrauerdruckDesignFreigabeSerializer, TrauerdruckBenachrichtigungSerializer, TrauerdruckTemplateSerializer
+    TrauerdruckFreigabeSerializer, TrauerdruckDesignFreigabeSerializer, TrauerdruckBenachrichtigungSerializer, TrauerdruckTemplateSerializer,
+    # Bestattungsvorsorge Serializer
+    BestattungsartSerializer, VerabschiedungsartSerializer, MusikKategorieSerializer, VereinsKategorieSerializer,
+    GrabartSerializer, DokumentKategorieSerializer, DigitalerNachlassKategorieSerializer,
+    BestattungsvorsorgeSerializer, BestattungsvorsorgeDokumentSerializer, DigitalerNachlassSerializer
 )
 from .models import (
     User, DigitalLegacyItem, FinancialItem, InsuranceItem, ContractItem, 
@@ -41,7 +45,11 @@ from .models import (
     TimelineEvent, GalleryItem, ReleaseRequest, SiteSettings, CondolenceTemplate,
     CandleImage, CandleMessageTemplate, EventLocation, MemorialEvent, EventAttendance,
     FamilyLink, TrauerdruckType, TrauerdruckEntwurf, TrauerdruckDesign, TrauerdruckKommentar,
-    TrauerdruckFreigabe, TrauerdruckDesignFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate
+    TrauerdruckFreigabe, TrauerdruckDesignFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate,
+    # Bestattungsvorsorge Modelle
+    Bestattungsart, Verabschiedungsart, MusikKategorie, VereinsKategorie, Grabart,
+    DokumentKategorie, DigitalerNachlassKategorie, Bestattungsvorsorge,
+    BestattungsvorsorgeDokument, DigitalerNachlass
 )
 from .services import TrauerdruckNotificationService, TrauerdruckWorkflowService
 
@@ -1225,3 +1233,146 @@ class TrauerdruckDesignFreigabeViewSet(viewsets.ModelViewSet):
             TrauerdruckNotificationService.notify_decision(design.entwurf, freigabe.decision, self.request.user)
         except Exception as e:
             print(f"Fehler beim Senden der Benachrichtigungen: {e}")
+
+
+# ============================================================================
+# BESTATTUNGSVORSORGE VIEWSETS
+# ============================================================================
+
+class BestattungsartViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet für Bestattungsarten"""
+    queryset = Bestattungsart.objects.filter(is_active=True)
+    serializer_class = BestattungsartSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class VerabschiedungsartViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet für Verabschiedungsarten"""
+    queryset = Verabschiedungsart.objects.filter(is_active=True)
+    serializer_class = VerabschiedungsartSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class MusikKategorieViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet für Musik-Kategorien"""
+    queryset = MusikKategorie.objects.filter(is_active=True)
+    serializer_class = MusikKategorieSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class VereinsKategorieViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet für Vereinskategorien"""
+    queryset = VereinsKategorie.objects.filter(is_active=True)
+    serializer_class = VereinsKategorieSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class GrabartViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet für Grabarten"""
+    queryset = Grabart.objects.filter(is_active=True)
+    serializer_class = GrabartSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class DokumentKategorieViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet für Dokumentkategorien"""
+    queryset = DokumentKategorie.objects.filter(is_active=True)
+    serializer_class = DokumentKategorieSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class DigitalerNachlassKategorieViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet für Digitaler Nachlass Kategorien"""
+    queryset = DigitalerNachlassKategorie.objects.filter(is_active=True)
+    serializer_class = DigitalerNachlassKategorieSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class BestattungsvorsorgeViewSet(viewsets.ModelViewSet):
+    """ViewSet für Bestattungsvorsorge"""
+    serializer_class = BestattungsvorsorgeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return Bestattungsvorsorge.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
+    def perform_update(self, serializer):
+        # Berechne Fortschritt neu
+        instance = serializer.save()
+        instance.completion_percentage = instance.calculate_completion_percentage()
+        instance.save()
+    
+    @action(detail=True, methods=['post'])
+    def add_dokument(self, request, pk=None):
+        """Dokument zur Vorsorge hinzufügen"""
+        vorsorge = self.get_object()
+        kategorie_id = request.data.get('kategorie')
+        titel = request.data.get('titel')
+        datei = request.data.get('datei')
+        
+        if not all([kategorie_id, titel, datei]):
+            return Response({'error': 'Kategorie, Titel und Datei sind erforderlich'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            dokument = BestattungsvorsorgeDokument.objects.create(
+                vorsorge=vorsorge,
+                kategorie_id=kategorie_id,
+                titel=titel,
+                datei=datei,
+                is_uploaded=True
+            )
+            serializer = BestattungsvorsorgeDokumentSerializer(dokument)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'])
+    def add_digitaler_nachlass(self, request, pk=None):
+        """Digitalen Nachlass zur Vorsorge hinzufügen"""
+        vorsorge = self.get_object()
+        kategorie_id = request.data.get('kategorie')
+        plattform = request.data.get('plattform')
+        
+        if not all([kategorie_id, plattform]):
+            return Response({'error': 'Kategorie und Plattform sind erforderlich'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            nachlass = DigitalerNachlass.objects.create(
+                vorsorge=vorsorge,
+                kategorie_id=kategorie_id,
+                plattform=plattform,
+                benutzername=request.data.get('benutzername', ''),
+                email=request.data.get('email', ''),
+                notizen=request.data.get('notizen', ''),
+                is_important=request.data.get('is_important', False)
+            )
+            serializer = DigitalerNachlassSerializer(nachlass)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'])
+    def my_vorsorge(self, request):
+        """Aktuelle Vorsorge des Benutzers abrufen"""
+        try:
+            vorsorge = Bestattungsvorsorge.objects.get(user=request.user)
+            serializer = self.get_serializer(vorsorge)
+            return Response(serializer.data)
+        except Bestattungsvorsorge.DoesNotExist:
+            return Response({'message': 'Keine Vorsorge vorhanden'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=False, methods=['post'])
+    def create_vorsorge(self, request):
+        """Neue Vorsorge erstellen"""
+        try:
+            # Prüfe ob bereits eine Vorsorge existiert
+            existing = Bestattungsvorsorge.objects.filter(user=request.user).first()
+            if existing:
+                return Response({'error': 'Vorsorge bereits vorhanden'}, 
+                              status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                vorsorge = serializer.save(user=request.user)
+                return Response(self.get_serializer(vorsorge).data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -26,8 +26,202 @@ from .models import (
     SiteSettings, MemorialEvent, CondolenceTemplate, CandleImage,
     CandleMessageTemplate, MediaAsset, MediaFolder, EventLocation, EventAttendance,
     TrauerdruckType, TrauerdruckEntwurf, TrauerdruckDesign, TrauerdruckKommentar, 
-    TrauerdruckFreigabe, TrauerdruckDesignFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate
+    TrauerdruckFreigabe, TrauerdruckDesignFreigabe, TrauerdruckBenachrichtigung, TrauerdruckTemplate,
+    # Bestattungsvorsorge Modelle
+    Bestattungsart, Verabschiedungsart, MusikKategorie, VereinsKategorie, Grabart,
+    DokumentKategorie, DigitalerNachlassKategorie, Bestattungsvorsorge,
+    BestattungsvorsorgeDokument, DigitalerNachlass
 )
+
+# ============================================================================
+# BESTATTUNGSVORSORGE ADMIN INTERFACE
+# ============================================================================
+
+@admin.register(Bestattungsart)
+class BestattungsartAdmin(ModelAdmin):
+    list_display = ('name', 'description', 'is_active', 'order', 'icon')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'description')
+    list_editable = ('is_active', 'order')
+    ordering = ('order', 'name')
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('name', 'description', 'icon')
+        }),
+        ('Einstellungen', {
+            'fields': ('is_active', 'order')
+        }),
+    )
+
+@admin.register(Verabschiedungsart)
+class VerabschiedungsartAdmin(ModelAdmin):
+    list_display = ('name', 'religion', 'is_religious', 'is_active', 'order')
+    list_filter = ('is_religious', 'religion', 'is_active')
+    search_fields = ('name', 'description', 'religion')
+    list_editable = ('is_active', 'order')
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('name', 'description', 'icon')
+        }),
+        ('Religiöse Einstellungen', {
+            'fields': ('is_religious', 'religion')
+        }),
+        ('Einstellungen', {
+            'fields': ('is_active', 'order')
+        }),
+    )
+
+@admin.register(MusikKategorie)
+class MusikKategorieAdmin(ModelAdmin):
+    list_display = ('name', 'description', 'is_active', 'order', 'icon')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'description')
+    list_editable = ('is_active', 'order')
+    ordering = ('order', 'name')
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('name', 'description', 'icon')
+        }),
+        ('Einstellungen', {
+            'fields': ('is_active', 'order')
+        }),
+    )
+
+@admin.register(VereinsKategorie)
+class VereinsKategorieAdmin(ModelAdmin):
+    list_display = ('name', 'description', 'is_active', 'order', 'icon')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'description')
+    list_editable = ('is_active', 'order')
+    ordering = ('order', 'name')
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('name', 'description', 'icon')
+        }),
+        ('Einstellungen', {
+            'fields': ('is_active', 'order')
+        }),
+    )
+
+@admin.register(Grabart)
+class GrabartAdmin(ModelAdmin):
+    list_display = ('name', 'description', 'is_active', 'order', 'icon')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'description')
+    list_editable = ('is_active', 'order')
+    ordering = ('order', 'name')
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('name', 'description', 'icon')
+        }),
+        ('Einstellungen', {
+            'fields': ('is_active', 'order')
+        }),
+    )
+
+@admin.register(DokumentKategorie)
+class DokumentKategorieAdmin(ModelAdmin):
+    list_display = ('name', 'description', 'is_required', 'is_active', 'order', 'icon')
+    list_filter = ('is_required', 'is_active')
+    search_fields = ('name', 'description')
+    list_editable = ('is_required', 'is_active', 'order')
+    ordering = ('order', 'name')
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('name', 'description', 'icon')
+        }),
+        ('Einstellungen', {
+            'fields': ('is_required', 'is_active', 'order')
+        }),
+    )
+
+@admin.register(DigitalerNachlassKategorie)
+class DigitalerNachlassKategorieAdmin(ModelAdmin):
+    list_display = ('name', 'description', 'is_active', 'order', 'icon')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'description')
+    list_editable = ('is_active', 'order')
+    ordering = ('order', 'name')
+    
+    fieldsets = (
+        ('Grunddaten', {
+            'fields': ('name', 'description', 'icon')
+        }),
+        ('Einstellungen', {
+            'fields': ('is_active', 'order')
+        }),
+    )
+
+class BestattungsvorsorgeDokumentInline(admin.TabularInline):
+    model = BestattungsvorsorgeDokument
+    extra = 0
+    fields = ('kategorie', 'titel', 'datei', 'is_uploaded')
+
+class DigitalerNachlassInline(admin.TabularInline):
+    model = DigitalerNachlass
+    extra = 0
+    fields = ('kategorie', 'plattform', 'benutzername', 'email', 'is_important')
+
+@admin.register(Bestattungsvorsorge)
+class BestattungsvorsorgeAdmin(ModelAdmin):
+    list_display = ('user', 'bestattungsart', 'verabschiedungsart', 'completion_percentage', 'is_completed', 'created_at')
+    list_filter = ('is_completed', 'bestattungsart', 'verabschiedungsart', 'created_at')
+    search_fields = ('user__first_name', 'user__last_name', 'user__email')
+    autocomplete_fields = ('user', 'bestattungsart', 'verabschiedungsart', 'grabart')
+    inlines = [BestattungsvorsorgeDokumentInline, DigitalerNachlassInline]
+    
+    fieldsets = (
+        ('Benutzer', {
+            'fields': ('user',)
+        }),
+        ('Bestattungsart', {
+            'fields': ('bestattungsart', 'bestattungsart_notizen')
+        }),
+        ('Verabschiedung', {
+            'fields': ('verabschiedungsart', 'verabschiedungsart_notizen')
+        }),
+        ('Musik', {
+            'fields': ('musik_wünsche', 'musik_kategorien')
+        }),
+        ('Vereine', {
+            'fields': ('vereins_wünsche', 'vereins_kategorien')
+        }),
+        ('Spezielle Wünsche', {
+            'fields': ('spezielle_wünsche', 'blumenschmuck', 'kleidung')
+        }),
+        ('Grab', {
+            'fields': ('grabart', 'friedhof', 'grabnummer', 'grab_wünsche')
+        }),
+        ('Status', {
+            'fields': ('is_completed', 'completion_percentage')
+        }),
+    )
+    
+    filter_horizontal = ('musik_kategorien', 'vereins_kategorien')
+
+@admin.register(BestattungsvorsorgeDokument)
+class BestattungsvorsorgeDokumentAdmin(ModelAdmin):
+    list_display = ('vorsorge', 'kategorie', 'titel', 'is_uploaded', 'created_at')
+    list_filter = ('kategorie', 'is_uploaded', 'created_at')
+    search_fields = ('titel', 'vorsorge__user__first_name', 'vorsorge__user__last_name')
+    autocomplete_fields = ('vorsorge', 'kategorie')
+
+@admin.register(DigitalerNachlass)
+class DigitalerNachlassAdmin(ModelAdmin):
+    list_display = ('vorsorge', 'kategorie', 'plattform', 'benutzername', 'is_important', 'created_at')
+    list_filter = ('kategorie', 'is_important', 'created_at')
+    search_fields = ('plattform', 'benutzername', 'email', 'vorsorge__user__first_name')
+    autocomplete_fields = ('vorsorge', 'kategorie')
+
+# ============================================================================
+# BESTEHENDE ADMIN INTERFACES
+# ============================================================================
 
 @admin.register(MediaFolder)
 class MediaFolderAdmin(ModelAdmin):

@@ -87,69 +87,6 @@ def can_user_access_precaution_data(user, deceased_user):
         ],
         is_validated_by_admin=True
     ).exists()
-                existing_columns = [row[0] for row in cursor.fetchall()]
-                
-                # Verwende passende SQL basierend auf vorhandenen Spalten
-                if 'role' not in existing_columns:
-                    # Alte Struktur: Verwende link_id und alte Spalten
-                    if 'created_at' in existing_columns:
-                        # Verwende zentrale Hilfsfunktion für konsistente SQL-Query
-                        from .views import get_consistent_familylink_sql
-                        cursor.execute(get_consistent_familylink_sql(
-                            "LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id WHERE fl.deceased_user_id = %s"
-                        ), [deceased_user.id])
-                    else:
-                        # Verwende zentrale Hilfsfunktion für konsistente SQL-Query
-                        from .views import get_consistent_familylink_sql
-                        cursor.execute(get_consistent_familylink_sql(
-                            "LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id WHERE fl.deceased_user_id = %s"
-                        ), [deceased_user.id])
-                else:
-                    # Verwende zentrale Hilfsfunktion für konsistente SQL-Query
-                    from .views import get_consistent_familylink_sql
-                    cursor.execute(get_consistent_familylink_sql(
-                        "LEFT JOIN auth_user u1 ON fl.deceased_user_id = u1.id LEFT JOIN auth_user u2 ON fl.relative_user_id = u2.id WHERE fl.deceased_user_id = %s"
-                    ), [deceased_user.id])
-                
-                # Erstelle Mock-Objekte für die Services
-                class MockFamilyLink:
-                    def __init__(self, row):
-                        self.id = row[0]
-                        self.relationship = row[1] or ''
-                        self.role = row[2] or 'family_member'
-                        self.permission_level = row[3] or 'view_only'
-                        self.is_active = row[4] if row[4] is not None else True
-                        self.is_validated_by_admin = row[5] if row[5] is not None else False
-                        self.validated_at = row[6]
-                        self.created_at = row[7]
-                        self.updated_at = row[8]
-                        self.notes = row[9] or ''
-                        
-                        # Mock User-Objekte
-                        self.deceased_user = type('User', (), {
-                            'id': row[10],
-                            'first_name': row[14] or '',
-                            'last_name': row[15] or '',
-                            'get_full_name': lambda: f"{row[14] or ''} {row[15] or ''}".strip(),
-                            'email': f"user{row[10]}@example.com"
-                        })()
-                        
-                        self.relative_user = type('User', (), {
-                            'id': row[11],
-                            'first_name': row[16] or '',
-                            'last_name': row[17] or '',
-                            'get_full_name': lambda: f"{row[16] or ''} {row[17] or ''}".strip(),
-                            'email': f"user{row[11]}@example.com"
-                        })()
-                        
-                        self.created_by = None
-                        self.validated_by = None
-                
-                rows = cursor.fetchall()
-                return [MockFamilyLink(row) for row in rows]
-        else:
-            # Andere Fehler: Leere Liste zurückgeben
-            return []
 
 
 class TrauerdruckNotificationService:

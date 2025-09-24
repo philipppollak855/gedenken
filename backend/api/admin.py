@@ -45,6 +45,10 @@ class BestattungsartAdmin(ModelAdmin):
     list_editable = ('is_active', 'order')
     ordering = ('order', 'name')
     
+    class Meta:
+        verbose_name = "Bestattungsart"
+        verbose_name_plural = "Bestattungsarten"
+    
     fieldsets = (
         ('Grunddaten', {
             'fields': ('name', 'description', 'icon')
@@ -60,6 +64,10 @@ class VerabschiedungsartAdmin(ModelAdmin):
     list_filter = ('is_religious', 'religion', 'is_active')
     search_fields = ('name', 'description', 'religion')
     list_editable = ('is_active', 'order')
+    
+    class Meta:
+        verbose_name = "Verabschiedungsart"
+        verbose_name_plural = "Verabschiedungsarten"
     
     fieldsets = (
         ('Grunddaten', {
@@ -81,6 +89,10 @@ class MusikKategorieAdmin(ModelAdmin):
     list_editable = ('is_active', 'order')
     ordering = ('order', 'name')
     
+    class Meta:
+        verbose_name = "Musik-Kategorie"
+        verbose_name_plural = "Musik-Kategorien"
+    
     fieldsets = (
         ('Grunddaten', {
             'fields': ('name', 'description', 'icon')
@@ -97,6 +109,10 @@ class VereinsKategorieAdmin(ModelAdmin):
     search_fields = ('name', 'description')
     list_editable = ('is_active', 'order')
     ordering = ('order', 'name')
+    
+    class Meta:
+        verbose_name = "Vereins-Kategorie"
+        verbose_name_plural = "Vereins-Kategorien"
     
     fieldsets = (
         ('Grunddaten', {
@@ -115,6 +131,10 @@ class GrabartAdmin(ModelAdmin):
     list_editable = ('is_active', 'order')
     ordering = ('order', 'name')
     
+    class Meta:
+        verbose_name = "Grabart"
+        verbose_name_plural = "Grabarten"
+    
     fieldsets = (
         ('Grunddaten', {
             'fields': ('name', 'description', 'icon')
@@ -132,6 +152,10 @@ class DokumentKategorieAdmin(ModelAdmin):
     list_editable = ('is_required', 'is_active', 'order')
     ordering = ('order', 'name')
     
+    class Meta:
+        verbose_name = "Dokument-Kategorie"
+        verbose_name_plural = "Dokument-Kategorien"
+    
     fieldsets = (
         ('Grunddaten', {
             'fields': ('name', 'description', 'icon')
@@ -148,6 +172,10 @@ class DigitalerNachlassKategorieAdmin(ModelAdmin):
     search_fields = ('name', 'description')
     list_editable = ('is_active', 'order')
     ordering = ('order', 'name')
+    
+    class Meta:
+        verbose_name = "Digitaler Nachlass-Kategorie"
+        verbose_name_plural = "Digitaler Nachlass-Kategorien"
     
     fieldsets = (
         ('Grunddaten', {

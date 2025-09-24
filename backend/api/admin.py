@@ -1638,27 +1638,28 @@ def trauerdruck_entwurf_form_view(request):
                 'avatar': '?'
             }]
         
-        context = {
-            'memorial_pages': memorial_pages,
-            'memorial_pages_json': json.dumps(memorial_pages_data),
-            'trauerdruck_types': trauerdruck_types,
-            'users_json': json.dumps(users_data),
-        }
-        
-        return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html', context))
-        
-    except Exception as e:
-        # Fallback für Fehler
-        return HttpResponse(f'''
-            <html>
-                <head><title>Fehler</title></head>
-                <body>
-                    <h1>Fehler beim Laden der Form</h1>
-                    <p>Fehler: {str(e)}</p>
-                    <button onclick="window.close()">Schließen</button>
-                </body>
-            </html>
-        ''')
+        try:
+            context = {
+                'memorial_pages': memorial_pages,
+                'memorial_pages_json': json.dumps(memorial_pages_data),
+                'trauerdruck_types': trauerdruck_types,
+                'users_json': json.dumps(users_data),
+            }
+            
+            return HttpResponse(render_to_string('admin/trauerdruck_entwurf_form.html', context))
+            
+        except Exception as e:
+            # Fallback für Fehler
+            return HttpResponse(f'''
+                <html>
+                    <head><title>Fehler</title></head>
+                    <body>
+                        <h1>Fehler beim Laden der Form</h1>
+                        <p>Fehler: {str(e)}</p>
+                        <button onclick="window.close()">Schließen</button>
+                    </body>
+                </html>
+            ''')
 
 def family_link_management_view(request):
     """

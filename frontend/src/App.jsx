@@ -58,9 +58,9 @@ function App() {
         <Routes>
           {/* Routen, die das Padding benötigen */}
           <Route path="/" element={<div className="page-with-padding"><HomePage /></div>} />
-          <Route path="/gedenken/:slug" element={<div className="page-with-padding"><MemorialPage /></div>} />
-          {/* KORRIGIERT: Diese Route benötigt ebenfalls das Padding */}
-          <Route path="/gedenken" element={<div className="page-with-padding"><MemorialListingPage /></div>} />
+          {/* Gedenkseiten benötigen KEIN extra Padding, da sie ihr eigenes Layout haben */}
+          <Route path="/gedenken/:slug" element={<MemorialPage />} />
+          <Route path="/gedenken" element={<MemorialListingPage />} />
           
           {/* Vollbild-Routen, die KEIN extra Padding benötigen */}
           <Route path="/login" element={<LoginPage />} />

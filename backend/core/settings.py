@@ -22,7 +22,7 @@ if IS_PRODUCTION:
     ALLOWED_HOSTS_STRING = os.environ.get('ALLOWED_HOSTS', '')
     ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(' ') if ALLOWED_HOSTS_STRING else []
     
-    BACKEND_URL = f"https://{ALLOWED_HOSTS[0]}" if ALLOWED_HOSTS else ''
+    BACKEND_URL = f"https://{ALLOWED_HOSTS[0]}" if ALLOWED_HOSTS else 'https://vorsorge-backend.onrender.com'
 
     DATABASES = {
         'default': dj_database_url.config(conn_max_age=600, ssl_require=True)

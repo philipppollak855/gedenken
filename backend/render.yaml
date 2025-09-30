@@ -29,6 +29,8 @@ services:
         generateValue: true
       - key: DJANGO_SETTINGS_MODULE # KORRIGIERT
         value: core.settings
+      - key: DJANGO_ENV
+        value: production
       - key: DJANGO_SUPERUSER_EMAIL
         value: philipp.pollak855@gmail.com
       - key: DJANGO_SUPERUSER_PASSWORD

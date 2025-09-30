@@ -12,10 +12,13 @@ load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-development')
 
-IS_PRODUCTION = os.environ.get('DJANGO_ENV') == 'production'
+IS_PRODUCTION = os.environ.get('DJANGO_ENV') == 'production' or os.environ.get('RENDER') == 'true'
 
 if IS_PRODUCTION:
     DEBUG = False
+    # Debugging für Production
+    import logging
+    logging.basicConfig(level=logging.INFO)
     ALLOWED_HOSTS_STRING = os.environ.get('ALLOWED_HOSTS', '')
     ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(' ') if ALLOWED_HOSTS_STRING else []
     
